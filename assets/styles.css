@@ -9,6 +9,20 @@
   --bg-alt-1: #DDEAF4;
   --bg-alt-2: #F4F7FA;
 
+  /* Neumorphism — light source: top-left @135° */
+  --neu-light: rgba(255, 255, 255, 0.92);
+  --neu-shadow: rgba(154, 174, 196, 0.55);
+  --neu-shadow-soft: rgba(154, 174, 196, 0.28);
+  --neu-shadow-strong: rgba(120, 142, 168, 0.45);
+
+  /* Neumorphism shadow recipes (use directly on box-shadow) */
+  --neu-out:        -8px -8px 22px var(--neu-light), 8px 8px 22px var(--neu-shadow);
+  --neu-out-lg:     -12px -12px 32px var(--neu-light), 14px 14px 36px var(--neu-shadow-strong);
+  --neu-out-sm:     -3px -3px 8px var(--neu-light), 4px 4px 10px var(--neu-shadow);
+  --neu-in:         inset -5px -5px 12px var(--neu-light), inset 5px 5px 12px var(--neu-shadow-soft);
+  --neu-in-deep:    inset -6px -6px 14px var(--neu-light), inset 8px 8px 16px var(--neu-shadow);
+  --neu-press:      inset -2px -2px 6px var(--neu-light), inset 3px 3px 8px var(--neu-shadow-strong);
+
   /* Text */
   --text-main: #17212B;
   --text-muted: #667789;
@@ -104,6 +118,44 @@ input, select, textarea { font-family: inherit; }
 .price { font-weight: 800; color: var(--token-green); }
 .price .sym { font-weight: 700; opacity: 0.85; margin-left: 4px; font-size: 0.82em; }
 
+/* ============================================================
+   Neumorphism utilities — soft-UI 양각/음각
+   Combine with .glass-card or use solo for an opaque neu surface.
+   ============================================================ */
+.neu        { background: var(--bg-main); border-radius: 22px; box-shadow: var(--neu-out); }
+.neu-lg     { background: var(--bg-main); border-radius: 28px; box-shadow: var(--neu-out-lg); }
+.neu-sm     { background: var(--bg-main); border-radius: 14px; box-shadow: var(--neu-out-sm); }
+.neu-in     { background: var(--bg-main); border-radius: 22px; box-shadow: var(--neu-in); }
+.neu-in-deep{ background: var(--bg-main); border-radius: 22px; box-shadow: var(--neu-in-deep); }
+
+/* Combine glass + neu — translucent surface with neu shadow rim */
+.glass-neu {
+  background: rgba(255,255,255,0.55);
+  backdrop-filter: blur(22px) saturate(150%);
+  -webkit-backdrop-filter: blur(22px) saturate(150%);
+  border: 1px solid rgba(255,255,255,0.7);
+  border-radius: 24px;
+  box-shadow:
+    -10px -10px 24px var(--neu-light),
+    12px 12px 28px var(--neu-shadow-soft),
+    inset 0 1px 0 rgba(255,255,255,0.8);
+}
+
+/* Pressable neu button — click feels physically depressed */
+.neu-btn {
+  background: var(--bg-main);
+  color: var(--text-main);
+  border: 0;
+  border-radius: 999px;
+  padding: 14px 26px;
+  font-weight: 700; font-size: 14px;
+  box-shadow: var(--neu-out);
+  transition: box-shadow 160ms ease-out, transform 160ms ease-out;
+}
+.neu-btn:hover { transform: translateY(-1px); box-shadow: var(--neu-out-lg); }
+.neu-btn:active { box-shadow: var(--neu-press); transform: translateY(1px); }
+.neu-btn.is-active { box-shadow: var(--neu-press); color: var(--ocean-blue); }
+
 /* ========== Glass primitives ========== */
 .glass-card {
   background: var(--glass-white);
@@ -111,7 +163,10 @@ input, select, textarea { font-family: inherit; }
   -webkit-backdrop-filter: blur(24px) saturate(140%);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-card);
-  box-shadow: var(--shadow-glass);
+  box-shadow:
+    var(--shadow-glass),
+    -8px -8px 22px var(--neu-light),
+    10px 10px 26px var(--neu-shadow-soft);
   position: relative;
   z-index: 1;
 }
@@ -128,10 +183,8 @@ input, select, textarea { font-family: inherit; }
 }
 
 .glass-input {
-  background: var(--glass-input);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255,255,255,0.52);
+  background: var(--bg-main);
+  border: 0;
   border-radius: var(--radius-input);
   padding: 0 22px;
   height: 52px;
@@ -139,11 +192,14 @@ input, select, textarea { font-family: inherit; }
   font-size: 15px;
   width: 100%;
   outline: none;
-  transition: border-color var(--t-fast), box-shadow var(--t-fast);
+  box-shadow: var(--neu-in);
+  transition: box-shadow var(--t-fast);
 }
 .glass-input:focus {
-  border-color: rgba(34,184,255,0.65);
-  box-shadow: 0 0 0 4px rgba(34,184,255,0.12);
+  box-shadow:
+    inset -3px -3px 8px var(--neu-light),
+    inset 4px 4px 10px var(--neu-shadow),
+    0 0 0 3px rgba(34,184,255,0.18);
 }
 textarea.glass-input { border-radius: 22px; padding: 14px 18px; height: auto; min-height: 120px; resize: vertical; }
 select.glass-input { appearance: none; padding-right: 40px; background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2317212B' stroke-width='2'><polyline points='6 9 12 15 18 9'/></svg>"); background-repeat: no-repeat; background-position: right 18px center; }
@@ -172,21 +228,24 @@ select.glass-input { appearance: none; padding-right: 40px; background-image: ur
 .btn-primary:hover { filter: brightness(1.05); box-shadow: 0 16px 38px rgba(34,184,255,0.40); }
 
 .btn-secondary {
-  background: var(--grad-secondary);
+  background: var(--bg-main);
   color: var(--text-main);
-  border: 1px solid var(--glass-border);
-  backdrop-filter: blur(20px);
-  box-shadow: 0 8px 24px rgba(31,61,88,0.10);
+  border: 0;
+  box-shadow: var(--neu-out-sm);
 }
+.btn-secondary:hover { box-shadow: var(--neu-out); transform: translateY(-1px); }
+.btn-secondary:active { box-shadow: var(--neu-press); transform: translateY(0); }
 
 .btn-premium { background: var(--grad-premium); color: #fff; box-shadow: 0 12px 30px rgba(124,92,255,0.35); }
 .btn-warning { background: var(--grad-warning); color: #fff; box-shadow: 0 12px 30px rgba(255,138,61,0.32); }
 .btn-ghost {
-  background: rgba(255,255,255,0.36);
-  backdrop-filter: blur(20px);
-  border: 1px solid var(--glass-border);
+  background: var(--bg-main);
+  border: 0;
   color: var(--text-main);
+  box-shadow: var(--neu-out-sm);
 }
+.btn-ghost:hover { box-shadow: var(--neu-out); }
+.btn-ghost:active { box-shadow: var(--neu-press); }
 .btn-power {
   width: 52px; height: 52px; padding: 0;
   border-radius: 18px;
@@ -205,41 +264,49 @@ select.glass-input { appearance: none; padding-right: 40px; background-image: ur
   display: inline-flex; align-items: center; gap: 8px;
   height: 42px; padding: 0 18px;
   border-radius: 999px;
-  background: rgba(255,255,255,0.45);
-  backdrop-filter: blur(18px);
-  border: 1px solid rgba(255,255,255,0.55);
+  background: var(--bg-main);
+  border: 0;
   font-size: 13px; font-weight: 600; color: var(--text-main);
-  transition: all var(--t-fast);
+  box-shadow: var(--neu-out-sm);
+  transition: box-shadow var(--t-fast), transform var(--t-fast), color var(--t-fast);
 }
-.chip:hover { background: rgba(255,255,255,0.6); }
+.chip:hover { transform: translateY(-1px); box-shadow: -4px -4px 10px var(--neu-light), 5px 5px 12px var(--neu-shadow); }
+.chip:active { box-shadow: var(--neu-press); transform: translateY(0); }
 .chip.is-active {
   background: var(--grad-main-cta);
   color: #fff;
-  border-color: transparent;
-  box-shadow: 0 8px 22px rgba(34,184,255,0.32);
+  box-shadow:
+    0 8px 22px rgba(34,184,255,0.32),
+    inset 0 1px 0 rgba(255,255,255,0.45);
 }
 
 /* ========== Toggle switch ========== */
 .toggle {
-  width: 56px; height: 32px;
-  background: rgba(255,255,255,0.6);
-  border: 1px solid var(--glass-border);
+  width: 60px; height: 34px;
+  background: var(--bg-main);
+  border: 0;
   border-radius: 999px;
   position: relative;
   cursor: pointer;
-  transition: background var(--t-base);
+  box-shadow: var(--neu-in);
+  transition: background var(--t-base), box-shadow var(--t-base);
 }
 .toggle::after {
   content: '';
-  position: absolute; top: 3px; left: 3px;
-  width: 24px; height: 24px;
+  position: absolute; top: 4px; left: 4px;
+  width: 26px; height: 26px;
   border-radius: 999px;
-  background: #fff;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  background: var(--bg-main);
+  box-shadow: var(--neu-out-sm);
   transition: transform var(--t-base);
 }
-.toggle.on { background: var(--grad-main-cta); border-color: transparent; }
-.toggle.on::after { transform: translateX(24px); }
+.toggle.on {
+  background: var(--grad-main-cta);
+  box-shadow:
+    inset 4px 4px 10px rgba(13, 137, 191, 0.45),
+    inset -2px -2px 6px rgba(255,255,255,0.35);
+}
+.toggle.on::after { transform: translateX(26px); background: #fff; }
 
 /* ========== Badge ========== */
 .badge {
@@ -714,12 +781,11 @@ select.glass-input { appearance: none; padding-right: 40px; background-image: ur
 /* ========== Search bar (capsule) ========== */
 .search-bar {
   display: flex; align-items: center; gap: 10px;
-  background: var(--glass-input);
-  backdrop-filter: blur(22px);
-  border: 1px solid var(--glass-border);
+  background: var(--bg-main);
+  border: 0;
   border-radius: 999px;
   padding: 8px 8px 8px 22px;
-  box-shadow: var(--shadow-soft);
+  box-shadow: var(--neu-in);
   position: relative;
 }
 .search-bar input {
@@ -758,12 +824,13 @@ select.glass-input { appearance: none; padding-right: 40px; background-image: ur
 .stat-card {
   padding: 22px;
   border-radius: 24px;
-  background: var(--glass-white);
-  backdrop-filter: blur(24px);
-  border: 1px solid var(--glass-border);
-  box-shadow: var(--shadow-soft);
+  background: var(--bg-main);
+  border: 0;
+  box-shadow: var(--neu-out);
   position: relative;
+  transition: box-shadow var(--t-base), transform var(--t-base);
 }
+.stat-card:hover { transform: translateY(-2px); box-shadow: var(--neu-out-lg); }
 .stat-card .label { font-size: 13px; color: var(--text-muted); font-weight: 600; }
 .stat-card .num {
   font-size: 40px; font-weight: 800; letter-spacing: -0.02em;
@@ -838,14 +905,13 @@ select.glass-input { appearance: none; padding-right: 40px; background-image: ur
 .bottom-nav {
   position: fixed; left: 16px; right: 16px; bottom: 16px;
   z-index: 80;
-  background: rgba(255,255,255,0.7);
-  backdrop-filter: blur(28px);
-  border: 1px solid var(--glass-border);
+  background: var(--bg-main);
+  border: 0;
   border-radius: 28px;
   padding: 10px 14px;
   display: none;
   justify-content: space-between;
-  box-shadow: var(--shadow-glass);
+  box-shadow: -10px -10px 30px var(--neu-light), 12px 12px 32px var(--neu-shadow-strong);
 }
 .bottom-nav a {
   flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px;
@@ -919,12 +985,14 @@ select.glass-input { appearance: none; padding-right: 40px; background-image: ur
 /* Glass icon button */
 .icon-btn {
   width: 44px; height: 44px; border-radius: 50%;
-  background: rgba(255,255,255,0.55);
-  backdrop-filter: blur(18px);
-  border: 1px solid var(--glass-border);
+  background: var(--bg-main);
+  border: 0;
   display: grid; place-items: center;
-  box-shadow: var(--shadow-soft);
+  box-shadow: var(--neu-out-sm);
+  transition: box-shadow var(--t-fast), transform var(--t-fast);
 }
+.icon-btn:hover { transform: translateY(-1px); box-shadow: var(--neu-out); }
+.icon-btn:active { box-shadow: var(--neu-press); }
 
 /* Page transitions */
 .page-enter { animation: pageIn 280ms ease-out; }

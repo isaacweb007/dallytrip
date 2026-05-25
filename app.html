@@ -6,7 +6,7 @@
 <title>DallyTrip — App</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
 <link rel="stylesheet" href="./assets/styles.css" />
-<script src="./assets/i18n.js"></script>
+<script src="./assets/i18n.js?v=20260525a"></script>
 </head>
 <body>
 
@@ -64,6 +64,78 @@ const PRODUCTS = [
   { id: 'p6', cat:'Tour', country:'Vietnam', city:'Mui Ne', name:'Mui Ne Desert Jeep Tour', price:38, rating:4.5, reviews:88, img:'https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?w=900&auto=format&fit=crop&q=70', desc:'Sunrise jeep ride across the red and white sand dunes of Mui Ne.', included:['Jeep (4 pax)','Driver','Sandboard'], excluded:['Hotel pickup'], cancel:'24h cancellation policy.' },
   { id: 'p7', cat:'Tour', country:'Vietnam', city:'Ha Long Bay', name:'Ha Long Bay Overnight Cruise', price:185, rating:4.9, reviews:540, img:'https://images.unsplash.com/photo-1528127269322-539801943592?w=900&auto=format&fit=crop&q=70', desc:'2-day overnight cruise across Ha Long Bay with all meals and kayaking.', included:['All meals','Kayaking','Tai chi'], excluded:['Drinks','Spa'], cancel:'7 days cancellation policy.' },
   { id: 'p8', cat:'Activity', country:'Thailand', city:'Bangkok', name:'Bangkok Sky Bar Pass', price:28, rating:4.4, reviews:160, img:'https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=900&auto=format&fit=crop&q=70', desc:'Skip-the-line entry to top Bangkok rooftop bars with welcome drink.', included:['Welcome drink','Skip-the-line'], excluded:['Dinner'], cancel:'24h policy.' },
+
+  // ============== Flights ==============
+  { id: 'f1', cat:'Flight', country:'Vietnam', city:'Da Nang',
+    name:'Seoul (ICN) → Da Nang (DAD)',
+    fromCode:'ICN', toCode:'DAD', fromCity:'Seoul', toCity:'Da Nang',
+    airline:'Vietnam Airlines', flightNo:'VN409', depart:'08:20', arrive:'11:50', duration:'5h 30m', stops:0, cabin:'Economy',
+    price:180, rating:4.7, reviews:1240,
+    img:'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=900&auto=format&fit=crop&q=70',
+    desc:'Direct flight from Incheon to Da Nang. 23kg checked baggage included.',
+    included:['Checked baggage 23kg','In-flight meal','Seat selection'], excluded:['Extra legroom'],
+    cancel:'Non-refundable. Date changes allowed 48h before departure.' },
+
+  { id: 'f2', cat:'Flight', country:'Vietnam', city:'Ho Chi Minh',
+    name:'Tokyo (NRT) → Ho Chi Minh (SGN)',
+    fromCode:'NRT', toCode:'SGN', fromCity:'Tokyo', toCity:'Ho Chi Minh',
+    airline:'Japan Airlines', flightNo:'JL759', depart:'18:35', arrive:'23:15', duration:'6h 40m', stops:0, cabin:'Economy',
+    price:240, rating:4.8, reviews:880,
+    img:'https://images.unsplash.com/photo-1542296332-2e4473faf563?w=900&auto=format&fit=crop&q=70',
+    desc:'Direct overnight-friendly flight from Tokyo Narita to Ho Chi Minh.',
+    included:['Checked baggage 23kg','In-flight meal','Drinks'], excluded:[],
+    cancel:'48h cancellation, 50% refund.' },
+
+  { id: 'f3', cat:'Flight', country:'Vietnam', city:'Phu Quoc',
+    name:'Bangkok (BKK) → Phu Quoc (PQC)',
+    fromCode:'BKK', toCode:'PQC', fromCity:'Bangkok', toCity:'Phu Quoc',
+    airline:'Bangkok Airways', flightNo:'PG991', depart:'10:15', arrive:'12:00', duration:'1h 45m', stops:0, cabin:'Economy',
+    price:95, rating:4.5, reviews:420,
+    img:'https://images.unsplash.com/photo-1569629743817-70d8db6c323b?w=900&auto=format&fit=crop&q=70',
+    desc:'Short hop to the island paradise of Phu Quoc.',
+    included:['Carry-on 7kg','In-flight snack'], excluded:['Checked baggage'],
+    cancel:'No refund within 72h.' },
+
+  { id: 'f4', cat:'Flight', country:'Vietnam', city:'Ha Long Bay',
+    name:'Hanoi (HAN) → Ha Long (VDO)',
+    fromCode:'HAN', toCode:'VDO', fromCity:'Hanoi', toCity:'Ha Long',
+    airline:'Vietjet Air', flightNo:'VJ265', depart:'07:00', arrive:'07:45', duration:'45m', stops:0, cabin:'Economy',
+    price:48, rating:4.3, reviews:210,
+    img:'https://images.unsplash.com/photo-1521727857535-28d2047314ac?w=900&auto=format&fit=crop&q=70',
+    desc:'Quick hop to Van Don, gateway to Ha Long Bay.',
+    included:['Carry-on 7kg'], excluded:['Meal','Checked baggage'],
+    cancel:'Non-refundable.' },
+
+  // ============== Transport ==============
+  { id: 't1', cat:'Transport', country:'Vietnam', city:'Da Nang',
+    name:'Da Nang City → Hoi An Private Sedan',
+    fromAddr:'Da Nang City Center', toAddr:'Hoi An Ancient Town',
+    vehicle:'Sedan', maxPax:3, distance:'30 km', estDuration:'45m',
+    price:24, rating:4.9, reviews:512,
+    img:'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=900&auto=format&fit=crop&q=70',
+    desc:'Private sedan transfer with English-speaking driver. Bottled water provided.',
+    included:['Private sedan','English driver','Bottled water','Tolls'], excluded:['Tip'],
+    cancel:'Free cancellation up to 6h before pickup.' },
+
+  { id: 't2', cat:'Transport', country:'Vietnam', city:'Ho Chi Minh',
+    name:'HCMC ↔ Mekong Delta Day Van',
+    fromAddr:'HCMC Hotel', toAddr:'Ben Tre / Mekong Delta',
+    vehicle:'Van', maxPax:7, distance:'180 km roundtrip', estDuration:'10h',
+    price:65, rating:4.7, reviews:240,
+    img:'https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=900&auto=format&fit=crop&q=70',
+    desc:'Full-day van charter for Mekong Delta excursion. Up to 7 passengers.',
+    included:['Van rental 10h','Driver','Fuel','Tolls'], excluded:['Boat tickets','Meals'],
+    cancel:'24h cancellation policy.' },
+
+  { id: 't3', cat:'Transport', country:'Vietnam', city:'Nha Trang',
+    name:'Cam Ranh Airport Shuttle SUV',
+    fromAddr:'Cam Ranh Int. Airport (CXR)', toAddr:'Nha Trang City Hotels',
+    vehicle:'SUV', maxPax:5, distance:'35 km', estDuration:'40m',
+    price:30, rating:4.8, reviews:660,
+    img:'https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=900&auto=format&fit=crop&q=70',
+    desc:'Spacious SUV airport pickup. Meet & greet at arrivals hall.',
+    included:['SUV (up to 5 pax)','Meet & greet','Bottled water'], excluded:['Tolls'],
+    cancel:'Free cancellation up to 4h before pickup.' },
 ];
 
 const DESTS = [
@@ -192,7 +264,7 @@ function pageHome() {
         <a class="btn btn-primary btn-lg" href="#/search">${t('btn.search')}</a>
       </div>
       <div class="chip-group mt-16">
-        ${['All','Hotels','Tours','Activities','Airport Pickup'].map((c,i)=>`<a class="chip ${i===0?'is-active':''}" href="#/search?cat=${encodeURIComponent(c)}">${t('cat.'+c.replace(/\s/g,''))}</a>`).join('')}
+        ${['All','Flights','Hotels','Tours','Activities','Transport'].map((c,i)=>`<a class="chip ${i===0?'is-active':''}" href="#/search?cat=${encodeURIComponent(c)}">${t('cat.'+c.replace(/\s/g,''))}</a>`).join('')}
       </div>
     </div>
 
@@ -238,6 +310,17 @@ function pageHome() {
 
 function productCard(p) {
   const unitKey = p.cat==='Hotel' ? 'units.night' : 'units.pp';
+  const isFlight = p.cat === 'Flight';
+  const isTransport = p.cat === 'Transport' || p.cat === 'Pickup';
+
+  // Custom meta line per category
+  let metaInner = `<span>⭐ ${p.rating}</span><span>·</span><span>${p.reviews} ${t('app.product.reviews')}</span>`;
+  if (isFlight) {
+    metaInner = `<span style="font-weight:700;color:var(--text-main);">${p.fromCode} → ${p.toCode}</span><span>·</span><span>${p.duration}</span><span>·</span><span>${p.airline}</span>`;
+  } else if (isTransport) {
+    metaInner = `<span>🚗 ${t('transport.'+p.vehicle.toLowerCase())}</span><span>·</span><span>${p.distance}</span><span>·</span><span>⭐ ${p.rating}</span>`;
+  }
+
   return `
   <a class="product-card" href="#/product/${p.id}">
     <div class="img" style="background-image:url('${p.img}')">
@@ -245,15 +328,12 @@ function productCard(p) {
       <button class="like" onclick="event.preventDefault();event.stopPropagation();toast(t('toast.favorite'))">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FF8A3D" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
       </button>
+      ${isFlight ? `<span class="badge purple" style="position:absolute;top:14px;right:14px;background:rgba(255,255,255,0.85);color:#4830b0;">${p.flightNo}</span>` : ''}
     </div>
     <div class="body">
       <div class="loc">${trCountry(p.country)} · ${trCity(p.city)}</div>
       <div class="title">${p.name}</div>
-      <div class="meta">
-        <span>⭐ ${p.rating}</span>
-        <span>·</span>
-        <span>${p.reviews} ${t('app.product.reviews')}</span>
-      </div>
+      <div class="meta">${metaInner}</div>
       <div class="price-row">
         <div>${price(p.price)} <span class="t-small t-muted">/ ${t(unitKey)}</span></div>
         <span class="btn btn-secondary btn-sm">${t('btn.view')}</span>
@@ -268,7 +348,12 @@ function pageSearch(params) {
   const q = (params.get('q') || state.filter.q || '').toLowerCase();
   state.filter = { category: cat, q };
   const filtered = PRODUCTS.filter(p => {
-    const matchCat = cat === 'All' || cat === 'Hotels' && p.cat==='Hotel' || cat === 'Tours' && p.cat==='Tour' || cat === 'Activities' && p.cat==='Activity' || cat === 'Airport Pickup' && p.cat==='Pickup';
+    const matchCat = cat === 'All'
+      || (cat === 'Hotels'     && p.cat === 'Hotel')
+      || (cat === 'Tours'      && p.cat === 'Tour')
+      || (cat === 'Activities' && p.cat === 'Activity')
+      || (cat === 'Flights'    && p.cat === 'Flight')
+      || (cat === 'Transport'  && (p.cat === 'Transport' || p.cat === 'Pickup'));
     const matchQ = !q || p.name.toLowerCase().includes(q) || p.city.toLowerCase().includes(q) || p.country.toLowerCase().includes(q);
     return matchCat && matchQ;
   });
@@ -285,7 +370,7 @@ function pageSearch(params) {
     </div>
 
     <div class="chip-group mb-16">
-      ${['All','Hotels','Tours','Activities','Airport Pickup'].map(c => `<a class="chip ${cat===c?'is-active':''}" href="#/search?cat=${encodeURIComponent(c)}">${t('cat.'+c.replace(/\s/g,''))}</a>`).join('')}
+      ${['All','Flights','Hotels','Tours','Activities','Transport'].map(c => `<a class="chip ${cat===c?'is-active':''}" href="#/search?cat=${encodeURIComponent(c)}">${t('cat.'+c.replace(/\s/g,''))}</a>`).join('')}
     </div>
 
     <div class="row items-center space-between" style="margin-bottom:12px;">
@@ -308,6 +393,131 @@ function pageProduct(id) {
   const p = PRODUCTS.find(x => x.id === id);
   if (!p) return `<div class="glass-card" style="padding:32px;">Product not found.</div>`;
   const unitKey = p.cat==='Hotel' ? 'units.night' : 'units.pp';
+  const isFlight = p.cat === 'Flight';
+  const isTransport = p.cat === 'Transport' || p.cat === 'Pickup';
+  const isHotel = p.cat === 'Hotel';
+
+  // ============ Category-specific hero info block ============
+  let heroBlock = '';
+  if (isFlight) {
+    heroBlock = `
+      <div class="glass-card neu" style="padding:20px;margin-top:16px;">
+        <div class="row items-center" style="justify-content:space-between;flex-wrap:wrap;gap:12px;">
+          <div style="text-align:center;flex:1;min-width:120px;">
+            <div style="font-size:36px;font-weight:800;letter-spacing:-0.02em;">${p.fromCode}</div>
+            <div class="t-small t-muted">${trCity(p.fromCity)}</div>
+            <div style="font-weight:700;margin-top:4px;">${p.depart}</div>
+          </div>
+          <div style="text-align:center;flex:0;color:var(--ocean-blue);min-width:100px;">
+            <div style="font-size:13px;font-weight:700;">${p.duration}</div>
+            <div style="font-size:20px;line-height:1;margin:4px 0;">✈</div>
+            <div class="t-small t-muted">${p.stops === 0 ? t('flight.nonstop') : p.stops+' '+t('flight.stops')}</div>
+          </div>
+          <div style="text-align:center;flex:1;min-width:120px;">
+            <div style="font-size:36px;font-weight:800;letter-spacing:-0.02em;">${p.toCode}</div>
+            <div class="t-small t-muted">${trCity(p.toCity)}</div>
+            <div style="font-weight:700;margin-top:4px;">${p.arrive}</div>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="row gap-16" style="flex-wrap:wrap;">
+          <div><div class="t-muted t-small">${t('flight.airline')}</div><b>${p.airline}</b></div>
+          <div><div class="t-muted t-small">${t('cat.Flight')}</div><b>${p.flightNo}</b></div>
+          <div><div class="t-muted t-small">${t('flight.cabinClass')}</div><b>${t('flight.'+p.cabin.toLowerCase())}</b></div>
+          <div><div class="t-muted t-small">${t('flight.baggage')}</div><b>23kg</b></div>
+        </div>
+      </div>`;
+  } else if (isTransport) {
+    heroBlock = `
+      <div class="glass-card neu" style="padding:20px;margin-top:16px;">
+        <div class="row items-center gap-12" style="flex-wrap:wrap;">
+          <div style="flex:1;min-width:180px;">
+            <div class="t-muted t-small">${t('transport.pickupAddr')}</div>
+            <div style="font-weight:700;">📍 ${p.fromAddr}</div>
+          </div>
+          <div style="color:var(--ocean-blue);font-size:20px;">→</div>
+          <div style="flex:1;min-width:180px;">
+            <div class="t-muted t-small">${t('transport.dropoffAddr')}</div>
+            <div style="font-weight:700;">🏁 ${p.toAddr}</div>
+          </div>
+        </div>
+        <div class="divider"></div>
+        <div class="row gap-16" style="flex-wrap:wrap;">
+          <div><div class="t-muted t-small">${t('transport.vehicle')}</div><b>${t('transport.'+p.vehicle.toLowerCase())}</b></div>
+          <div><div class="t-muted t-small">${t('transport.maxPax')}</div><b>${p.maxPax} pax</b></div>
+          <div><div class="t-muted t-small">${t('transport.distance')}</div><b>${p.distance}</b></div>
+          <div><div class="t-muted t-small">${t('transport.duration')}</div><b>${p.estDuration}</b></div>
+        </div>
+      </div>`;
+  }
+
+  // ============ Category-specific booking form ============
+  let bookingForm = '';
+  if (isFlight) {
+    bookingForm = `
+      <div class="field">
+        <label>${t('flight.departure')}</label>
+        <input id="b_date" class="glass-input" type="date" value="2026-06-12" />
+      </div>
+      <div class="field">
+        <label>${t('flight.passenger')}</label>
+        <select id="b_adults" class="glass-input">
+          <option>1</option><option selected>2</option><option>3</option><option>4</option>
+        </select>
+      </div>
+      <div class="field" style="grid-column:1/-1;">
+        <label>${t('flight.cabinClass')}</label>
+        <select id="b_option" class="glass-input">
+          <option>${t('flight.economy')}</option>
+          <option>${t('flight.business')} (+120 $1)</option>
+          <option>${t('flight.first')} (+250 $1)</option>
+        </select>
+      </div>`;
+  } else if (isTransport) {
+    bookingForm = `
+      <div class="field">
+        <label>${t('common.date')}</label>
+        <input id="b_date" class="glass-input" type="date" value="2026-06-12" />
+      </div>
+      <div class="field">
+        <label>${t('transport.pickupTime')}</label>
+        <input id="b_time" class="glass-input" type="time" value="10:00" />
+      </div>
+      <div class="field">
+        <label>${t('flight.passenger')}</label>
+        <select id="b_adults" class="glass-input">
+          ${Array.from({length: p.maxPax}, (_,i)=>`<option ${i===1?'selected':''}>${i+1}</option>`).join('')}
+        </select>
+      </div>
+      <div class="field">
+        <label>${t('common.children')}</label>
+        <select id="b_children" class="glass-input">
+          <option selected>0</option><option>1</option><option>2</option>
+        </select>
+      </div>`;
+  } else {
+    // Default (Hotel/Tour/Activity)
+    bookingForm = `
+      <div class="field">
+        <label>${isHotel ? t('common.checkin') : t('common.date')}</label>
+        <input id="b_date" class="glass-input" type="date" value="2026-06-12" />
+      </div>
+      ${isHotel ? `<div class="field"><label>${t('common.checkout')}</label><input id="b_date2" class="glass-input" type="date" value="2026-06-14" /></div>` : ''}
+      <div class="field">
+        <label>${t('common.adults')}</label>
+        <select id="b_adults" class="glass-input">
+          <option>1</option><option selected>2</option><option>3</option><option>4</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>${t('common.children')}</label>
+        <select id="b_children" class="glass-input">
+          <option selected>0</option><option>1</option><option>2</option>
+        </select>
+      </div>
+      ${isHotel ? `<div class="field" style="grid-column:1/-1;"><label>${t('app.product.room')}</label><select id="b_option" class="glass-input"><option>Deluxe Ocean Room</option><option>Premium Suite (+50 $1)</option></select></div>` : ''}`;
+  }
+
   return `
   <div class="page-enter">
     <div class="row items-center space-between mb-16">
@@ -339,6 +549,7 @@ function pageProduct(id) {
             <span>⭐ ${p.rating} (${p.reviews})</span>
           </div>
           <p class="mt-16" style="line-height:1.6;">${p.desc}</p>
+          ${heroBlock}
         </div>
 
         <div class="glass-card mt-16" style="padding:28px;">
@@ -366,24 +577,7 @@ function pageProduct(id) {
         </div>
 
         <div class="form-grid mt-16">
-          <div class="field">
-            <label>${p.cat==='Hotel'?t('common.checkin'):t('common.date')}</label>
-            <input id="b_date" class="glass-input" type="date" value="2026-06-12" />
-          </div>
-          ${p.cat==='Hotel' ? `<div class="field"><label>${t('common.checkout')}</label><input id="b_date2" class="glass-input" type="date" value="2026-06-14" /></div>` : ''}
-          <div class="field">
-            <label>${t('common.adults')}</label>
-            <select id="b_adults" class="glass-input">
-              <option>1</option><option selected>2</option><option>3</option><option>4</option>
-            </select>
-          </div>
-          <div class="field">
-            <label>${t('common.children')}</label>
-            <select id="b_children" class="glass-input">
-              <option selected>0</option><option>1</option><option>2</option>
-            </select>
-          </div>
-          ${p.cat==='Hotel' ? `<div class="field" style="grid-column:1/-1;"><label>${t('app.product.room')}</label><select id="b_option" class="glass-input"><option>Deluxe Ocean Room</option><option>Premium Suite (+50 $1)</option></select></div>` : ''}
+          ${bookingForm}
         </div>
 
         <div class="divider"></div>
@@ -708,18 +902,20 @@ function bindProductTotals() {
   const id = path.split('/')[2];
   const p = PRODUCTS.find(x => x.id === id);
   if (!p) return;
-  const update = () => {
-    const n = parseInt(adults.value || '1');
-    totalEl.innerHTML = price(p.price * n);
-    unitsEl.textContent = `x ${n}`;
-  };
-  adults.addEventListener('change', update);
   const opt = document.getElementById('b_option');
-  if (opt) opt.addEventListener('change', () => {
-    const extra = /\+50/.test(opt.value) ? 50 : 0;
+  const recompute = () => {
     const n = parseInt(adults.value || '1');
+    let extra = 0;
+    if (opt) {
+      const v = opt.value;
+      const m = v.match(/\+(\d+)/);
+      if (m) extra = parseInt(m[1]);
+    }
     totalEl.innerHTML = price((p.price + extra) * n);
-  });
+    if (unitsEl) unitsEl.textContent = `x ${n}`;
+  };
+  adults.addEventListener('change', recompute);
+  if (opt) opt.addEventListener('change', recompute);
 }
 
 window.addEventListener('hashchange', router);
