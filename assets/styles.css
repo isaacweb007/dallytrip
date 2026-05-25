@@ -1233,6 +1233,23 @@ select.glass-input { appearance: none; padding-right: 40px; background-image: ur
 }
 .dt-modal-close:hover { background: rgba(0,0,0,0.10); }
 
+/* Demo mode badge in the app header */
+.demo-badge {
+  display: inline-flex; align-items: center;
+  height: 26px; padding: 0 10px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #FF8A3D, #FFCB57);
+  color: #fff;
+  font-size: 11px; font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  box-shadow: 0 8px 18px rgba(255,138,61,0.30);
+  cursor: help;
+}
+@media (max-width: 768px) {
+  .demo-badge { height: 22px; font-size: 10px; padding: 0 8px; }
+}
+
 /* "Coming Soon" pill used on price-rows and CTAs */
 .coming-soon-pill {
   display: inline-flex; align-items: center; gap: 4px;

@@ -8,8 +8,8 @@
 <meta http-equiv="Expires" content="0" />
 <title>DallyTrip — Admin</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
-<link rel="stylesheet" href="./assets/styles.css?v=20260525b" />
-<script src="./assets/i18n.js?v=20260525c"></script>
+<link rel="stylesheet" href="./assets/styles.css?v=20260525c" />
+<script src="./assets/i18n.js?v=20260525d"></script>
 <!-- Travelpayouts affiliate tracking (marker 532633) -->
 <script>(function(){var s=document.createElement('script');s.async=1;s.src='https://emrldco.com/NTMyNjMz.js?t=532633';document.head.appendChild(s);})();</script>
 </head>
@@ -183,8 +183,12 @@ function shell(path, content) {
         ${sideLink('/dashboard', t('admin.side.dashboard'), '📊', path)}
         ${sideLink('/products',  t('admin.side.products'),  '🛏️', path)}
         ${sideLink('/bookings',  t('admin.side.bookings'),  '📅', path)}
+        ${sideLink('/payouts',   t('admin.side.payouts'),   '🪙', path)}
         ${sideLink('/payments',  t('admin.side.payments'),  '💳', path)}
         ${sideLink('/users',     t('admin.side.users'),     '👥', path)}
+        ${sideLink('/wallet',    t('admin.side.wallet'),    '👛', path)}
+        ${sideLink('/partners',  t('admin.side.partners'),  '🤝', path)}
+        ${sideLink('/api',       t('admin.side.api'),       '⚡', path)}
         ${sideLink('/banners',   t('admin.side.banners'),   '🖼️', path)}
         ${sideLink('/settings',  t('admin.side.settings'),  '⚙️', path)}
       </nav>
@@ -715,6 +719,407 @@ function saveSettings(){
 }
 window.saveSettings = saveSettings;
 
+// =========================================================
+// ============= NEW: API · Partners · Wallet · Payouts ===
+// =========================================================
+
+// Seed: API endpoints
+const API_ENDPOINTS = [
+  { path:'/api/flights/search',    env:'TRAVELPAYOUTS_TOKEN', docs:'https://support.travelpayouts.com/' },
+  { path:'/api/hotels/search',     env:'TRAVELPAYOUTS_TOKEN', docs:'https://hotellook.com/affiliate' },
+  { path:'/api/cars/search',       env:'DISCOVERCARS_AFFILIATE_ID', docs:'https://www.discovercars.com/affiliate' },
+  { path:'/api/activities/search', env:'GETYOURGUIDE_PARTNER_ID', docs:'https://partner.getyourguide.com/' },
+  { path:'/api/booking/search',    env:'BOOKING_AID', docs:'https://www.booking.com/affiliate-program/v2/' },
+  { path:'/api/tp/search',         env:'TRAVELPAYOUTS_TOKEN', docs:'/AFFILIATE_GUIDE.md' },
+];
+
+// Seed: partner companies
+const PARTNERS_SEED = () => ([
+  { id:'travelpayouts', name:'Travelpayouts', categories:['Flights','Hotels','Cars','Activities','Insurance'],
+    commission:'1.6 ~ 8%', signupUrl:'https://www.travelpayouts.com/', dashboardUrl:'https://app.travelpayouts.com/',
+    keyEnv:'TRAVELPAYOUTS_TOKEN', markerEnv:'TRAVELPAYOUTS_MARKER', marker:'732326', trs:'532633',
+    connected:true, monthlyEst: 380, payoutMin:50, currency:'USD',
+    logo:'https://images.unsplash.com/photo-1611162617474-5b21e879e113?w=180&q=70&auto=format&fit=crop' },
+  { id:'booking', name:'Booking.com', categories:['Hotels'],
+    commission:'4 ~ 6%', signupUrl:'https://www.booking.com/affiliate-program/v2/index.html', dashboardUrl:'https://admin.booking.com/',
+    keyEnv:'BOOKING_AID', connected:false, monthlyEst: 250, payoutMin:100, currency:'EUR' },
+  { id:'getyourguide', name:'GetYourGuide', categories:['Activities','Tours'],
+    commission:'8%', signupUrl:'https://partner.getyourguide.com/', dashboardUrl:'https://supplier.getyourguide.com/',
+    keyEnv:'GETYOURGUIDE_PARTNER_ID', connected:false, monthlyEst: 120, payoutMin:50, currency:'EUR' },
+  { id:'discovercars', name:'DiscoverCars', categories:['Cars'],
+    commission:'5 ~ 8%', signupUrl:'https://www.discovercars.com/affiliate', dashboardUrl:'https://www.discovercars.com/affiliate/login',
+    keyEnv:'DISCOVERCARS_AFFILIATE_ID', connected:false, monthlyEst: 90, payoutMin:50, currency:'USD' },
+  { id:'skyscanner', name:'Skyscanner', categories:['Flights'],
+    commission:'1.5 ~ 3%', signupUrl:'https://www.partners.skyscanner.net/products', dashboardUrl:'https://partners.skyscanner.net/',
+    keyEnv:'SKYSCANNER_API_KEY', connected:false, monthlyEst: 60, payoutMin:50, currency:'USD' },
+  { id:'duffel', name:'Duffel', categories:['Flights'],
+    commission:'Direct sale margin', signupUrl:'https://duffel.com/', dashboardUrl:'https://app.duffel.com/',
+    keyEnv:'DUFFEL_API_KEY', connected:false, monthlyEst: 200, payoutMin:0, currency:'USD' },
+  { id:'klook', name:'Klook', categories:['Activities','Tours','Pickup'],
+    commission:'2 ~ 5%', signupUrl:'https://www.klook.com/en/affiliate-page/', dashboardUrl:'https://affiliate.klook.com/',
+    keyEnv:'KLOOK_AFFILIATE_ID', connected:false, monthlyEst: 80, payoutMin:50, currency:'USD' },
+]);
+if (!store.partners) store.partners = PARTNERS_SEED();
+
+// Seed: admin wallets
+const WALLETS_SEED = () => ([
+  { id:'master', label:'Master Wallet', kind:'master', address:'EQADMIN_MASTER_DallyTrip_9zZ', balance: 12480.50, network:'TON Chain', protected:true },
+  { id:'pool',   label:'Payment Pool',  kind:'pool',   address:'EQDT_PAY_POOL_3kLm9xQ',         balance: 4250.00, network:'TON Chain' },
+  { id:'escrow', label:'Escrow',        kind:'escrow', address:'EQDT_ESCROW_7tFvC2A',           balance: 980.00,  network:'TON Chain' },
+  { id:'hot',    label:'Hot wallet',    kind:'hot',    address:'EQDT_HOT_OPS_Bb91yT',           balance: 320.40,  network:'TON Chain' },
+]);
+if (!store.wallets) store.wallets = WALLETS_SEED();
+
+// Seed: wallet transactions (in/out)
+const WALLET_TX_SEED = () => ([
+  { id:'tx1', date:'2026-05-25 13:48', type:'in',  from:'EQB...9xA',     to:'pool',   amount: 80.00, ref:'Booking DT204812', tx:'EQABCD12...9876' },
+  { id:'tx2', date:'2026-05-25 13:55', type:'out', from:'pool',          to:'partner:hotellook', amount: 64.00, ref:'Hotellook payout · DT204812', tx:'EQOUTHL_aa11' },
+  { id:'tx3', date:'2026-05-25 12:21', type:'in',  from:'EQF...4Kp',     to:'pool',   amount: 73.33, ref:'Booking DT204803', tx:'EQXYZ772...4423' },
+  { id:'tx4', date:'2026-05-24 19:55', type:'in',  from:'EQH...1Bv',     to:'pool',   amount: 220.00, ref:'Booking DT204791', tx:'EQHJKL55...1132' },
+  { id:'tx5', date:'2026-05-24 22:30', type:'out', from:'pool',          to:'partner:getyourguide', amount: 168.00, ref:'GYG payout · DT204791', tx:'EQOUTGYG_bb22' },
+]);
+if (!store.walletTx) store.walletTx = WALLET_TX_SEED();
+
+// Seed: payouts queue (orders waiting to be paid to partners)
+const PAYOUTS_SEED = () => ([
+  { id:'po1', bookingId:'DT204812', user:'EQB...9xA', product:'Da Nang Ocean View Resort', partner:'Hotellook',
+    received: 100.00, toPay: 80.00, currency:'USD', method:'manual', status:'queued',
+    createdAt:'2026-05-25 13:48' },
+  { id:'po2', bookingId:'DT204803', user:'EQF...4Kp', product:'Nha Trang Hopping Tour',    partner:'GetYourGuide',
+    received: 73.33,  toPay: 55.00, currency:'USD', method:'virtual-card', status:'queued',
+    createdAt:'2026-05-24 09:08' },
+  { id:'po3', bookingId:'DT204791', user:'EQH...1Bv', product:'Phu Quoc Pool Villa',       partner:'Booking.com',
+    received: 220.00, toPay: 180.00, currency:'USD', method:'auto-pool',   status:'partner-paid',
+    createdAt:'2026-05-22 19:55' },
+  { id:'po4', bookingId:'DT204776', user:'EQB...9xA', product:'Tan Son Nhat Airport Pickup',partner:'DiscoverCars',
+    received: 6.00,   toPay: 4.50,  currency:'USD', method:'manual', status:'completed',
+    createdAt:'2026-05-22 06:30' },
+]);
+if (!store.payouts) store.payouts = PAYOUTS_SEED();
+
+// Drain user-app pending orders into our payouts queue (real-time bridge)
+function drainUserOrders() {
+  try {
+    const incoming = JSON.parse(localStorage.getItem('dt_pending_orders') || '[]');
+    if (!incoming.length) return 0;
+    const existingIds = new Set(store.payouts.map(p => p.id));
+    let added = 0;
+    incoming.forEach(o => {
+      if (!existingIds.has(o.id)) {
+        store.payouts.unshift(o);
+        added++;
+      }
+    });
+    if (added) persist();
+    return added;
+  } catch { return 0; }
+}
+// Run every time admin loads + every 5s while page is open
+setInterval(() => {
+  const n = drainUserOrders();
+  if (n && store.loggedIn) {
+    const cur = location.hash.replace(/^#/, '');
+    if (cur === '/payouts' || cur === '/dashboard' || cur === '/bookings') render();
+    toast(`+${n} new pending order${n>1?'s':''}`);
+  }
+}, 5000);
+drainUserOrders();
+
+// ============== API Manager page ==============
+function apiPage() {
+  const env = store.envFlags || {}; // populated by health-check
+  return `
+  <div class="page-enter">
+    <div class="row space-between items-center mb-16">
+      <div>
+        <span class="kicker">${t('admin.api.kicker')}</span>
+        <h2 class="h2 mt-8">${t('admin.api.title')}</h2>
+      </div>
+      <button class="btn btn-primary" onclick="runHealthCheck()">⚡ ${t('admin.api.runCheck')}</button>
+    </div>
+
+    <div class="grid grid-3 mb-16">
+      <div class="stat-card"><div class="label">${t('admin.api.endpoint')}s</div><div class="num">${API_ENDPOINTS.length}</div><div class="bubble blue">⚡</div></div>
+      <div class="stat-card"><div class="label">${t('admin.api.healthy')}</div><div class="num">${(store.envFlags?.healthy || 0)}</div><div class="bubble green">✓</div></div>
+      <div class="stat-card"><div class="label">${t('admin.api.notConfigured')}</div><div class="num">${(store.envFlags?.notConfigured || 0)}</div><div class="bubble orange">!</div></div>
+    </div>
+
+    <div style="overflow-x:auto;">
+      <table class="glass-table">
+        <thead><tr>
+          <th>${t('admin.api.endpoint')}</th><th>${t('admin.api.envVar')}</th><th>${t('common.status')}</th><th>${t('admin.api.lastCheck')}</th><th>${t('admin.api.docs')}</th>
+        </tr></thead>
+        <tbody>
+          ${API_ENDPOINTS.map(e => {
+            const flag = (store.envFlags?.byPath || {})[e.path] || { status:'unknown', when:'—', count:0 };
+            const badge = flag.status === 'healthy' ? 'green' : (flag.status === 'error' ? 'red' : 'gray');
+            return `
+              <tr>
+                <td><b class="t-mono">${e.path}</b>${flag.count ? ` <span class="t-small t-muted">· ${flag.count} results</span>` : ''}</td>
+                <td><span class="badge gray t-mono">${e.env}</span></td>
+                <td><span class="badge ${badge}">${t('admin.api.' + (flag.status === 'healthy' ? 'healthy' : flag.status === 'error' ? 'error' : 'notConfigured'))}</span></td>
+                <td class="t-small t-muted">${flag.when}</td>
+                <td><a class="t-small" style="color:var(--ocean-blue);" href="${e.docs}" target="_blank" rel="noopener">↗</a></td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+
+    <div class="glass-card mt-24" style="padding:24px;">
+      <h4 class="h4">Environment variables</h4>
+      <p class="t-muted mt-8 t-small">${({ko:'환경변수는 Cloudflare Pages 대시보드에서 설정. 코드에는 절대 노출되지 않음.',en:'Env vars set in Cloudflare Pages dashboard. Never committed to code.',ja:'環境変数はCloudflare Pagesダッシュボードで設定。コードには絶対含めない。',zh:'环境变量在 Cloudflare Pages 控制台中设置，永不提交到代码。'})[window.__DT_LANG||'ko']}</p>
+      <div class="row gap-8 mt-16" style="flex-wrap:wrap;">
+        <span class="token-chip"><span class="coin">🔑</span>TRAVELPAYOUTS_TOKEN</span>
+        <span class="token-chip"><span class="coin">📍</span>TRAVELPAYOUTS_MARKER · 732326</span>
+        <span class="token-chip"><span class="coin">📍</span>TRAVELPAYOUTS_TRS · 532633</span>
+      </div>
+    </div>
+  </div>
+  `;
+}
+
+async function runHealthCheck() {
+  store.envFlags = { byPath: {}, healthy: 0, notConfigured: 0 };
+  toast('⚡ Running health check…');
+  for (const e of API_ENDPOINTS) {
+    let url = e.path;
+    if (e.path === '/api/hotels/search') url += '?city=Da+Nang';
+    else if (e.path === '/api/activities/search') url += '?city=Da+Nang';
+    else if (e.path === '/api/cars/search') url += '?city=Da+Nang';
+    else if (e.path === '/api/flights/search') url += '?from=SGN&to=BKK';
+    else if (e.path === '/api/booking/search') url += '?city=Da+Nang';
+    else if (e.path === '/api/tp/search') url += '?type=activities&city=Da+Nang';
+    try {
+      const r = await fetch(url, { headers:{ 'Accept':'application/json' } });
+      const j = await r.json();
+      const status = r.ok ? 'healthy' : 'error';
+      store.envFlags.byPath[e.path] = { status, when: new Date().toLocaleTimeString(), count: j.count || 0 };
+      if (status === 'healthy') store.envFlags.healthy++;
+    } catch (err) {
+      store.envFlags.byPath[e.path] = { status:'error', when:new Date().toLocaleTimeString(), count:0 };
+      store.envFlags.notConfigured++;
+    }
+  }
+  render();
+  toast('Health check complete');
+}
+window.runHealthCheck = runHealthCheck;
+
+// ============== Partners page ==============
+function partnersPage() {
+  return `
+  <div class="page-enter">
+    <div class="row space-between items-center mb-16">
+      <div>
+        <span class="kicker">${t('admin.partners.kicker')}</span>
+        <h2 class="h2 mt-8">${t('admin.partners.title')}</h2>
+      </div>
+      <div class="row gap-8">
+        <span class="badge green">${store.partners.filter(p=>p.connected).length} ${t('admin.partners.connected')}</span>
+        <span class="badge orange">${store.partners.filter(p=>!p.connected).length} ${t('admin.partners.pending')}</span>
+      </div>
+    </div>
+
+    <div class="grid grid-2">
+      ${store.partners.map(p => `
+        <div class="glass-card" style="padding:22px;">
+          <div class="row items-center space-between" style="flex-wrap:wrap;">
+            <div class="row items-center gap-12">
+              <div style="width:48px;height:48px;border-radius:14px;background:var(--grad-main-cta);display:grid;place-items:center;color:#fff;font-weight:800;font-size:18px;">${p.name[0]}</div>
+              <div>
+                <div style="font-weight:800;font-size:17px;">${p.name}</div>
+                <div class="t-small t-muted">${p.categories.join(' · ')}</div>
+              </div>
+            </div>
+            <span class="badge ${p.connected ? 'green' : 'orange'}">${p.connected ? '🔗 ' + t('admin.partners.connected') : '⏳ ' + t('admin.partners.pending')}</span>
+          </div>
+
+          <div class="grid grid-2 mt-16" style="gap:10px;">
+            <div><div class="t-small t-muted">${t('admin.partners.commission')}</div><b>${p.commission}</b></div>
+            <div><div class="t-small t-muted">${t('admin.partners.estRevenue')}</div><b>${fmt(p.monthlyEst)} ${p.currency}/mo</b></div>
+            <div style="grid-column:1/-1;"><div class="t-small t-muted">${t('admin.api.envVar')}</div><div class="t-mono t-small"><span class="badge ${p.connected?'green':'gray'}">${p.keyEnv}</span>${p.markerEnv?` <span class="badge gray">${p.markerEnv}·${p.marker}</span>`:''}</div></div>
+          </div>
+
+          <div class="row gap-8 mt-16">
+            ${p.connected
+              ? `<a class="btn btn-secondary btn-sm" href="${p.dashboardUrl}" target="_blank" rel="noopener">${t('admin.partners.dashboard')} ↗</a>`
+              : `<a class="btn btn-primary btn-sm" href="${p.signupUrl}" target="_blank" rel="noopener">${t('admin.partners.signup')} ↗</a>`}
+            <button class="btn btn-ghost btn-sm" onclick="togglePartner('${p.id}')">${p.connected ? t('btn.disconnect') : t('btn.signin')}</button>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  </div>
+  `;
+}
+function togglePartner(id) {
+  const p = store.partners.find(x => x.id === id);
+  if (!p) return;
+  p.connected = !p.connected;
+  persist();
+  toast(p.connected ? `✓ ${p.name} connected` : `${p.name} disconnected`);
+  render();
+}
+window.togglePartner = togglePartner;
+
+// ============== Wallet page ==============
+function walletPage() {
+  const total = store.wallets.reduce((s,w)=>s+w.balance,0);
+  return `
+  <div class="page-enter">
+    <div class="row space-between items-center mb-16">
+      <div>
+        <span class="kicker">${t('admin.wallet.kicker')}</span>
+        <h2 class="h2 mt-8">${t('admin.wallet.title')}</h2>
+      </div>
+      <button class="btn btn-primary" onclick="addWallet()">${t('admin.wallet.addWallet')}</button>
+    </div>
+
+    <div class="stat-card mb-16" style="padding:28px;">
+      <div class="label">Total treasury balance</div>
+      <div class="num">${fmt(total.toFixed(2))} <span style="font-size:18px;color:var(--token-green);">$1</span></div>
+      <div class="bubble green">$</div>
+    </div>
+
+    <div class="grid grid-2">
+      ${store.wallets.map(w => `
+        <div class="glass-card" style="padding:22px; ${w.kind==='master' ? 'border:1px solid rgba(38,208,124,0.4);' : ''}">
+          <div class="row items-center space-between">
+            <div class="row items-center gap-8">
+              <span style="font-size:24px;">${({master:'👑',pool:'🌊',escrow:'🔒',hot:'🔥'})[w.kind]||'👛'}</span>
+              <b style="font-size:16px;">${w.label}</b>
+            </div>
+            ${w.protected ? '<span class="badge red">PROTECTED</span>' : ''}
+          </div>
+          <div class="t-mono t-small mt-8" style="word-break:break-all;color:var(--text-muted);">${w.address}</div>
+          <div class="row space-between items-end mt-16">
+            <div>
+              <div class="t-small t-muted">${t('admin.wallet.balance')}</div>
+              <div style="font-size:24px;font-weight:800;">${fmt(w.balance.toFixed(2))} <span style="color:var(--token-green);font-size:14px;">$1</span></div>
+            </div>
+            <button class="btn btn-ghost btn-sm" onclick="toast('${t('admin.wallet.send')} (Coming Soon)')">${t('admin.wallet.send')} →</button>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+
+    <h3 class="h3 mt-32">${t('admin.wallet.history')}</h3>
+    <div class="glass-card mt-16" style="padding:8px;">
+      <table class="glass-table" style="border:0;background:transparent;">
+        <thead><tr>
+          <th>${t('common.date')}</th><th>${t('admin.wallet.type')}</th><th>${t('admin.wallet.from')}</th><th>${t('admin.wallet.to')}</th><th>${t('common.amount')}</th><th>Ref</th><th>Tx</th>
+        </tr></thead>
+        <tbody>
+          ${store.walletTx.map(tx => `
+            <tr>
+              <td class="t-small t-muted">${tx.date}</td>
+              <td><span class="badge ${tx.type==='in'?'green':'orange'}">${tx.type==='in' ? '↓ '+t('admin.wallet.in') : '↑ '+t('admin.wallet.out')}</span></td>
+              <td class="t-mono t-small">${tx.from}</td>
+              <td class="t-mono t-small">${tx.to}</td>
+              <td><b style="${tx.type==='in'?'color:var(--token-green);':'color:var(--travel-orange);'}">${tx.type==='in'?'+':'−'}${fmt(tx.amount.toFixed(2))} $1</b></td>
+              <td class="t-small">${tx.ref}</td>
+              <td><a class="t-mono t-small" href="#" onclick="event.preventDefault();toast(t('toast.tonExplorer'))" style="color:var(--ocean-blue);">${tx.tx}</a></td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  `;
+}
+function addWallet() {
+  const label = prompt('Wallet label?', 'New Wallet');
+  if (!label) return;
+  store.wallets.push({
+    id:'w'+Date.now(), label, kind:'hot',
+    address:'EQDT_NEW_'+Math.random().toString(36).slice(2,10).toUpperCase(),
+    balance: 0, network:'TON Chain'
+  });
+  persist(); render(); toast('Wallet added');
+}
+window.addWallet = addWallet;
+
+// ============== Payouts queue page ==============
+function payoutsPage() {
+  return `
+  <div class="page-enter">
+    <div class="row space-between items-center mb-16">
+      <div>
+        <span class="kicker">${t('admin.payouts.kicker')}</span>
+        <h2 class="h2 mt-8">${t('admin.payouts.title')}</h2>
+        <p class="t-muted mt-8" style="max-width:640px;">${t('admin.payouts.desc')}</p>
+      </div>
+    </div>
+
+    <div class="grid grid-4 mb-16">
+      <div class="stat-card"><div class="label">${t('admin.payouts.queued')}</div><div class="num">${store.payouts.filter(p=>p.status==='queued').length}</div><div class="bubble orange">⏳</div></div>
+      <div class="stat-card"><div class="label">${t('admin.payouts.partnerPaid')}</div><div class="num">${store.payouts.filter(p=>p.status==='partner-paid').length}</div><div class="bubble blue">💳</div></div>
+      <div class="stat-card"><div class="label">${t('admin.payouts.completed')}</div><div class="num">${store.payouts.filter(p=>p.status==='completed').length}</div><div class="bubble green">✓</div></div>
+      <div class="stat-card"><div class="label">${t('admin.payouts.diff')}</div><div class="num">${fmt(store.payouts.reduce((s,p)=>s+(p.received-p.toPay),0).toFixed(2))} <span style="font-size:16px;color:var(--token-green);">$1</span></div><div class="bubble purple">📈</div></div>
+    </div>
+
+    <div style="overflow-x:auto;">
+      <table class="glass-table">
+        <thead><tr>
+          <th>${t('admin.dash.booking')}</th><th>${t('admin.payouts.user')}</th><th>${t('common.product')}</th><th>${t('common.partner') || 'Partner'}</th><th>${t('admin.payouts.received')}</th><th>${t('admin.payouts.toPay')}</th><th>${t('admin.payouts.method')}</th><th>${t('common.status')}</th><th>${t('common.actions')}</th>
+        </tr></thead>
+        <tbody>
+          ${store.payouts.map(p => {
+            const sBadge = p.status==='queued'?'orange':p.status==='partner-paid'?'blue':'green';
+            const margin = (p.received - p.toPay).toFixed(2);
+            return `
+              <tr>
+                <td><b>${p.bookingId}</b><div class="t-small t-muted">${p.createdAt}</div></td>
+                <td class="t-mono t-small">${p.user}</td>
+                <td>${p.product}</td>
+                <td><span class="badge gray">${p.partner}</span></td>
+                <td><b>${fmt(p.received.toFixed(2))} $1</b></td>
+                <td><b style="color:var(--travel-orange);">−${fmt(p.toPay.toFixed(2))} ${p.currency}</b><div class="t-small t-muted">margin +${margin} $1</div></td>
+                <td>
+                  <select class="glass-input" style="height:34px;padding:0 12px;font-size:12px;" onchange="setPayoutMethod('${p.id}', this.value)">
+                    <option value="manual" ${p.method==='manual'?'selected':''}>${t('admin.payouts.manualPay')}</option>
+                    <option value="virtual-card" ${p.method==='virtual-card'?'selected':''}>${t('admin.payouts.virtualCard')}</option>
+                    <option value="auto-pool" ${p.method==='auto-pool'?'selected':''}>${t('admin.payouts.autoPool')}</option>
+                  </select>
+                </td>
+                <td><span class="badge ${sBadge}">${t('admin.payouts.' + (p.status==='queued'?'queued':p.status==='partner-paid'?'partnerPaid':'completed'))}</span></td>
+                <td>
+                  ${p.status==='queued' ? `<button class="btn btn-primary btn-sm" onclick="markPayoutPaid('${p.id}')">${t('admin.payouts.markPaid')}</button>` : ''}
+                  ${p.status==='partner-paid' ? `<button class="btn btn-secondary btn-sm" onclick="completePayout('${p.id}')">${t('admin.payouts.completed')} ✓</button>` : ''}
+                </td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  `;
+}
+function setPayoutMethod(id, method) {
+  const p = store.payouts.find(x=>x.id===id); if (!p) return;
+  p.method = method; persist(); toast('Method updated · ' + method);
+}
+function markPayoutPaid(id) {
+  const p = store.payouts.find(x=>x.id===id); if (!p) return;
+  p.status = 'partner-paid';
+  // Mirror as a wallet "out" tx
+  store.walletTx.unshift({
+    id:'tx'+Date.now(), date:new Date().toISOString().replace('T',' ').slice(0,16),
+    type:'out', from:'pool', to:'partner:'+p.partner.toLowerCase().replace(/\s+/g,''),
+    amount: p.toPay, ref:`${p.partner} payout · ${p.bookingId}`, tx:'EQOUT_'+Math.random().toString(36).slice(2,10).toUpperCase()
+  });
+  persist(); render(); toast(`✓ Partner paid: ${p.partner} ${fmt(p.toPay)} ${p.currency}`);
+}
+function completePayout(id) {
+  const p = store.payouts.find(x=>x.id===id); if (!p) return;
+  p.status = 'completed';
+  persist(); render(); toast('Order completed');
+}
+window.setPayoutMethod = setPayoutMethod; window.markPayoutPaid = markPayoutPaid; window.completePayout = completePayout;
+
 // ================= Router =================
 function render() {
   const root = document.getElementById('root');
@@ -734,6 +1139,10 @@ function render() {
   else if (path === '/users') content = usersPage();
   else if (path === '/banners') content = bannersPage();
   else if (path === '/settings') content = settingsPage();
+  else if (path === '/api') content = apiPage();
+  else if (path === '/partners') content = partnersPage();
+  else if (path === '/wallet') content = walletPage();
+  else if (path === '/payouts') content = payoutsPage();
   else content = '<div class="glass-card" style="padding:32px;">Page not found.</div>';
   root.innerHTML = shell(path, content);
   if (window.__dtLang) window.__dtLang.mountSwitchers();

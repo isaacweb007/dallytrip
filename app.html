@@ -8,8 +8,8 @@
 <meta http-equiv="Expires" content="0" />
 <title>DallyTrip — App</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
-<link rel="stylesheet" href="./assets/styles.css?v=20260525b" />
-<script src="./assets/i18n.js?v=20260525c"></script>
+<link rel="stylesheet" href="./assets/styles.css?v=20260525c" />
+<script src="./assets/i18n.js?v=20260525d"></script>
 <!-- Travelpayouts affiliate tracking (marker 532633) -->
 <script>(function(){var s=document.createElement('script');s.async=1;s.src='https://emrldco.com/NTMyNjMz.js?t=532633';document.head.appendChild(s);})();</script>
 </head>
@@ -155,6 +155,7 @@ const DESTS = [
 // ================= App state =================
 const state = {
   wallet: JSON.parse(localStorage.getItem('dt_wallet') || 'null'),
+  user:   JSON.parse(localStorage.getItem('dt_user') || 'null'),
   bookings: JSON.parse(localStorage.getItem('dt_bookings') || '[]'),
   cart: JSON.parse(localStorage.getItem('dt_cart') || 'null'),
   filter: { category: 'All', q: '' },
@@ -663,23 +664,61 @@ function toast(msg) {
 // ================= Top Right (wallet + lang) =================
 function renderTopRight() {
   const w = state.wallet;
+  const u = state.user;
   const el = document.getElementById('topRight');
-  let html = '';
+  let html = `<span class="demo-badge" title="${t('demo.tooltip')}">${t('demo.badge')}</span>`;
   if (w) {
-    html = `
+    html += `
       <div class="token-chip">
         <span class="coin">$</span>
         <span>${fmt(w.balance)} $1</span>
       </div>
       <a href="#/wallet" class="btn btn-ghost btn-sm">${w.address}</a>
     `;
+  } else if (u) {
+    html += `
+      <a href="#/profile" class="btn btn-ghost btn-sm" style="padding-left:6px;">
+        <img src="${escapeHtml(u.picture||'')}" alt="" onerror="this.style.display='none'" style="width:24px;height:24px;border-radius:50%;margin-right:6px;vertical-align:middle;" />
+        ${escapeHtml(u.name || u.email || 'User')}
+      </a>
+    `;
   } else {
-    html = `<button class="btn btn-primary btn-sm" onclick="connectWallet()">${t('btn.connectWallet')}</button>`;
+    html += `
+      <button class="btn btn-ghost btn-sm" onclick="googleLogin()" title="Sign in with Google">
+        <svg width="16" height="16" viewBox="0 0 18 18" style="vertical-align:middle;margin-right:6px;"><path fill="#EA4335" d="M9 3.48c1.69 0 2.83.73 3.48 1.34l2.54-2.48C13.46.89 11.43 0 9 0 5.48 0 2.44 2.02.96 4.96l2.91 2.26C4.6 5.05 6.62 3.48 9 3.48z"/><path fill="#4285F4" d="M17.64 9.2c0-.74-.06-1.28-.19-1.84H9v3.34h4.96c-.1.83-.64 2.08-1.84 2.92l2.84 2.2c1.7-1.57 2.68-3.88 2.68-6.62z"/><path fill="#FBBC05" d="M3.88 10.78A5.54 5.54 0 0 1 3.58 9c0-.62.11-1.22.29-1.78L.96 4.96A9.008 9.008 0 0 0 0 9c0 1.45.35 2.82.96 4.04l2.92-2.26z"/><path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.84-2.2c-.76.53-1.78.9-3.12.9-2.38 0-4.4-1.57-5.12-3.74L.97 13.04C2.45 15.98 5.48 18 9 18z"/></svg>
+        Google
+      </button>
+      <button class="btn btn-primary btn-sm" onclick="connectWallet()">${t('btn.connectWallet')}</button>
+    `;
   }
   html += `<span data-dt-lang-mount></span>`;
   el.innerHTML = html;
   if (window.__dtLang) window.__dtLang.mountSwitchers();
 }
+
+// Google sign-in (DEMO — for the open phase this is a mock).
+function googleLogin() {
+  state.user = {
+    email: 'demo@dallytrip.io',
+    name: 'Demo Traveler',
+    picture: 'https://api.dicebear.com/7.x/avataaars/svg?seed=DallyTripDemo',
+    provider: 'google-demo',
+    loggedAt: Date.now(),
+  };
+  localStorage.setItem('dt_user', JSON.stringify(state.user));
+  toast('✓ Signed in with Google (demo)');
+  renderTopRight();
+  router();
+}
+function googleLogout() {
+  state.user = null;
+  localStorage.removeItem('dt_user');
+  toast('Signed out');
+  renderTopRight();
+  router();
+}
+window.googleLogin = googleLogin;
+window.googleLogout = googleLogout;
 
 function renderBottomNav() {
   const path = (location.hash || '#/').replace(/^#/, '');
@@ -1494,10 +1533,28 @@ function pageProfile() {
 
 // ================= Actions =================
 // $1 token payment is COMING SOON. For now we surface a Coming-Soon modal +
-// the affiliate booking link (partner site, real bookings + commission tracking).
+// the affiliate booking link. We ALSO drop a pending order into shared storage
+// so the admin Payouts queue can preview the full flow.
 function proceedCheckout(productId) {
   const p = (typeof getCatalog === 'function' ? getCatalog() : PRODUCTS).find(x => x.id === productId);
   if (!p) return;
+  // Stage a "pending order" — admin's Payouts queue will pick this up
+  try {
+    const orders = JSON.parse(localStorage.getItem('dt_pending_orders') || '[]');
+    const wallet = state.wallet?.address || (state.user?.email || 'guest');
+    orders.unshift({
+      id: 'po_' + Date.now().toString(36),
+      bookingId: 'DT' + Math.floor(100000 + Math.random()*900000),
+      user: wallet,
+      product: p.name, partner: p.source === 'live' ? 'Travelpayouts' : 'DallyTrip Direct',
+      received: Number(p.price || 0),
+      toPay: Number((p.priceUSD || p.price * 3) || 0),
+      currency: 'USD', method: 'manual', status: 'queued',
+      createdAt: new Date().toISOString().replace('T',' ').slice(0,16),
+      productId, city: p.city, country: p.country, img: p.img
+    });
+    localStorage.setItem('dt_pending_orders', JSON.stringify(orders.slice(0, 50)));
+  } catch {}
   showPaymentSoonModal(p);
 }
 
