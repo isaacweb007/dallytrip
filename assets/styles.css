@@ -1237,8 +1237,13 @@ select.glass-input { appearance: none; padding-right: 40px; background-image: ur
   .brand { font-size: 18px; gap: 8px; }
   .brand-logo { width: 36px; height: 36px; border-radius: 11px; }
 
-  /* Hero compaction */
-  .hero { padding: 24px 0 48px; }
+  /* === Hero: ensure full-screen travel background on mobile too === */
+  .hero { padding: 24px 0 48px; min-height: 70vh; }
+  .hero-bg { position: absolute; inset: 0; z-index: -2; }
+  .hero-bg-slide { background-size: cover !important; background-position: center !important; }
+  .hero-overlay { z-index: -1; opacity: 1; }
+  body::before, body::after { display: none; } /* hide global blobs that compete with hero bg */
+
   .hero-premium { padding: 20px 16px !important; border-radius: 28px; }
   .dollar-orb { max-width: 220px; font-size: 100px; }
   .hero-card { padding: 16px; gap: 18px; }
@@ -1247,6 +1252,14 @@ select.glass-input { appearance: none; padding-right: 40px; background-image: ur
   .hero-title { font-size: 36px !important; line-height: 1.05; margin-top: 12px !important; }
   .hero-sub { font-size: 15px !important; margin-top: 12px !important; line-height: 1.5; }
   .feature-pill { font-size: 11px; padding: 6px 10px; }
+
+  /* === CTA row: keep on ONE line on mobile === */
+  .hero-premium .row.gap-12.mt-24 { flex-wrap: nowrap !important; gap: 8px; }
+  .hero-premium .row.gap-12.mt-24 .btn-lg {
+    min-height: 50px; padding: 0 16px; font-size: 14px; min-width: 0;
+    flex: 1 1 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .hero-premium .row.gap-12.mt-24 .btn-lg svg { flex-shrink: 0; }
   .h1 { font-size: 32px !important; }
   .h2 { font-size: 24px !important; }
   .h3 { font-size: 18px !important; }

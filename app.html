@@ -8,7 +8,7 @@
 <meta http-equiv="Expires" content="0" />
 <title>DallyTrip — App</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
-<link rel="stylesheet" href="./assets/styles.css?v=20260525d" />
+<link rel="stylesheet" href="./assets/styles.css?v=20260525e" />
 <script src="./assets/i18n.js?v=20260525e"></script>
 <!-- Travelpayouts affiliate tracking (marker 532633) -->
 <script>(function(){var s=document.createElement('script');s.async=1;s.src='https://emrldco.com/NTMyNjMz.js?t=532633';document.head.appendChild(s);})();</script>
@@ -141,6 +141,65 @@ const PRODUCTS = [
     desc:'Spacious SUV airport pickup. Meet & greet at arrivals hall.',
     included:['SUV (up to 5 pax)','Meet & greet','Bottled water'], excluded:['Tolls'],
     cancel:'Free cancellation up to 4h before pickup.' },
+
+  // =========== Seoul / Korea exclusives (admin inventory) ===========
+  { id: 's1', cat:'Hotel', country:'Korea', city:'Seoul', name:'Lotte Hotel Seoul · Main Tower',
+    price:92, rating:4.7, reviews:5240,
+    img:'https://images.unsplash.com/photo-1538485399081-7c8970f1d0c1?w=900&q=70&auto=format&fit=crop',
+    desc:'5-star landmark in Myeongdong, walking distance to palaces & duty-free.',
+    included:['Breakfast buffet','Pool & sauna','High-speed WiFi'], excluded:['Spa treatments'],
+    cancel:'Free cancellation up to 48h before check-in.' },
+  { id: 's2', cat:'Hotel', country:'Korea', city:'Seoul', name:'Four Seasons Hotel Seoul · Gwanghwamun',
+    price:174, rating:4.9, reviews:3120,
+    img:'https://images.unsplash.com/photo-1601850494422-3cf14624b0b3?w=900&q=70&auto=format&fit=crop',
+    desc:'Modern luxury overlooking Gyeongbokgung Palace.',
+    included:['Breakfast','Spa pool','Club lounge access'], excluded:['Mini bar'],
+    cancel:'Free cancellation up to 72h before check-in.' },
+  { id: 's3', cat:'Tour', country:'Korea', city:'Seoul', name:'DMZ Half-day Tour from Seoul',
+    price:18, rating:4.7, reviews:9200,
+    img:'https://images.unsplash.com/photo-1517154421773-0529f29ea451?w=900&q=70&auto=format&fit=crop',
+    desc:'Visit the Korean DMZ, Imjingak, and the Third Tunnel with English-speaking guide.',
+    included:['Hotel pickup','English guide','Entry tickets'], excluded:['Meals'],
+    cancel:'48h cancellation policy.' },
+  { id: 's4', cat:'Activity', country:'Korea', city:'Seoul', name:'K-pop Dance Class & Photoshoot',
+    price:25, rating:4.8, reviews:1300,
+    img:'https://images.unsplash.com/photo-1546874177-9e664107314e?w=900&q=70&auto=format&fit=crop',
+    desc:'Learn a viral K-pop choreography from a professional dancer + studio photos.',
+    included:['90-min class','5 edited photos'], excluded:['Costume rental'],
+    cancel:'24h policy.' },
+  { id: 's5', cat:'Activity', country:'Korea', city:'Seoul', name:'Nami Island + Petite France Day Tour',
+    price:32, rating:4.6, reviews:2700,
+    img:'https://images.unsplash.com/photo-1517154421773-0529f29ea451?w=900&q=70&auto=format&fit=crop',
+    desc:'Full-day countryside escape from Seoul to the famous tree-lined paths.',
+    included:['Round-trip transport','Entry tickets'], excluded:['Lunch'],
+    cancel:'24h policy.' },
+  { id: 's6', cat:'Pickup', country:'Korea', city:'Seoul', name:'Incheon Airport (ICN) Private Pickup',
+    price:25, rating:4.9, reviews:6200,
+    img:'https://images.unsplash.com/photo-1546874177-9e664107314e?w=900&q=70&auto=format&fit=crop',
+    desc:'Private sedan from ICN to any Seoul/Incheon address. Meet & greet.',
+    included:['Sedan (up to 3 pax)','English-speaking driver','Bottled water'], excluded:['Tolls'],
+    cancel:'Free cancellation up to 6h.' },
+  { id: 's7', cat:'Tour', country:'Korea', city:'Busan', name:'Gamcheon Culture Village + Haedong Yonggungsa',
+    price:18, rating:4.7, reviews:1100,
+    img:'https://images.unsplash.com/photo-1583266219671-2c1bb0bba4c0?w=900&q=70&auto=format&fit=crop',
+    desc:'Half-day tour of Busan\'s most iconic hillside village + ocean temple.',
+    included:['Local guide','Round-trip transport'], excluded:['Meals'],
+    cancel:'24h policy.' },
+  { id: 's8', cat:'Hotel', country:'Korea', city:'Jeju', name:'Grand Hyatt Jeju · Ocean View',
+    price:113, rating:4.8, reviews:980,
+    img:'https://images.unsplash.com/photo-1605457867610-e990b283f7e6?w=900&q=70&auto=format&fit=crop',
+    desc:'Luxury Jeju resort with ocean view, infinity pool, and Hallasan access.',
+    included:['Breakfast','Indoor & outdoor pools','Spa entry'], excluded:['Greens fee'],
+    cancel:'Free cancellation up to 72h.' },
+  { id: 's9', cat:'Flight', country:'Korea', city:'Jeju',
+    name:'Seoul (GMP) → Jeju (CJU) shuttle flight',
+    fromCode:'GMP', toCode:'CJU', fromCity:'Seoul', toCity:'Jeju',
+    airline:'Korean Air', flightNo:'KE1201', depart:'10:00', arrive:'11:05', duration:'1h 5m', stops:0, cabin:'Economy',
+    price:42, rating:4.7, reviews:8400,
+    img:'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=900&q=70&auto=format&fit=crop',
+    desc:'Frequent shuttle flight from Gimpo to Jeju.',
+    included:['Carry-on 10kg','Snack'], excluded:['Checked baggage'],
+    cancel:'24h cancellation.' },
 ];
 
 const DESTS = [

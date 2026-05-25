@@ -10,7 +10,7 @@
 <meta name="description" content="DallyTrip은 TON Chain 기반 $1 토큰으로만 호텔, 투어, 액티비티를 예약하는 Web3 여행앱입니다." />
 <link rel="preconnect" href="https://cdn.jsdelivr.net" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
-<link rel="stylesheet" href="./assets/styles.css?v=20260525d" />
+<link rel="stylesheet" href="./assets/styles.css?v=20260525e" />
 <script src="./assets/i18n.js?v=20260525e"></script>
 <!-- Travelpayouts affiliate tracking (marker 532633) -->
 <script>(function(){var s=document.createElement('script');s.async=1;s.src='https://emrldco.com/NTMyNjMz.js?t=532633';document.head.appendChild(s);})();</script>
@@ -379,41 +379,98 @@ const COUNTRY_TR = {
   Thailand:{ ko:'태국',   en:'Thailand',ja:'タイ',     zh:'泰国' },
   Japan:   { ko:'일본',   en:'Japan',   ja:'日本',    zh:'日本' },
   Korea:   { ko:'한국',   en:'Korea',   ja:'韓国',    zh:'韩国' },
+  Indonesia:{ ko:'인도네시아', en:'Indonesia', ja:'インドネシア', zh:'印度尼西亚' },
+  Philippines:{ ko:'필리핀', en:'Philippines', ja:'フィリピン', zh:'菲律宾' },
+  China:   { ko:'중국',   en:'China',   ja:'中国',    zh:'中国' },
+  Malaysia:{ ko:'말레이시아', en:'Malaysia', ja:'マレーシア', zh:'马来西亚' },
+  Singapore:{ ko:'싱가포르', en:'Singapore', ja:'シンガポール', zh:'新加坡' },
 };
 const CITY_TR = {
   'Da Nang':    { ko:'다낭',    en:'Da Nang',    ja:'ダナン',    zh:'岘港' },
   'Nha Trang':  { ko:'나트랑',  en:'Nha Trang',  ja:'ニャチャン',zh:'芽庄' },
   'Phu Quoc':   { ko:'푸꾸옥',  en:'Phu Quoc',   ja:'フーコック',zh:'富国岛' },
   'Ho Chi Minh':{ ko:'호치민',  en:'Ho Chi Minh',ja:'ホーチミン',zh:'胡志明' },
+  'Hanoi':      { ko:'하노이',  en:'Hanoi',      ja:'ハノイ',    zh:'河内' },
   'Bangkok':    { ko:'방콕',    en:'Bangkok',    ja:'バンコク',  zh:'曼谷' },
+  'Phuket':     { ko:'푸켓',    en:'Phuket',     ja:'プーケット',zh:'普吉' },
+  'Chiang Mai': { ko:'치앙마이',en:'Chiang Mai', ja:'チェンマイ',zh:'清迈' },
+  'Bali':       { ko:'발리',    en:'Bali',       ja:'バリ',     zh:'巴厘岛' },
+  'Jakarta':    { ko:'자카르타',en:'Jakarta',    ja:'ジャカルタ',zh:'雅加达' },
+  'Manila':     { ko:'마닐라',  en:'Manila',     ja:'マニラ',    zh:'马尼拉' },
+  'Cebu':       { ko:'세부',    en:'Cebu',       ja:'セブ',     zh:'宿务' },
+  'Boracay':    { ko:'보라카이',en:'Boracay',    ja:'ボラカイ',  zh:'长滩岛' },
   'Tokyo':      { ko:'도쿄',    en:'Tokyo',      ja:'東京',     zh:'东京' },
+  'Osaka':      { ko:'오사카',  en:'Osaka',      ja:'大阪',     zh:'大阪' },
+  'Kyoto':      { ko:'교토',    en:'Kyoto',      ja:'京都',     zh:'京都' },
   'Seoul':      { ko:'서울',    en:'Seoul',      ja:'ソウル',   zh:'首尔' },
+  'Busan':      { ko:'부산',    en:'Busan',      ja:'釜山',     zh:'釜山' },
+  'Jeju':       { ko:'제주',    en:'Jeju',       ja:'済州',     zh:'济州' },
+  'Shanghai':   { ko:'상하이',  en:'Shanghai',   ja:'上海',     zh:'上海' },
+  'Beijing':    { ko:'베이징',  en:'Beijing',    ja:'北京',     zh:'北京' },
+  'Hong Kong':  { ko:'홍콩',    en:'Hong Kong',  ja:'香港',     zh:'香港' },
+  'Kuala Lumpur':{ ko:'쿠알라룸푸르',en:'Kuala Lumpur',ja:'クアラルンプール',zh:'吉隆坡' },
+  'Penang':     { ko:'페낭',    en:'Penang',     ja:'ペナン',    zh:'槟城' },
+  'Singapore':  { ko:'싱가포르',en:'Singapore',  ja:'シンガポール',zh:'新加坡' },
   'Ha Long Bay':{ ko:'하롱베이',en:'Ha Long Bay',ja:'ハロン湾', zh:'下龙湾' },
 };
-const DESTS = [
-  { city:'Da Nang',     country:'Vietnam', img:'https://images.unsplash.com/photo-1528127269322-539801943592?w=600&auto=format&fit=crop&q=70' },
-  { city:'Nha Trang',   country:'Vietnam', img:'https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=600&auto=format&fit=crop&q=70' },
-  { city:'Phu Quoc',    country:'Vietnam', img:'https://images.unsplash.com/photo-1528181304800-259b08848526?w=600&auto=format&fit=crop&q=70' },
-  { city:'Ho Chi Minh', country:'Vietnam', img:'https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=600&auto=format&fit=crop&q=70&fp-y=0.4' },
-  { city:'Bangkok',     country:'Thailand',img:'https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=600&auto=format&fit=crop&q=70' },
-  { city:'Tokyo',       country:'Japan',   img:'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=600&auto=format&fit=crop&q=70' },
-  { city:'Seoul',       country:'Korea',   img:'https://images.unsplash.com/photo-1538485399081-7c8970f1d0c1?w=600&auto=format&fit=crop&q=70' },
-  { city:'Ha Long Bay', country:'Vietnam', img:'https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=600&auto=format&fit=crop&q=70' },
+// Full 25-city pool — 5-minute random rotation picks 8 from here
+const DESTS_POOL = [
+  { city:'Da Nang',     country:'Vietnam',   img:'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=900&q=70&auto=format&fit=crop' },
+  { city:'Nha Trang',   country:'Vietnam',   img:'https://images.unsplash.com/photo-1571175443880-49e1d25b2bc5?w=900&q=70&auto=format&fit=crop' },
+  { city:'Phu Quoc',    country:'Vietnam',   img:'https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=900&q=70&auto=format&fit=crop' },
+  { city:'Ho Chi Minh', country:'Vietnam',   img:'https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=900&q=70&auto=format&fit=crop' },
+  { city:'Hanoi',       country:'Vietnam',   img:'https://images.unsplash.com/photo-1509030450996-dd1a26dda07a?w=900&q=70&auto=format&fit=crop' },
+  { city:'Ha Long Bay', country:'Vietnam',   img:'https://images.unsplash.com/photo-1528127269322-539801943592?w=900&q=70&auto=format&fit=crop' },
+  { city:'Bangkok',     country:'Thailand',  img:'https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=900&q=70&auto=format&fit=crop' },
+  { city:'Phuket',      country:'Thailand',  img:'https://images.unsplash.com/photo-1589394815804-964ed0be2eb5?w=900&q=70&auto=format&fit=crop' },
+  { city:'Chiang Mai',  country:'Thailand',  img:'https://images.unsplash.com/photo-1598935898639-81586f7d2129?w=900&q=70&auto=format&fit=crop' },
+  { city:'Bali',        country:'Indonesia', img:'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=900&q=70&auto=format&fit=crop' },
+  { city:'Jakarta',     country:'Indonesia', img:'https://images.unsplash.com/photo-1555899434-94d1368aa7af?w=900&q=70&auto=format&fit=crop' },
+  { city:'Manila',      country:'Philippines',img:'https://images.unsplash.com/photo-1518509562904-e7ef99cddc85?w=900&q=70&auto=format&fit=crop' },
+  { city:'Cebu',        country:'Philippines',img:'https://images.unsplash.com/photo-1518002054494-3a6f94352e9d?w=900&q=70&auto=format&fit=crop' },
+  { city:'Boracay',     country:'Philippines',img:'https://images.unsplash.com/photo-1518509562904-e7ef99cddc85?w=900&q=70&auto=format&fit=crop&sat=20' },
+  { city:'Tokyo',       country:'Japan',     img:'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=900&q=70&auto=format&fit=crop' },
+  { city:'Osaka',       country:'Japan',     img:'https://images.unsplash.com/photo-1590559899731-a382839e5549?w=900&q=70&auto=format&fit=crop' },
+  { city:'Kyoto',       country:'Japan',     img:'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=900&q=70&auto=format&fit=crop' },
+  { city:'Seoul',       country:'Korea',     img:'https://images.unsplash.com/photo-1538485399081-7c8970f1d0c1?w=900&q=70&auto=format&fit=crop' },
+  { city:'Busan',       country:'Korea',     img:'https://images.unsplash.com/photo-1583266219671-2c1bb0bba4c0?w=900&q=70&auto=format&fit=crop' },
+  { city:'Jeju',        country:'Korea',     img:'https://images.unsplash.com/photo-1605457867610-e990b283f7e6?w=900&q=70&auto=format&fit=crop' },
+  { city:'Shanghai',    country:'China',     img:'https://images.unsplash.com/photo-1474181487882-5abf3f0ba6c2?w=900&q=70&auto=format&fit=crop' },
+  { city:'Beijing',     country:'China',     img:'https://images.unsplash.com/photo-1547981609-4b6bfe67ca0b?w=900&q=70&auto=format&fit=crop' },
+  { city:'Hong Kong',   country:'China',     img:'https://images.unsplash.com/photo-1536599018102-9f803c140fc1?w=900&q=70&auto=format&fit=crop' },
+  { city:'Kuala Lumpur',country:'Malaysia',  img:'https://images.unsplash.com/photo-1596422846543-75c6fc197f07?w=900&q=70&auto=format&fit=crop' },
+  { city:'Singapore',   country:'Singapore', img:'https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=900&q=70&auto=format&fit=crop' },
 ];
+// Currently displayed slice (8 cities, refreshed every 5 minutes)
+let DESTS = pickRandomDests();
+function pickRandomDests() {
+  const arr = DESTS_POOL.slice().sort(() => Math.random() - 0.5);
+  return arr.slice(0, 8);
+}
+// Cache of live activity per city (so the card can show a real local pick)
+const LIVE_PICKS = {};
 function renderDests() {
   const lang = (window.__dtLang && window.__dtLang.getLang()) || 'en';
   const grid = document.getElementById('destGrid');
   if (grid) {
-    grid.innerHTML = DESTS.map(d => `
-      <div class="dest-tile" style="background-image:linear-gradient(135deg,rgba(0,0,0,0.0),rgba(0,0,0,0.2)),url('${d.img}');">
+    grid.innerHTML = DESTS.map(d => {
+      const pick = LIVE_PICKS[d.city];
+      const slug = encodeURIComponent(d.city);
+      return `
+      <a class="dest-tile" href="./app.html#/search?cat=All&q=${slug}"
+         style="background-image:linear-gradient(135deg,rgba(0,0,0,0.0),rgba(0,0,0,0.25)),url('${d.img}'); text-decoration:none;">
+        <span class="badge" style="position:absolute; top:12px; left:12px; background:rgba(255,255,255,0.75); backdrop-filter:blur(10px); font-weight:700;">🔥 LIVE</span>
         <div class="overlay">
           <div class="country">${(COUNTRY_TR[d.country]||{})[lang] || d.country}</div>
           <div class="city">${(CITY_TR[d.city]||{})[lang] || d.city}</div>
+          ${pick ? `<div class="t-small t-muted" style="margin-top:6px;font-weight:700;line-height:1.3;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;">${escapeH(pick.name)}</div>
+                    <div style="margin-top:4px;font-weight:800;color:var(--token-green);font-size:13px;">${fmtN(usdToTok(pick.price))} <span style="font-size:10px;">$1</span></div>`
+                  : `<div class="t-small t-muted" style="margin-top:6px; opacity:0.7;">Loading…</div>`}
         </div>
-      </div>
-    `).join('');
+      </a>
+    `;}).join('');
   }
-  // City marquee in the hero — duplicated so the loop is seamless
+  // City marquee in the hero
   const m = document.getElementById('cityMarquee');
   if (m) {
     const items = DESTS.concat(DESTS).map(d =>
@@ -422,12 +479,38 @@ function renderDests() {
     m.innerHTML = items;
   }
 }
+
+// Pull live "top pick" (cheapest activity or hotel) for each visible city.
+async function loadLivePicks() {
+  await Promise.all(DESTS.map(async d => {
+    if (LIVE_PICKS[d.city]) return; // already cached
+    const r = await fetchJsonSafeL(`/api/activities/search?city=${encodeURIComponent(d.city)}`);
+    const items = (r && r.results) || [];
+    if (items.length) {
+      const top = items[Math.floor(Math.random() * items.length)];
+      LIVE_PICKS[d.city] = { name: top.name, price: top.price };
+    }
+  }));
+  renderDests();
+}
+
+// Rotate the 8 visible cities every 5 minutes
+setInterval(() => {
+  DESTS = pickRandomDests();
+  // Clear cache so new cities get fresh picks
+  Object.keys(LIVE_PICKS).forEach(k => { if (!DESTS.find(d => d.city === k)) delete LIVE_PICKS[k]; });
+  renderDests();
+  loadLivePicks();
+}, 5 * 60 * 1000);
+
+// Helper for HTML escaping inside renderDests
+function escapeH(s) { return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function toast(msg){ const wrap=document.createElement('div'); wrap.className='toast'; wrap.innerHTML=`<span class="dot"></span><span>${msg}</span>`;
   let stack=document.querySelector('.toast-stack'); if(!stack){stack=document.createElement('div');stack.className='toast-stack';document.body.appendChild(stack);}
   stack.appendChild(wrap); setTimeout(()=>wrap.style.opacity=0,2400); setTimeout(()=>wrap.remove(),2700);
 }
 window.toast = toast;
-window.addEventListener('DOMContentLoaded', renderDests);
+window.addEventListener('DOMContentLoaded', () => { renderDests(); loadLivePicks(); });
 window.addEventListener('dt:lang', renderDests);
 
 // ============== Trending Now — live partner data ==============
