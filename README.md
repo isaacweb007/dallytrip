@@ -87,6 +87,10 @@ To add a new language, extend each entry in `assets/i18n.js` and add the code to
 - [ ] Telegram Mini App wrapper
 - [ ] Travala / hotel-supplier API in v2
 
+## 🤖 Auto-deploy
+
+Every change Claude Code makes to this repo is auto-committed and pushed on every turn end via a Stop hook (`.claude/auto-deploy.sh`). Cloudflare Pages picks up the push and redeploys to https://dallytrip.com within ~30s. No manual `git push` needed.
+
 ## 📄 License
 
 MIT © DallyTrip
