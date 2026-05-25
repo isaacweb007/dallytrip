@@ -73,6 +73,479 @@ function tField(v) {
 }
 window.tField = tField;
 
+// ================================================================
+// Deterministic mock data generators — used to make every product
+// feel like a real, lived-in OTA listing even before we have a real
+// content backend. The same product id always produces the same
+// gallery, amenities, reviews, FAQ — so cards never visibly mutate.
+// ================================================================
+
+// Mulberry32 — tiny, fast, well-distributed seeded PRNG. Given the same
+// 32-bit seed it always emits the same float sequence.
+function mulberry32(seed) {
+  let a = seed >>> 0;
+  return function () {
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = a;
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function seedFrom(str) {
+  let h = 0x811c9dc5;
+  const s = String(str || '');
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  return h >>> 0;
+}
+// Deterministic stable rating/reviews — used in normalize() so cards never
+// mutate between renders. The mock detail page uses the same numbers via
+// generateMockData(), so card ↔ detail are always in sync.
+function stableRating(key) {
+  const r = mulberry32(seedFrom(key));
+  return Math.round((4.2 + r() * 0.7) * 10) / 10; // 4.2 ~ 4.9
+}
+function stableReviews(key) {
+  const r = mulberry32(seedFrom(key));
+  return Math.floor(120 + r() * 4680); // 120 ~ 4800
+}
+
+function pickN(rng, arr, n) {
+  // shuffle copy, take first n — Fisher-Yates with seeded RNG
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a.slice(0, n);
+}
+
+// ---------- Reviewer name pool (multi-locale) ----------
+const REVIEWER_NAMES = [
+  // Korean (전체 이름)
+  '김지훈','박서연','이민호','최수아','정현우','강예린','조도현','윤하늘','장유진','한지민',
+  '서준영','신서윤','오재현','홍수빈','문지원','임채원','권다은','노현수','배수정','구민재',
+  // English
+  'James M.','Sarah K.','Daniel L.','Emma R.','Michael S.','Olivia W.','Noah T.','Sophia G.',
+  'Liam P.','Mia H.','Ethan B.','Ava C.','Lucas F.','Isabella D.','Mason J.','Charlotte V.',
+  // Japanese
+  '田中 健','佐藤 美咲','鈴木 大輔','高橋 結衣','伊藤 翔','山本 さくら','中村 蓮','小林 葵',
+  // Chinese
+  '王浩然','李思琪','张子轩','刘雅婷','陈伟','杨欣怡','黄宇航','吴梦琪',
+  // Vietnamese
+  'Nguyễn V.','Trần Minh','Lê Thị Hoa','Phạm Quang','Hoàng Lan',
+  // Filipino / Indonesian / Thai (mixed)
+  'Maria Santos','Andi Wijaya','Putri Ayu','Niran K.','Anong S.',
+];
+
+// ---------- Review templates (per category, multi-lang) ----------
+const REVIEW_TEMPLATES = {
+  Hotel: {
+    ko: [
+      '위치가 정말 최고였어요. 해변까지 도보 3분, 시내도 가깝고요. 객실도 깔끔하고 직원들도 친절했습니다. 다음에도 꼭 다시 묵을게요.',
+      '조식 뷔페가 기대 이상이었어요. 한식 코너도 있어서 좋았고, 풀사이드 뷰가 환상적이었습니다.',
+      '체크인이 매끄럽고 룸 업그레이드도 받았어요. 침구류 컨디션도 좋고 욕실이 넓어서 편안했습니다.',
+      '가성비 훌륭합니다. 이 가격에 이 정도 시설이면 별 5개 줘도 모자라요. 인피니티 풀 강추.',
+      '아이 동반 가족여행으로 왔는데 키즈 어메니티가 잘 준비되어 있어서 만족스러웠어요.',
+      '룸 컨디션은 좋았지만 와이파이가 살짝 느렸어요. 그래도 전반적으로 만족합니다.',
+      '스파 서비스가 인상적이었고, 직원분이 한국어 가능해서 편했어요.',
+      '발코니에서 보는 오션뷰가 일품. 일출 보면서 마신 커피는 평생 못 잊을 것 같아요.',
+    ],
+    en: [
+      'Location was perfect — 3 minutes to the beach, restaurants right outside. Rooms spotless, staff super friendly. Will absolutely return.',
+      'Breakfast buffet exceeded expectations. Great variety, the poolside view alone is worth the stay.',
+      'Smooth check-in, got a complimentary room upgrade. Linens were great, bathroom spacious.',
+      'Incredible value for money. The infinity pool is something else. Highly recommend.',
+      'Came with kids — they had thoughtful family amenities, made the trip stress-free.',
+      'Room was lovely though Wi-Fi was a bit slow. Overall still very happy with the stay.',
+      'The spa experience was a highlight. Staff spoke multiple languages which made things easy.',
+      'Sunrise from the balcony was unforgettable. Already booking again for next year.',
+    ],
+    ja: [
+      '立地が最高でした。ビーチまで徒歩3分、レストランもすぐ近く。スタッフも親切で、また泊まりたいです。',
+      '朝食ビュッフェが想像以上に良かった。プールサイドの景色も素晴らしいです。',
+      'チェックインがスムーズで、無料アップグレードもしてくれました。バスルームが広く快適。',
+      'コスパが素晴らしい。このお値段でこの施設は文句なし。インフィニティプールが圧巻。',
+      '家族旅行で利用。子供向けアメニティが充実していて助かりました。',
+    ],
+    zh: [
+      '位置非常棒，步行3分钟到海滩，餐厅就在附近。房间干净，员工友好，下次还会来。',
+      '自助早餐超出预期，泳池边的景色一流。',
+      '办理入住很顺畅，还免费升级了房型。床品舒适，浴室宽敞。',
+      '性价比超高，无边泳池太赞了，强烈推荐。',
+      '带孩子来住，亲子设施很贴心，旅程毫无压力。',
+    ],
+  },
+  Activity: {
+    ko: [
+      '가이드분이 정말 친절하고 박학다식했어요. 사진 명소도 잘 알고 계셔서 인생샷 건졌습니다.',
+      '예상보다 알찬 일정. 픽업도 정확하고 음식도 맛있었어요. 가격 대비 만족도 최고.',
+      '아이들이 너무 좋아했어요. 안전 장비도 꼼꼼히 챙겨주시고, 시간 관리도 완벽했습니다.',
+      '일출 시간 맞춰 도착하려고 새벽에 출발했는데 그 노력이 아깝지 않을 풍경이었어요.',
+      '한국어 가능한 가이드라 의사소통 편했고, 사진도 많이 찍어주셔서 좋았습니다.',
+      '그룹 인원이 적당해서 친밀한 분위기였어요. 점심 식당도 현지인 추천 맛집이라 굳굳.',
+    ],
+    en: [
+      'Guide was knowledgeable and so warm. Took us to the best photo spots — got some incredible shots.',
+      'Way more substantial than I expected. Pickup on time, food great, fantastic value.',
+      'Kids loved every minute. Safety briefing was thorough, timing was perfect.',
+      'Got there for sunrise and the view was 100% worth the early wake-up call.',
+      'Loved the small group size — felt personal. Lunch was at a real local spot, not a tourist trap.',
+      'Booking and refund flexibility was helpful when our schedule shifted.',
+    ],
+    ja: [
+      'ガイドさんが本当に親切で知識豊富。撮影スポットも完璧でした。',
+      '想像以上に内容の濃いツアー。集合場所への送迎も時間通りで安心。',
+      '子供が大喜び。安全対策もしっかりしていて時間配分も完璧でした。',
+      '日の出に合わせて早朝出発でしたが、その景色は早起きの価値ありでした。',
+    ],
+    zh: [
+      '导游知识渊博又热情，带我们去了最佳拍照地点，拍到了超棒的照片。',
+      '比预期更丰富的行程，接送准时，食物也很好吃，性价比超高。',
+      '小孩玩得不亦乐乎，安全讲解很到位，时间安排也很完美。',
+      '清晨出发赶日出，那个景色绝对值得早起。',
+    ],
+  },
+  Flight: {
+    ko: [
+      '체크인 빠르고 기내식도 괜찮았어요. 좌석 간격도 이코노미치고 넉넉한 편.',
+      '정시 출발/도착이 가장 큰 장점. 환승도 매끄럽게 진행됐어요.',
+      '승무원이 한국어 서비스를 제공해서 편안했습니다. 기내 엔터테인먼트도 다양.',
+      '수하물 처리가 빠르고 정확했어요. 분실 걱정 없이 갈 수 있어 좋았습니다.',
+      '가격 대비 서비스가 훌륭. 다음 여행 때도 같은 항공사 고려할게요.',
+    ],
+    en: [
+      'Fast check-in, decent meal, and seat pitch was generous for economy.',
+      'On-time both ways — biggest plus. Connections handled smoothly too.',
+      'Crew offered service in multiple languages. IFE library was solid.',
+      'Baggage handling was quick and accurate. Peace of mind throughout.',
+      'Great value for the service level. Will fly them again.',
+    ],
+    ja: [
+      'チェックインが早く、機内食もまあまあ良かった。エコノミーでも座席間隔は十分。',
+      '定時運航が最大の利点。乗り継ぎもスムーズでした。',
+      '日本語サービスがあって安心。機内エンタメも充実。',
+    ],
+    zh: [
+      '值机快，餐食不错，经济舱座位间距还可以。',
+      '准时起飞和降落是最大的优点。中转也很顺畅。',
+      '机组提供多语言服务，机上娱乐内容也很丰富。',
+    ],
+  },
+  Transport: {
+    ko: [
+      '기사님이 정시 도착, 운전도 안정적이었어요. 영어 소통도 무리 없었습니다.',
+      '차량 상태 깨끗하고 에어컨도 잘 나왔어요. 짐도 많았는데 친절하게 도와주셨습니다.',
+      '공항 픽업 미팅이 매끄러웠어요. 이름판 들고 기다려주셔서 헷갈리지 않았습니다.',
+      '아이 카시트 미리 요청했더니 준비해주셨어요. 가족 여행에 추천합니다.',
+    ],
+    en: [
+      'Driver was on time and drove safely. Communication in English was no problem.',
+      'Vehicle was clean and AC worked great. Plenty of luggage space, driver helped with bags.',
+      'Airport meet was seamless — driver had a clear name sign waiting.',
+      'Requested a child seat ahead and they provided one. Great for family trips.',
+    ],
+    ja: [
+      'ドライバーは時間通りに到着、安全運転でした。英語のコミュニケーションも問題なし。',
+      '車内は清潔でエアコンも快適。荷物が多かったですが快く手伝ってくれました。',
+    ],
+    zh: [
+      '司机准时到达，开车也很稳，英文沟通无障碍。',
+      '车辆干净，空调给力，行李很多司机也热心帮忙。',
+    ],
+  },
+};
+
+// ---------- Hotel amenity master list ----------
+// { key, label-multilang, icon (svg/emoji) }
+const ALL_AMENITIES = [
+  { key: 'wifi',     icon: '📶', label: { ko:'무료 와이파이', en:'Free Wi-Fi', ja:'無料Wi-Fi', zh:'免费Wi-Fi' } },
+  { key: 'pool',     icon: '🏊', label: { ko:'수영장',         en:'Swimming pool', ja:'プール', zh:'游泳池' } },
+  { key: 'spa',      icon: '💆', label: { ko:'스파 & 마사지', en:'Spa & massage', ja:'スパ・マッサージ', zh:'水疗按摩' } },
+  { key: 'gym',      icon: '🏋', label: { ko:'피트니스 센터', en:'Fitness center', ja:'フィットネス', zh:'健身房' } },
+  { key: 'parking',  icon: '🅿️', label: { ko:'무료 주차',      en:'Free parking', ja:'無料駐車場', zh:'免费停车' } },
+  { key: 'breakfast',icon: '🍳', label: { ko:'조식 포함',      en:'Breakfast included', ja:'朝食付き', zh:'含早餐' } },
+  { key: 'aircon',   icon: '❄️', label: { ko:'에어컨',         en:'Air conditioning', ja:'エアコン', zh:'空调' } },
+  { key: 'beach',    icon: '🏖', label: { ko:'해변 접근',       en:'Beach access', ja:'ビーチアクセス', zh:'海滩通道' } },
+  { key: 'shuttle',  icon: '🚐', label: { ko:'공항 셔틀',       en:'Airport shuttle', ja:'空港送迎', zh:'机场班车' } },
+  { key: 'restaurant',icon:'🍽', label: { ko:'레스토랑',         en:'On-site restaurant', ja:'レストラン', zh:'餐厅' } },
+  { key: 'bar',      icon: '🍸', label: { ko:'바 & 라운지',     en:'Bar & lounge', ja:'バー・ラウンジ', zh:'酒吧休息室' } },
+  { key: 'kids',     icon: '🧸', label: { ko:'키즈 클럽',       en:'Kids club', ja:'キッズクラブ', zh:'儿童俱乐部' } },
+  { key: 'concierge',icon: '🛎', label: { ko:'컨시어지',         en:'Concierge', ja:'コンシェルジュ', zh:'礼宾服务' } },
+  { key: 'laundry',  icon: '🧺', label: { ko:'세탁 서비스',     en:'Laundry service', ja:'ランドリー', zh:'洗衣服务' } },
+  { key: 'business', icon: '💼', label: { ko:'비즈니스 센터',   en:'Business center', ja:'ビジネスセンター', zh:'商务中心' } },
+  { key: 'petfriendly',icon:'🐾',label:{ ko:'반려동물 동반',     en:'Pet friendly', ja:'ペット可', zh:'宠物友好' } },
+  { key: '24front',  icon: '🕐', label: { ko:'24시 프런트',     en:'24h front desk', ja:'24時間フロント', zh:'24小时前台' } },
+  { key: 'roomservice',icon:'🍴',label:{ ko:'룸 서비스',         en:'Room service', ja:'ルームサービス', zh:'客房服务' } },
+];
+
+// ---------- Hotel highlights ----------
+const HOTEL_HIGHLIGHTS = {
+  ko: ['오션뷰', '시내 중심부 도보 5분', '인피니티 풀', '미슐랭 가이드 레스토랑', '키즈 프렌들리', '커플 추천'],
+  en: ['Ocean view', '5 min walk to downtown', 'Infinity pool', 'Michelin-guide restaurant', 'Family-friendly', 'Couple favorite'],
+  ja: ['オーシャンビュー', '中心部まで徒歩5分', 'インフィニティプール', 'ミシュランガイド掲載', 'ファミリー向け', 'カップル人気'],
+  zh: ['海景', '步行5分钟至市中心', '无边泳池', '米其林指南餐厅', '亲子友好', '情侣推荐'],
+};
+
+// ---------- FAQ master list (per category) ----------
+const FAQ_TEMPLATES = {
+  Hotel: [
+    { q: { ko:'체크인 / 체크아웃 시간은?', en:'What time is check-in / check-out?', ja:'チェックイン・チェックアウトは何時？', zh:'入住和退房时间是？' },
+      a: { ko:'체크인은 15:00, 체크아웃은 12:00입니다. 얼리 체크인은 가능 여부 확인 필요.', en:'Check-in 3 PM, check-out 12 PM. Early check-in subject to availability.', ja:'チェックイン15時、チェックアウト12時。アーリーチェックインは要確認。', zh:'下午3点入住，中午12点退房。提前入住需确认。' } },
+    { q: { ko:'공항에서 호텔까지 이동 방법?', en:'How to get from airport to hotel?', ja:'空港からのアクセス方法は？', zh:'如何从机场到酒店？' },
+      a: { ko:'공항에서 차량으로 약 25-40분. 호텔 셔틀(유료) 또는 택시 추천.', en:'About 25-40 min by car. Paid hotel shuttle or taxi recommended.', ja:'空港から車で約25〜40分。有料シャトルかタクシー推奨。', zh:'乘车约25-40分钟。建议使用付费班车或出租车。' } },
+    { q: { ko:'와이파이는 무료인가요?', en:'Is Wi-Fi free?', ja:'Wi-Fiは無料？', zh:'Wi-Fi免费吗？' },
+      a: { ko:'네, 전 객실 및 공용 구역에서 무료 와이파이를 제공합니다.', en:'Yes, complimentary Wi-Fi throughout the property.', ja:'はい、全館で無料Wi-Fiをご利用いただけます。', zh:'是的，全酒店免费Wi-Fi。' } },
+    { q: { ko:'주차는 가능한가요?', en:'Is parking available?', ja:'駐車場はありますか？', zh:'有停车场吗？' },
+      a: { ko:'네, 호텔 부설 무료/유료 주차장이 있습니다. 발렛 옵션도 제공.', en:'Yes, on-site free/paid parking with valet option available.', ja:'はい、無料・有料駐車場とバレットあり。', zh:'是的，提供免费/付费停车以及代客泊车服务。' } },
+    { q: { ko:'반려동물 동반 가능?', en:'Are pets allowed?', ja:'ペット同伴可能？', zh:'可以带宠物吗？' },
+      a: { ko:'사전 문의 시 소형 반려동물 동반 가능. 추가 요금 발생 가능.', en:'Small pets allowed with prior arrangement. Surcharge may apply.', ja:'事前相談で小型ペット可。追加料金の場合あり。', zh:'小型宠物需提前安排。可能产生附加费。' } },
+    { q: { ko:'취소 및 환불 정책은?', en:'Cancellation & refund policy?', ja:'キャンセル・返金ポリシーは？', zh:'取消和退款政策？' },
+      a: { ko:'체크인 48시간 전까지 무료 취소. 이후 1박 요금 부과.', en:'Free cancellation up to 48h before check-in. After that, 1 night charge.', ja:'チェックイン48時間前まで無料キャンセル。以降1泊分の料金。', zh:'入住前48小时内免费取消。之后收取一晚费用。' } },
+  ],
+  Activity: [
+    { q: { ko:'몇 명까지 예약 가능한가요?', en:'How many people can I book for?', ja:'何名まで予約可能？', zh:'最多可预订几人？' },
+      a: { ko:'그룹 투어 기준 최대 16명. 프라이빗 옵션은 별도 문의.', en:'Group tour up to 16 people. Private option on request.', ja:'グループ16名まで。プライベートは要相談。', zh:'团队最多16人。私人团请咨询。' } },
+    { q: { ko:'우천 시에도 진행되나요?', en:'Does the tour run in bad weather?', ja:'悪天候でも開催？', zh:'下雨天会进行吗？' },
+      a: { ko:'경미한 우천 시 진행. 심한 악천후 시 일정 변경 또는 전액 환불.', en:'Runs in light rain. In severe weather, rescheduled or full refund.', ja:'小雨決行。荒天時は変更または全額返金。', zh:'小雨照常。极端天气重新安排或全额退款。' } },
+    { q: { ko:'픽업 장소는 어디인가요?', en:'Where is the pickup point?', ja:'集合場所は？', zh:'接送地点在哪？' },
+      a: { ko:'시내 주요 호텔 픽업 가능. 예약 확정 후 정확한 주소 안내.', en:'Major downtown hotels. Exact pickup confirmed after booking.', ja:'市内主要ホテルにて。予約確定後、正確な場所をご案内。', zh:'市区主要酒店接送。预订确认后告知具体地点。' } },
+    { q: { ko:'아이도 참여 가능한가요?', en:'Can children join?', ja:'子供も参加できる？', zh:'孩子可以参加吗？' },
+      a: { ko:'4세 이상 참여 가능. 12세 미만은 보호자 동반 필수.', en:'Ages 4+. Under 12 must be accompanied by an adult.', ja:'4歳以上参加可。12歳未満は保護者同伴。', zh:'4岁以上可参加。12岁以下需家长陪同。' } },
+    { q: { ko:'무엇을 챙겨가야 하나요?', en:'What should I bring?', ja:'持ち物は？', zh:'需要带什么？' },
+      a: { ko:'편한 신발, 자외선 차단제, 모자, 물병. 카메라 추천.', en:'Comfortable shoes, sunscreen, hat, water bottle. Camera recommended.', ja:'歩きやすい靴、日焼け止め、帽子、水筒。カメラ推奨。', zh:'舒适的鞋、防晒霜、帽子、水壶。建议带相机。' } },
+  ],
+  Flight: [
+    { q: { ko:'기내 수하물 규정은?', en:'Carry-on baggage policy?', ja:'機内手荷物の規定は？', zh:'随身行李规定？' },
+      a: { ko:'기내 수하물 1개(7kg, 56x36x23cm) + 개인 소지품 1개.', en:'1 carry-on (7kg, 56x36x23cm) + 1 personal item.', ja:'機内手荷物1個(7kg、56x36x23cm)＋身の回り品1個。', zh:'1件随身行李(7kg, 56x36x23cm)+1件个人物品。' } },
+    { q: { ko:'위탁 수하물은 포함되나요?', en:'Is checked baggage included?', ja:'受託手荷物は含まれる？', zh:'托运行李包含吗？' },
+      a: { ko:'운임 종류에 따라 다름. 이코노미 기준 별도 구매 권장.', en:'Depends on fare class. Recommended to purchase for economy.', ja:'運賃クラスにより異なります。エコノミーは追加購入推奨。', zh:'视舱位而定。经济舱建议另行购买。' } },
+    { q: { ko:'온라인 체크인 가능 시간은?', en:'When can I check in online?', ja:'オンラインチェックインの開始時間は？', zh:'何时可以网上值机？' },
+      a: { ko:'출발 24시간 전부터 1시간 전까지.', en:'24 hours before departure up to 1 hour prior.', ja:'出発24時間前から1時間前まで。', zh:'起飞前24小时至1小时。' } },
+    { q: { ko:'좌석 지정은 어떻게 하나요?', en:'How do I select seats?', ja:'座席指定はどうする？', zh:'如何选座？' },
+      a: { ko:'체크인 시 무료 좌석 또는 사전 유료 지정 가능.', en:'Free at check-in, or paid pre-selection available.', ja:'チェックイン時無料、または事前有料指定可。', zh:'值机时免费选座，或可付费提前选。' } },
+    { q: { ko:'환불 정책은?', en:'Refund policy?', ja:'返金ポリシーは？', zh:'退款政策？' },
+      a: { ko:'운임 종류에 따라 다름. 자세한 사항은 항공사 정책 참조.', en:'Depends on fare class. See airline policy for details.', ja:'運賃クラスにより異なります。航空会社のポリシー参照。', zh:'视舱位而定。详见航空公司政策。' } },
+  ],
+  Transport: [
+    { q: { ko:'예약 후 차량 변경 가능?', en:'Can I change vehicle after booking?', ja:'予約後に車両変更可能？', zh:'预订后能换车吗？' },
+      a: { ko:'픽업 24시간 전까지 가능. 차종 변경 시 요금 차액 발생.', en:'Up to 24h before pickup. Fare difference may apply.', ja:'ピックアップ24時間前まで。差額が発生する場合あり。', zh:'取车前24小时内可换。可能产生差价。' } },
+    { q: { ko:'운전자 연령 제한은?', en:'Minimum driver age?', ja:'最低運転年齢は？', zh:'最低驾驶年龄？' },
+      a: { ko:'21세 이상, 운전 경력 1년 이상. 25세 미만 시 영 드라이버 수수료.', en:'21+ with 1+ year of driving. Young driver fee under 25.', ja:'21歳以上、運転歴1年以上。25歳未満は若年ドライバー料金。', zh:'21岁以上，驾龄1年以上。25岁以下需年轻司机附加费。' } },
+    { q: { ko:'국제 운전 면허증 필요?', en:'Do I need an IDP?', ja:'国際免許は必要？', zh:'需要国际驾照吗？' },
+      a: { ko:'필요. 본국 면허증 + 국제 운전 면허증 + 여권 지참.', en:'Yes. Bring home license + IDP + passport.', ja:'必要。母国免許＋国際免許＋パスポート持参。', zh:'需要。本国驾照+国际驾照+护照。' } },
+    { q: { ko:'보험은 포함되나요?', en:'Is insurance included?', ja:'保険は含まれる？', zh:'包含保险吗？' },
+      a: { ko:'기본 보험 포함. 풀 커버리지는 체크아웃 시 옵션 선택 가능.', en:'Basic coverage included. Full coverage available at checkout.', ja:'基本保険込み。フルカバーは結算時にオプション選択可。', zh:'含基本保险。结账时可选择全险。' } },
+  ],
+};
+
+// ---------- Generic photo pools by category ----------
+const PHOTO_GALLERY_POOLS = {
+  Hotel: [
+    'https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=1200&q=70&auto=format&fit=crop', // resort exterior dusk
+    'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=1200&q=70&auto=format&fit=crop', // pool palms
+    'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=1200&q=70&auto=format&fit=crop', // hotel facade
+    'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=1200&q=70&auto=format&fit=crop', // luxury bedroom
+    'https://images.unsplash.com/photo-1551776235-dde6d4829808?w=1200&q=70&auto=format&fit=crop', // design hotel
+    'https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=1200&q=70&auto=format&fit=crop', // infinity pool
+    'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=1200&q=70&auto=format&fit=crop', // modern hotel room
+    'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=1200&q=70&auto=format&fit=crop', // boutique lobby
+    'https://images.unsplash.com/photo-1559599101-f09722fb4948?w=1200&q=70&auto=format&fit=crop', // modern suite
+    'https://images.unsplash.com/photo-1540541338287-41700207dee6?w=1200&q=70&auto=format&fit=crop', // overwater villa
+    'https://images.unsplash.com/photo-1602002418816-5c0aeef426aa?w=1200&q=70&auto=format&fit=crop', // tropical pool deck
+    'https://images.unsplash.com/photo-1444201983204-c43cbd584d93?w=1200&q=70&auto=format&fit=crop', // boutique facade
+    'https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?w=1200&q=70&auto=format&fit=crop', // boutique room
+    'https://images.unsplash.com/photo-1551918120-9739cb430c6d?w=1200&q=70&auto=format&fit=crop', // city hotel
+    'https://images.unsplash.com/photo-1445019980597-93fa8acb246c?w=1200&q=70&auto=format&fit=crop', // grand entrance
+  ],
+  Activity: [
+    'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1200&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1528181304800-259b08848526?w=1200&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=1200&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=1200&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1559125148-869baf508c95?w=1200&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?w=1200&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1531192635-4a39e83dee7c?w=1200&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1542273917363-3b1817f69a2d?w=1200&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=1200&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1200&q=70&auto=format&fit=crop',
+  ],
+  Flight: [
+    'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1200&q=70&auto=format&fit=crop', // wing
+    'https://images.unsplash.com/photo-1542296332-2e4473faf563?w=1200&q=70&auto=format&fit=crop', // cabin
+    'https://images.unsplash.com/photo-1583500178690-f7fd02c2c2c2?w=1200&q=70&auto=format&fit=crop', // sky
+    'https://images.unsplash.com/photo-1569154941061-e231b4725ef1?w=1200&q=70&auto=format&fit=crop', // window seat
+    'https://images.unsplash.com/photo-1556388158-158ea5ccacbd?w=1200&q=70&auto=format&fit=crop', // airport gate
+    'https://images.unsplash.com/photo-1542296332-2e4473faf563?w=1200&q=70&auto=format&fit=crop', // boarding
+  ],
+  Transport: [
+    'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=1200&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1568844293986-8d0400bd4745?w=1200&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1502877338535-766e1452684a?w=1200&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1597007030739-6d2e7172ee6c?w=1200&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1200&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=1200&q=70&auto=format&fit=crop',
+  ],
+};
+
+// ---------- Room types (hotel) ----------
+const ROOM_TYPES = {
+  ko: [
+    { name:'디럭스 룸', size:'34㎡', bed:'킹 1', view:'시티뷰', mod:0 },
+    { name:'프리미엄 오션뷰', size:'42㎡', bed:'킹 1', view:'오션뷰', mod:25 },
+    { name:'스위트', size:'68㎡', bed:'킹 1 + 거실', view:'오션뷰', mod:60 },
+    { name:'풀빌라', size:'120㎡', bed:'킹 1 + 프라이빗 풀', view:'프라이빗', mod:120 },
+  ],
+  en: [
+    { name:'Deluxe Room', size:'34㎡', bed:'1 King', view:'City view', mod:0 },
+    { name:'Premium Ocean View', size:'42㎡', bed:'1 King', view:'Ocean view', mod:25 },
+    { name:'Suite', size:'68㎡', bed:'1 King + Living', view:'Ocean view', mod:60 },
+    { name:'Pool Villa', size:'120㎡', bed:'1 King + Private pool', view:'Private', mod:120 },
+  ],
+  ja: [
+    { name:'デラックスルーム', size:'34㎡', bed:'キング1', view:'シティビュー', mod:0 },
+    { name:'プレミアムオーシャンビュー', size:'42㎡', bed:'キング1', view:'オーシャンビュー', mod:25 },
+    { name:'スイート', size:'68㎡', bed:'キング1+リビング', view:'オーシャンビュー', mod:60 },
+    { name:'プールヴィラ', size:'120㎡', bed:'キング1+プライベートプール', view:'プライベート', mod:120 },
+  ],
+  zh: [
+    { name:'豪华房', size:'34㎡', bed:'1张大床', view:'城市景观', mod:0 },
+    { name:'高级海景房', size:'42㎡', bed:'1张大床', view:'海景', mod:25 },
+    { name:'套房', size:'68㎡', bed:'1张大床+客厅', view:'海景', mod:60 },
+    { name:'泳池别墅', size:'120㎡', bed:'1张大床+私人泳池', view:'私人', mod:120 },
+  ],
+};
+
+// ---------- Main mock data generator ----------
+// Returns { rating, reviewsCount, ratingBreakdown, photos, amenities, reviews, faq, highlights, rooms, schedule }
+function generateMockData(product) {
+  const seed = seedFrom(product.id || tField(product.name));
+  const rng = mulberry32(seed);
+  const lang = window.__dtLang ? window.__dtLang.getLang() : 'en';
+  const cat = product.cat || 'Hotel';
+
+  // Rating: weighted toward 4.4-4.9
+  const baseRating = 4.2 + rng() * 0.7;
+  const rating = Math.round(baseRating * 10) / 10;
+
+  // Reviews count: between 120 and 4800
+  const reviewsCount = Math.floor(120 + rng() * 4680);
+
+  // Rating breakdown (5/4/3/2/1 star percentages)
+  const p5 = 55 + Math.floor(rng() * 30); // 55-85%
+  const p4 = Math.floor((100 - p5) * (0.55 + rng() * 0.2));
+  const p3 = Math.floor((100 - p5 - p4) * (0.6 + rng() * 0.2));
+  const p2 = Math.floor((100 - p5 - p4 - p3) * 0.6);
+  const p1 = Math.max(0, 100 - p5 - p4 - p3 - p2);
+  const ratingBreakdown = [
+    { stars: 5, percent: p5 },
+    { stars: 4, percent: p4 },
+    { stars: 3, percent: p3 },
+    { stars: 2, percent: p2 },
+    { stars: 1, percent: p1 },
+  ];
+
+  // Photo gallery: 6-8 photos from category pool
+  const pool = PHOTO_GALLERY_POOLS[cat] || PHOTO_GALLERY_POOLS.Hotel;
+  const photoCount = cat === 'Hotel' ? 8 : (cat === 'Activity' ? 6 : 5);
+  const photos = [product.img, ...pickN(rng, pool.filter(p => p !== product.img), photoCount - 1)];
+
+  // Amenities (hotel only — pick 10-14 from master list)
+  const amenities = cat === 'Hotel'
+    ? pickN(rng, ALL_AMENITIES, 10 + Math.floor(rng() * 5))
+    : [];
+
+  // Reviews: 8 mock reviews mixing locales
+  const templatesByLang = REVIEW_TEMPLATES[cat] || REVIEW_TEMPLATES.Hotel;
+  const allReviewerNames = REVIEWER_NAMES.slice();
+  const reviews = [];
+  for (let i = 0; i < 8; i++) {
+    const langs = Object.keys(templatesByLang);
+    // Bias 50% toward user's current lang, rest mixed
+    const reviewLang = rng() < 0.5 ? lang : langs[Math.floor(rng() * langs.length)];
+    const templates = templatesByLang[reviewLang] || templatesByLang.en || [];
+    if (templates.length === 0) continue;
+    const name = allReviewerNames[Math.floor(rng() * allReviewerNames.length)];
+    const text = templates[Math.floor(rng() * templates.length)];
+    const stars = rng() < 0.05 ? 3 : (rng() < 0.25 ? 4 : 5);
+    const daysAgo = Math.floor(rng() * 180) + 1;
+    reviews.push({
+      name,
+      stars,
+      text,
+      daysAgo,
+      avatarColor: `hsl(${Math.floor(rng() * 360)}, 60%, 70%)`,
+      verified: rng() < 0.85,
+    });
+  }
+
+  // FAQ for this category
+  const faqTpls = FAQ_TEMPLATES[cat] || FAQ_TEMPLATES.Hotel;
+  const faq = faqTpls.map(item => ({
+    q: item.q[lang] || item.q.en,
+    a: item.a[lang] || item.a.en,
+  }));
+
+  // Highlights (hotel only for now)
+  const highlights = cat === 'Hotel'
+    ? pickN(rng, HOTEL_HIGHLIGHTS[lang] || HOTEL_HIGHLIGHTS.en, 4 + Math.floor(rng() * 3))
+    : [];
+
+  // Room types (hotel only)
+  const rooms = cat === 'Hotel' ? (ROOM_TYPES[lang] || ROOM_TYPES.en) : [];
+
+  // Activity schedule (timeline)
+  const schedule = cat === 'Activity' ? buildActivitySchedule(rng, lang) : [];
+
+  return { rating, reviewsCount, ratingBreakdown, photos, amenities, reviews, faq, highlights, rooms, schedule };
+}
+
+function buildActivitySchedule(rng, lang) {
+  const L = {
+    ko: [
+      { t:'08:00', e:'호텔 픽업', d:'주요 시내 호텔 로비에서 합류' },
+      { t:'09:00', e:'첫 번째 명소 도착', d:'가이드 인솔로 입장 및 설명' },
+      { t:'11:30', e:'사진 촬영 타임', d:'베스트 포토 스팟에서 자유 시간' },
+      { t:'12:30', e:'점심 식사', d:'현지인 추천 맛집에서 정통 요리' },
+      { t:'14:00', e:'두 번째 명소', d:'문화 체험 또는 트레킹' },
+      { t:'16:30', e:'쇼핑 & 휴식', d:'기념품 구입 또는 카페 타임' },
+      { t:'17:30', e:'호텔 복귀', d:'픽업 장소로 안전하게 모셔다 드림' },
+    ],
+    en: [
+      { t:'08:00', e:'Hotel pickup', d:'Meet at major downtown hotel lobbies' },
+      { t:'09:00', e:'Arrive at first stop', d:'Guided entry & introduction' },
+      { t:'11:30', e:'Photo time', d:'Free time at the best photo spots' },
+      { t:'12:30', e:'Lunch', d:'Local-recommended authentic restaurant' },
+      { t:'14:00', e:'Second stop', d:'Cultural experience or trekking' },
+      { t:'16:30', e:'Shopping & rest', d:'Souvenirs or café break' },
+      { t:'17:30', e:'Return to hotel', d:'Safely dropped at pickup point' },
+    ],
+    ja: [
+      { t:'08:00', e:'ホテルピックアップ', d:'市内主要ホテルロビーで合流' },
+      { t:'09:00', e:'最初のスポット到着', d:'ガイドによる入場・説明' },
+      { t:'11:30', e:'撮影タイム', d:'絶景ポイントで自由時間' },
+      { t:'12:30', e:'ランチ', d:'現地おすすめの本格レストラン' },
+      { t:'14:00', e:'2つ目のスポット', d:'文化体験またはトレッキング' },
+      { t:'16:30', e:'ショッピング・休憩', d:'お土産またはカフェタイム' },
+      { t:'17:30', e:'ホテル戻り', d:'集合場所まで安全送迎' },
+    ],
+    zh: [
+      { t:'08:00', e:'酒店接送', d:'市区主要酒店大堂集合' },
+      { t:'09:00', e:'到达第一站', d:'导游讲解入场' },
+      { t:'11:30', e:'拍照时间', d:'最佳拍照点自由活动' },
+      { t:'12:30', e:'午餐', d:'当地推荐正宗餐厅' },
+      { t:'14:00', e:'第二站', d:'文化体验或徒步' },
+      { t:'16:30', e:'购物休息', d:'纪念品或咖啡时间' },
+      { t:'17:30', e:'返回酒店', d:'安全送至集合点' },
+    ],
+  };
+  return L[lang] || L.en;
+}
+window.generateMockData = generateMockData;
+
 // ================= Mock data =================
 const PRODUCTS = [
   { id: 'p1', cat:'Hotel', country:'Vietnam', city:'Da Nang', name:'Da Nang Ocean View Resort', price:150, rating:4.8, reviews:248, img:'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=900&auto=format&fit=crop&q=70', desc:'Beachfront 5-star resort with infinity pool overlooking the East Sea.', included:['Breakfast','WiFi','Pool access','Airport shuttle (paid)'], excluded:['Lunch / Dinner','Spa'], cancel:'Free cancellation up to 48h before check-in.' },
@@ -543,8 +1016,8 @@ function normalizeHotel(h, city) {
     name: hotelName,
     priceUSD: Number(h.price || 0),
     price: usdToToken(h.price || 0),                       // $1 token price (USD ÷ 3)
-    rating: h.stars || 4.5,
-    reviews: Math.floor(50 + Math.random() * 800),
+    rating: h.stars || stableRating(`${hotelName}|${cityName}`),
+    reviews: stableReviews(`${hotelName}|${cityName}`),
     img,
     imgFallback: cityImg(cityName, hotelName),
     desc: {
@@ -625,7 +1098,8 @@ function normalizeFlight(f) {
     offerId: f.offerId || null,
     priceUSD: Number(f.price || 0),
     price: usdToToken(f.price || 0),
-    rating: 4.6, reviews: Math.floor(80 + Math.random() * 600),
+    rating: stableRating(`${f.from}-${f.to}-${airlineDisplay}`),
+    reviews: stableReviews(`${f.from}-${f.to}-${airlineDisplay}`),
     img: f.image || cityImg(cityFromAirport, `${f.from}-${f.to}`) || LIVE_IMG.flight,
     imgFallback: LIVE_IMG.flight,
     desc: isDuffel
@@ -679,7 +1153,8 @@ function normalizeCar(c, city) {
     distance: '— km', estDuration: '—',
     priceUSD: Number(c.price || 0),
     price: usdToToken(c.price || 0),
-    rating: 4.7, reviews: Math.floor(60 + Math.random() * 400),
+    rating: stableRating(`${c.id}|${city}`),
+    reviews: stableReviews(`${c.id}|${city}`),
     // Server now sends a per-vehicle photo (matches type). Fall back to city pool
     // only if the API didn't send anything.
     img: c.image || cityImg(city, c.model || c.type) || LIVE_IMG.car,
@@ -1007,6 +1482,308 @@ function pageHome() {
       <a class="btn btn-primary btn-lg" href="#/wallet">${t('app.home.manageWallet')}</a>
     </div>
   </div>
+  `;
+}
+
+// ================================================================
+// Reusable detail-page components — every category's detail screen
+// composes these so the look stays consistent.
+// ================================================================
+
+// Photo gallery: hero (large) + 4 thumbnails. Click any to open lightbox.
+// Stashes photo array on window as a side effect so the lightbox can advance
+// without needing to re-parse the DOM.
+function renderPhotoGallery(photos) {
+  if (!photos || photos.length === 0) return '';
+  window.__galleryPhotos = photos;
+  const main = photos[0];
+  const thumbs = photos.slice(1, 5);
+  const lang = window.__dtLang ? window.__dtLang.getLang() : 'en';
+  const L = { allPhotos: { ko:'전체 사진 보기', en:'View all photos', ja:'すべての写真', zh:'查看所有照片' } };
+  return `
+    <div class="photo-gallery">
+      <div class="pg-main" onclick="openLightbox(0)" style="background-image:url('${main}');" role="button" aria-label="Open gallery"></div>
+      <div class="pg-thumbs">
+        ${thumbs.map((u, i) => `
+          <div class="pg-thumb" onclick="openLightbox(${i + 1})" style="background-image:url('${u}');"></div>
+        `).join('')}
+      </div>
+      <button class="pg-allbtn" onclick="openLightbox(0)">📷 ${L.allPhotos[lang]} (${photos.length})</button>
+    </div>
+  `;
+}
+
+// Lightbox modal — toggled by openLightbox(index)
+function ensureLightboxMount() {
+  if (document.getElementById('lightbox')) return;
+  const el = document.createElement('div');
+  el.id = 'lightbox';
+  el.className = 'lightbox';
+  el.innerHTML = `
+    <button class="lb-close" onclick="closeLightbox()" aria-label="Close">✕</button>
+    <button class="lb-prev" onclick="lightboxStep(-1)" aria-label="Previous">‹</button>
+    <button class="lb-next" onclick="lightboxStep(1)" aria-label="Next">›</button>
+    <img class="lb-img" alt="" />
+    <div class="lb-counter"></div>
+  `;
+  document.body.appendChild(el);
+  document.addEventListener('keydown', e => {
+    if (!document.getElementById('lightbox')?.classList.contains('is-open')) return;
+    if (e.key === 'Escape') closeLightbox();
+    if (e.key === 'ArrowLeft') lightboxStep(-1);
+    if (e.key === 'ArrowRight') lightboxStep(1);
+  });
+}
+window.openLightbox = function (i) {
+  ensureLightboxMount();
+  const arr = window.__galleryPhotos || [];
+  if (arr.length === 0) return;
+  window.__lbIdx = i || 0;
+  updateLightbox();
+  document.getElementById('lightbox').classList.add('is-open');
+};
+window.closeLightbox = function () {
+  const el = document.getElementById('lightbox');
+  if (el) el.classList.remove('is-open');
+};
+window.lightboxStep = function (delta) {
+  const arr = window.__galleryPhotos || [];
+  window.__lbIdx = (window.__lbIdx + delta + arr.length) % arr.length;
+  updateLightbox();
+};
+function updateLightbox() {
+  const arr = window.__galleryPhotos || [];
+  const i = window.__lbIdx || 0;
+  document.querySelector('#lightbox .lb-img').src = arr[i] || '';
+  document.querySelector('#lightbox .lb-counter').textContent = `${i + 1} / ${arr.length}`;
+}
+
+// Rating breakdown — left side big rating, right side bars
+function renderRatingBreakdown(rating, count, breakdown) {
+  const lang = window.__dtLang ? window.__dtLang.getLang() : 'en';
+  const L = {
+    reviews:  { ko:'리뷰', en:'reviews', ja:'件のレビュー', zh:'条评论' },
+    excellent:{ ko:'훌륭함', en:'Excellent', ja:'素晴らしい', zh:'极好' },
+    great:    { ko:'아주 좋음', en:'Very good', ja:'とても良い', zh:'非常好' },
+    good:     { ko:'좋음', en:'Good', ja:'良い', zh:'好' },
+    okay:     { ko:'보통', en:'Okay', ja:'まあまあ', zh:'一般' },
+    poor:     { ko:'아쉬움', en:'Poor', ja:'残念', zh:'差' },
+  };
+  const labels = [L.excellent, L.great, L.good, L.okay, L.poor];
+  return `
+    <div class="rating-block">
+      <div class="rating-big">
+        <div class="rb-num">${rating.toFixed(1)}</div>
+        <div class="rb-stars">${'★'.repeat(Math.round(rating))}${'☆'.repeat(5 - Math.round(rating))}</div>
+        <div class="rb-count t-muted t-small">${count.toLocaleString()} ${L.reviews[lang]}</div>
+      </div>
+      <div class="rating-bars">
+        ${breakdown.map((b, i) => `
+          <div class="rb-row">
+            <span class="rb-label">${labels[i][lang]} (${b.stars})</span>
+            <div class="rb-bar"><div class="rb-bar-fill" style="width:${b.percent}%;"></div></div>
+            <span class="rb-pct">${b.percent}%</span>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+// Reviews list
+function renderReviewsList(reviews) {
+  if (!reviews || reviews.length === 0) return '';
+  const lang = window.__dtLang ? window.__dtLang.getLang() : 'en';
+  const L = {
+    daysAgo:  { ko:'일 전', en:' days ago', ja:'日前', zh:'天前' },
+    verified: { ko:'인증된 숙박', en:'Verified stay', ja:'認証済み宿泊', zh:'已验证入住' },
+    helpful:  { ko:'도움이 됐어요', en:'Helpful', ja:'参考になった', zh:'有帮助' },
+    showMore: { ko:'리뷰 더 보기', en:'Show more reviews', ja:'もっと見る', zh:'查看更多评论' },
+  };
+  return `
+    <div class="reviews-list">
+      ${reviews.map(r => `
+        <div class="review-card">
+          <div class="review-head">
+            <div class="review-avatar" style="background:${r.avatarColor};">${escapeHtml(r.name.charAt(0))}</div>
+            <div class="review-meta">
+              <div class="review-name">${escapeHtml(r.name)}${r.verified ? ` <span class="badge green review-verified">✓ ${L.verified[lang]}</span>` : ''}</div>
+              <div class="review-sub t-small t-muted">
+                <span class="review-stars">${'★'.repeat(r.stars)}${'☆'.repeat(5 - r.stars)}</span>
+                <span>·</span>
+                <span>${r.daysAgo}${L.daysAgo[lang]}</span>
+              </div>
+            </div>
+          </div>
+          <p class="review-text">${escapeHtml(r.text)}</p>
+          <div class="review-actions">
+            <button class="review-helpful" onclick="toast(t('toast.copied'))">👍 ${L.helpful[lang]}</button>
+          </div>
+        </div>
+      `).join('')}
+      <button class="btn btn-ghost btn-block mt-16" onclick="toast('${L.showMore[lang]}')">${L.showMore[lang]} →</button>
+    </div>
+  `;
+}
+
+// Amenity grid (hotel)
+function renderAmenityGrid(amenities) {
+  if (!amenities || amenities.length === 0) return '';
+  const lang = window.__dtLang ? window.__dtLang.getLang() : 'en';
+  return `
+    <div class="amenity-grid">
+      ${amenities.map(a => `
+        <div class="amenity-cell">
+          <span class="amenity-icon">${a.icon}</span>
+          <span class="amenity-label">${a.label[lang] || a.label.en}</span>
+        </div>
+      `).join('')}
+    </div>
+  `;
+}
+
+// Highlights chips
+function renderHighlights(highlights) {
+  if (!highlights || highlights.length === 0) return '';
+  return `
+    <div class="highlight-chips">
+      ${highlights.map(h => `<span class="hl-chip">✨ ${escapeHtml(h)}</span>`).join('')}
+    </div>
+  `;
+}
+
+// Room types card list (hotel)
+function renderRoomTypes(rooms, basePrice) {
+  if (!rooms || rooms.length === 0) return '';
+  const lang = window.__dtLang ? window.__dtLang.getLang() : 'en';
+  const L = {
+    title:    { ko:'객실 선택', en:'Choose your room', ja:'お部屋選択', zh:'选择房型' },
+    size:     { ko:'크기', en:'Size', ja:'広さ', zh:'面积' },
+    bed:      { ko:'침대', en:'Bed', ja:'ベッド', zh:'床型' },
+    view:     { ko:'전망', en:'View', ja:'眺望', zh:'景观' },
+    perNight: { ko:'/박', en:'/night', ja:'/泊', zh:'/晚' },
+  };
+  return `
+    <div class="glass-card mt-16" style="padding:24px;">
+      <h4 class="h4">🛏 ${L.title[lang]}</h4>
+      <div class="room-grid mt-16">
+        ${rooms.map(r => `
+          <div class="room-card">
+            <div class="room-name">${escapeHtml(r.name)}</div>
+            <div class="room-specs t-small t-muted">
+              ${L.size[lang]} ${r.size} · ${L.bed[lang]} ${r.bed} · ${L.view[lang]} ${r.view}
+            </div>
+            <div class="room-price">
+              ${price(basePrice + r.mod)} <span class="t-small t-muted">${L.perNight[lang]}</span>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+// FAQ accordion
+function renderFAQ(faq) {
+  if (!faq || faq.length === 0) return '';
+  const lang = window.__dtLang ? window.__dtLang.getLang() : 'en';
+  const L = { title: { ko:'자주 묻는 질문', en:'Frequently Asked Questions', ja:'よくある質問', zh:'常见问题' } };
+  return `
+    <div class="glass-card mt-16" style="padding:24px;">
+      <h4 class="h4">❓ ${L.title[lang]}</h4>
+      <div class="faq-list mt-16">
+        ${faq.map((item, i) => `
+          <details class="faq-item">
+            <summary class="faq-q">${escapeHtml(item.q)}</summary>
+            <p class="faq-a">${escapeHtml(item.a)}</p>
+          </details>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+// Activity schedule (timeline)
+function renderActivitySchedule(schedule) {
+  if (!schedule || schedule.length === 0) return '';
+  const lang = window.__dtLang ? window.__dtLang.getLang() : 'en';
+  const L = { title: { ko:'일정', en:'Itinerary', ja:'スケジュール', zh:'行程安排' } };
+  return `
+    <div class="glass-card mt-16" style="padding:24px;">
+      <h4 class="h4">🗓 ${L.title[lang]}</h4>
+      <div class="timeline mt-16">
+        ${schedule.map(s => `
+          <div class="tl-item">
+            <div class="tl-time">${s.t}</div>
+            <div class="tl-dot"></div>
+            <div class="tl-content">
+              <div class="tl-title">${escapeHtml(s.e)}</div>
+              <div class="tl-desc t-small t-muted">${escapeHtml(s.d)}</div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+}
+
+// Location card (placeholder map + address + nearby)
+function renderLocationCard(product) {
+  const lang = window.__dtLang ? window.__dtLang.getLang() : 'en';
+  const L = {
+    title:   { ko:'위치 & 주변', en:'Location & nearby', ja:'立地・周辺', zh:'位置与周边' },
+    nearby:  { ko:'주변 명소', en:'Nearby attractions', ja:'周辺観光', zh:'周边景点' },
+    distance:{ ko:'거리', en:'Distance', ja:'距離', zh:'距离' },
+  };
+  // Static placeholder map (city centered) — uses OpenStreetMap tile preview
+  const cityQuery = encodeURIComponent(`${product.city}, ${product.country}`);
+  return `
+    <div class="glass-card mt-16" style="padding:24px;">
+      <h4 class="h4">📍 ${L.title[lang]}</h4>
+      <div class="map-placeholder mt-16">
+        <div class="map-overlay">
+          <div class="map-pin">📍</div>
+          <div class="map-city">${escapeHtml(trCity(product.city))}, ${escapeHtml(trCountry(product.country))}</div>
+        </div>
+      </div>
+      <h5 class="h5 mt-16" style="font-size:14px;color:var(--text-muted);">${L.nearby[lang]}</h5>
+      <div class="nearby-list mt-8">
+        <div class="nb-item"><span>🏖</span><span>${escapeHtml(trCity(product.city))} Beach</span><span class="t-small t-muted">0.5 km</span></div>
+        <div class="nb-item"><span>🍽</span><span>Local food street</span><span class="t-small t-muted">0.8 km</span></div>
+        <div class="nb-item"><span>🛍</span><span>Night market</span><span class="t-small t-muted">1.2 km</span></div>
+        <div class="nb-item"><span>✈</span><span>Airport</span><span class="t-small t-muted">15 km</span></div>
+      </div>
+    </div>
+  `;
+}
+
+// Similar products carousel — picks N other products from the same city/category
+function renderSimilarProducts(currentProduct) {
+  const all = getCatalog().filter(p =>
+    p.id !== currentProduct.id &&
+    p.cat === currentProduct.cat &&
+    (p.city === currentProduct.city || p.country === currentProduct.country)
+  );
+  const picks = all.slice(0, 6);
+  if (picks.length === 0) return '';
+  const lang = window.__dtLang ? window.__dtLang.getLang() : 'en';
+  const L = { title: { ko:'비슷한 상품', en:'You might also like', ja:'こちらもおすすめ', zh:'你可能也喜欢' } };
+  return `
+    <div class="glass-card mt-16" style="padding:24px;">
+      <h4 class="h4">💡 ${L.title[lang]}</h4>
+      <div class="similar-scroll mt-16">
+        ${picks.map(p => `
+          <a class="similar-card" href="#/product/${p.id}">
+            <div class="sc-img" style="background-image:url('${p.img}'),url('${p.imgFallback || cityImg(p.city, tField(p.name)) || LIVE_IMG.hotel}');"></div>
+            <div class="sc-body">
+              <div class="sc-name">${escapeHtml(tField(p.name))}</div>
+              <div class="sc-meta t-small t-muted">⭐ ${p.rating} · ${p.reviews}</div>
+              <div class="sc-price">${price(p.price)}</div>
+            </div>
+          </a>
+        `).join('')}
+      </div>
+    </div>
   `;
 }
 
@@ -1414,8 +2191,39 @@ function pageProduct(id) {
   const isFlight = p.cat === 'Flight';
   const isTransport = p.cat === 'Transport' || p.cat === 'Pickup';
   const isHotel = p.cat === 'Hotel';
+  const isActivity = p.cat === 'Activity';
 
-  // ============ Category-specific hero info block ============
+  // Generate (or reuse) all mock data for this product. Deterministic by id,
+  // so revisiting always shows the same gallery / reviews / amenities.
+  const mock = generateMockData(p);
+  // Use the richer rating/reviewsCount from mock; keep p.rating as override.
+  const displayRating = p.rating || mock.rating;
+  const displayReviews = mock.reviewsCount;
+  const lang = window.__dtLang ? window.__dtLang.getLang() : 'en';
+
+  // i18n labels used across the page
+  const L = {
+    overview:  { ko:'개요',          en:'Overview',         ja:'概要',         zh:'概览' },
+    amenities: { ko:'편의시설',      en:'Amenities',        ja:'施設・設備',   zh:'设施服务' },
+    reviewsT:  { ko:'리뷰',          en:'Reviews',          ja:'レビュー',     zh:'评论' },
+    flightInfo:{ ko:'항공편 정보',   en:'Flight details',   ja:'フライト詳細', zh:'航班详情' },
+    vehicleInfo:{ko:'차량 정보',     en:'Vehicle details',  ja:'車両情報',     zh:'车辆信息' },
+    aboutHost: { ko:'운영사 정보',   en:'About the operator',ja:'運営会社について',zh:'关于运营方' },
+    yearsRun:  { ko:'운영 년차',     en:'Years operating',  ja:'運営年数',     zh:'运营年数' },
+    languages: { ko:'대응 언어',     en:'Languages',        ja:'対応言語',     zh:'支持语言' },
+    response:  { ko:'평균 응답시간', en:'Avg response time',ja:'平均応答時間', zh:'平均响应时间' },
+    bagAllowance:{ko:'수하물 허용량',en:'Baggage allowance',ja:'手荷物許容量', zh:'行李额度' },
+    inFlight:  { ko:'기내 서비스',   en:'In-flight services',ja:'機内サービス',zh:'机上服务' },
+    meal:      { ko:'기내식',        en:'Meal',             ja:'機内食',       zh:'机上餐食' },
+    ife:       { ko:'엔터테인먼트',  en:'Entertainment',    ja:'エンタメ',     zh:'娱乐' },
+    legroom:   { ko:'좌석 간격',     en:'Seat pitch',       ja:'座席ピッチ',   zh:'座位间距' },
+    wifi:      { ko:'기내 Wi-Fi',    en:'In-flight Wi-Fi',  ja:'機内Wi-Fi',    zh:'机上Wi-Fi' },
+    insurance: { ko:'보험',          en:'Insurance',        ja:'保険',         zh:'保险' },
+    pickupSpot:{ ko:'픽업 장소',     en:'Pickup location',  ja:'集合場所',     zh:'接送地点' },
+    cancelPlcy:{ ko:'취소 정책',     en:'Cancellation policy',ja:'キャンセル規定',zh:'取消政策' },
+  };
+
+  // ============ Hero info block (per category) ============
   let heroBlock = '';
   if (isFlight) {
     heroBlock = `
@@ -1442,7 +2250,7 @@ function pageProduct(id) {
           <div><div class="t-muted t-small">${t('flight.airline')}</div><b>${p.airline}</b></div>
           <div><div class="t-muted t-small">${t('cat.Flight')}</div><b>${p.flightNo}</b></div>
           <div><div class="t-muted t-small">${t('flight.cabinClass')}</div><b>${t('flight.'+p.cabin.toLowerCase())}</b></div>
-          <div><div class="t-muted t-small">${t('flight.baggage')}</div><b>23kg</b></div>
+          <div><div class="t-muted t-small">${L.bagAllowance[lang]}</div><b>23kg</b></div>
         </div>
       </div>`;
   } else if (isTransport) {
@@ -1469,7 +2277,7 @@ function pageProduct(id) {
       </div>`;
   }
 
-  // ============ Category-specific booking form ============
+  // ============ Booking form (per category) ============
   let bookingForm = '';
   if (isFlight) {
     bookingForm = `
@@ -1504,7 +2312,7 @@ function pageProduct(id) {
       <div class="field">
         <label>${t('flight.passenger')}</label>
         <select id="b_adults" class="glass-input">
-          ${Array.from({length: p.maxPax}, (_,i)=>`<option ${i===1?'selected':''}>${i+1}</option>`).join('')}
+          ${Array.from({length: p.maxPax || 5}, (_,i)=>`<option ${i===1?'selected':''}>${i+1}</option>`).join('')}
         </select>
       </div>
       <div class="field">
@@ -1514,7 +2322,6 @@ function pageProduct(id) {
         </select>
       </div>`;
   } else {
-    // Default (Hotel/Tour/Activity)
     bookingForm = `
       <div class="field">
         <label>${isHotel ? t('common.checkin') : t('common.date')}</label>
@@ -1533,7 +2340,85 @@ function pageProduct(id) {
           <option selected>0</option><option>1</option><option>2</option>
         </select>
       </div>
-      ${isHotel ? `<div class="field" style="grid-column:1/-1;"><label>${t('app.product.room')}</label><select id="b_option" class="glass-input"><option>Deluxe Ocean Room</option><option>Premium Suite (+50 $1)</option></select></div>` : ''}`;
+      ${isHotel ? `<div class="field" style="grid-column:1/-1;"><label>${t('app.product.room')}</label><select id="b_option" class="glass-input"><option>${mock.rooms[0]?.name || 'Deluxe Room'}</option>${mock.rooms.slice(1).map(r=>`<option>${r.name} (+${r.mod} $1)</option>`).join('')}</select></div>` : ''}`;
+  }
+
+  // ============ Category-specific extra cards ============
+  let categoryExtras = '';
+
+  // Hotel: amenity grid + room types
+  if (isHotel) {
+    categoryExtras += `
+      <div class="glass-card mt-16" style="padding:24px;">
+        <h4 class="h4">🏷 ${L.amenities[lang]}</h4>
+        ${renderAmenityGrid(mock.amenities)}
+      </div>
+      ${renderRoomTypes(mock.rooms, p.price)}
+    `;
+  }
+
+  // Activity: schedule + about the operator
+  if (isActivity) {
+    categoryExtras += renderActivitySchedule(mock.schedule);
+    categoryExtras += `
+      <div class="glass-card mt-16" style="padding:24px;">
+        <h4 class="h4">👤 ${L.aboutHost[lang]}</h4>
+        <div class="row items-center gap-16 mt-16">
+          <div class="host-avatar" style="background:linear-gradient(135deg,#22B8FF,#26D07C);">🌏</div>
+          <div style="flex:1;">
+            <div style="font-weight:800;">${escapeHtml(trCity(p.city))} Tours Co.</div>
+            <div class="t-small t-muted">⭐ ${displayRating.toFixed(1)} · ${(displayReviews * 3).toLocaleString()} ${L.reviewsT[lang]}</div>
+          </div>
+        </div>
+        <div class="row gap-16 mt-16" style="flex-wrap:wrap;">
+          <div><div class="t-muted t-small">${L.yearsRun[lang]}</div><b>12+</b></div>
+          <div><div class="t-muted t-small">${L.languages[lang]}</div><b>EN · KO · JA · ZH</b></div>
+          <div><div class="t-muted t-small">${L.response[lang]}</div><b>~1h</b></div>
+        </div>
+      </div>
+    `;
+  }
+
+  // Flight: airline + in-flight services
+  if (isFlight) {
+    categoryExtras += `
+      <div class="glass-card mt-16" style="padding:24px;">
+        <h4 class="h4">✈ ${L.flightInfo[lang]}</h4>
+        <div class="row items-center gap-16 mt-16">
+          ${p.airlineLogo ? `<img src="${escapeHtml(p.airlineLogo)}" alt="" style="height:36px;width:auto;object-fit:contain;">` : ''}
+          <div>
+            <div style="font-weight:800;font-size:18px;">${escapeHtml(p.airline || '')}</div>
+            <div class="t-small t-muted">${escapeHtml(p.flightNo || '')}</div>
+          </div>
+        </div>
+        <h5 class="h5 mt-16" style="font-size:14px;">${L.inFlight[lang]}</h5>
+        <div class="amenity-grid mt-8">
+          <div class="amenity-cell"><span class="amenity-icon">🍱</span><span class="amenity-label">${L.meal[lang]}</span></div>
+          <div class="amenity-cell"><span class="amenity-icon">🎬</span><span class="amenity-label">${L.ife[lang]}</span></div>
+          <div class="amenity-cell"><span class="amenity-icon">📡</span><span class="amenity-label">${L.wifi[lang]}</span></div>
+          <div class="amenity-cell"><span class="amenity-icon">🪑</span><span class="amenity-label">${L.legroom[lang]} 79cm</span></div>
+          <div class="amenity-cell"><span class="amenity-icon">🧳</span><span class="amenity-label">23kg + 7kg</span></div>
+          <div class="amenity-cell"><span class="amenity-icon">🛡</span><span class="amenity-label">${L.insurance[lang]}</span></div>
+        </div>
+      </div>
+    `;
+  }
+
+  // Transport: vehicle features
+  if (isTransport) {
+    categoryExtras += `
+      <div class="glass-card mt-16" style="padding:24px;">
+        <h4 class="h4">🚗 ${L.vehicleInfo[lang]}</h4>
+        <div class="amenity-grid mt-16">
+          <div class="amenity-cell"><span class="amenity-icon">❄️</span><span class="amenity-label">Air conditioning</span></div>
+          <div class="amenity-cell"><span class="amenity-icon">🧳</span><span class="amenity-label">Luggage space</span></div>
+          <div class="amenity-cell"><span class="amenity-icon">🛡</span><span class="amenity-label">${L.insurance[lang]}</span></div>
+          <div class="amenity-cell"><span class="amenity-icon">📱</span><span class="amenity-label">USB charging</span></div>
+          <div class="amenity-cell"><span class="amenity-icon">👶</span><span class="amenity-label">Child seat on request</span></div>
+          <div class="amenity-cell"><span class="amenity-icon">🅿️</span><span class="amenity-label">${L.pickupSpot[lang]}</span></div>
+        </div>
+      </div>
+    `;
   }
 
   return `
@@ -1552,11 +2437,10 @@ function pageProduct(id) {
       </div>
     </div>
 
-    <div class="glass-panel" style="overflow:hidden;">
-      <div style="aspect-ratio:16/8; background-image:url('${p.img}'),url('${p.imgFallback || cityImg(p.city, p.name) || LIVE_IMG[(p.cat||'hotel').toLowerCase()] || LIVE_IMG.hotel}'); background-size:cover; background-position:center;"></div>
-    </div>
+    <!-- Photo gallery (hero + thumbs + lightbox) -->
+    ${renderPhotoGallery(mock.photos)}
 
-    <div class="grid" style="grid-template-columns: 1.6fr 1fr; gap:24px; margin-top:24px;">
+    <div class="grid mt-24" style="grid-template-columns: 1.6fr 1fr; gap:24px;">
       <div>
         <div class="glass-card" style="padding:28px;">
           <span class="badge blue">${t('cat.'+p.cat)}</span>
@@ -1564,32 +2448,55 @@ function pageProduct(id) {
           <div class="row gap-12 items-center mt-8 t-muted">
             <span>📍 ${trCity(p.city)}, ${trCountry(p.country)}</span>
             <span>·</span>
-            <span>⭐ ${p.rating} (${p.reviews})</span>
+            <span>⭐ ${displayRating.toFixed(1)} (${displayReviews.toLocaleString()})</span>
           </div>
+          ${isHotel && mock.highlights.length ? `<div class="mt-16">${renderHighlights(mock.highlights)}</div>` : ''}
           <p class="mt-16" style="line-height:1.6;">${tField(p.desc)}</p>
           ${heroBlock}
         </div>
 
-        <div class="glass-card mt-16" style="padding:28px;">
-          <h4 class="h4">${t('common.included')}</h4>
+        ${categoryExtras}
+
+        <div class="glass-card mt-16" style="padding:24px;">
+          <h4 class="h4">✓ ${t('common.included')}</h4>
           <ul class="mt-8" style="padding-left:18px; line-height:1.8;">
-            ${(tField(p.included)||[]).map(x => `<li>✓ ${x}</li>`).join('')}
+            ${(tField(p.included)||[]).map(x => `<li>${x}</li>`).join('')}
           </ul>
-          <h4 class="h4 mt-16">${t('common.notIncluded')}</h4>
+          <h4 class="h4 mt-16">✗ ${t('common.notIncluded')}</h4>
           <ul class="mt-8" style="padding-left:18px; line-height:1.8; color:var(--text-muted);">
-            ${(tField(p.excluded)||[]).map(x => `<li>✗ ${x}</li>`).join('')}
+            ${(tField(p.excluded)||[]).map(x => `<li>${x}</li>`).join('')}
           </ul>
-          <h4 class="h4 mt-16">${t('common.cancelPolicy')}</h4>
+          <h4 class="h4 mt-16">↩ ${L.cancelPlcy[lang]}</h4>
           <p class="t-muted mt-8">${tField(p.cancel)}</p>
         </div>
+
+        <!-- Location & nearby -->
+        ${renderLocationCard(p)}
+
+        <!-- Reviews (rating breakdown + list) -->
+        <div class="glass-card mt-16" style="padding:24px;">
+          <h4 class="h4">⭐ ${L.reviewsT[lang]} (${displayReviews.toLocaleString()})</h4>
+          <div class="mt-16">
+            ${renderRatingBreakdown(displayRating, displayReviews, mock.ratingBreakdown)}
+          </div>
+          <div class="divider"></div>
+          ${renderReviewsList(mock.reviews)}
+        </div>
+
+        <!-- FAQ -->
+        ${renderFAQ(mock.faq)}
+
+        <!-- Similar products -->
+        ${renderSimilarProducts(p)}
       </div>
 
-      <!-- Booking panel -->
+      <!-- Booking panel (sticky) -->
       <aside class="glass-panel" style="padding:24px; position:sticky; top:96px; align-self:start;">
         <div class="row items-center space-between">
           <div>
             <div class="t-muted t-small">${t('common.from')}</div>
             <div style="font-size:30px;">${price(p.price)} <span class="t-small t-muted">/ ${t(unitKey)}</span></div>
+            ${p.priceUSD ? `<div class="t-small t-muted" style="font-size:11px;opacity:0.7;">≈ $${fmtToken(p.priceUSD)} USD</div>` : ''}
           </div>
           <span class="badge green">${t('app.product.dollarOnly')}</span>
         </div>
@@ -1603,13 +2510,19 @@ function pageProduct(id) {
         <div class="row space-between mt-8"><span class="t-muted">${t('app.product.guestsNights')}</span><span id="b_units">x 2</span></div>
         <div class="row space-between mt-16" style="font-size:20px; font-weight:800;"><span>${t('common.total')}</span><span id="b_total">${price(p.price*2)}</span></div>
 
-        <!-- Single unified DallyTrip booking CTA — pays with $1 token (Coming Soon) -->
         <button class="btn btn-primary btn-block btn-lg mt-16" onclick="proceedCheckout('${p.id}')">
           ${t('btn.payWithDollar')}
           <span class="coming-soon-pill" style="margin-left:8px;background:rgba(255,255,255,0.30);color:#fff;border-color:rgba(255,255,255,0.4);">Coming Soon</span>
         </button>
         <p class="t-small t-muted text-center mt-8">${t('app.product.networkNote')}</p>
 
+        <div class="divider"></div>
+        <div class="row gap-8 items-center t-small t-muted">
+          <span>🔒</span><span>${lang==='ko'?'안전한 결제':lang==='ja'?'安全な決済':lang==='zh'?'安全支付':'Secure payment'}</span>
+        </div>
+        <div class="row gap-8 items-center t-small t-muted mt-4">
+          <span>↩</span><span>${lang==='ko'?'48시간 전 무료 취소':lang==='ja'?'48時間前まで無料キャンセル':lang==='zh'?'48小时前免费取消':'Free cancellation up to 48h'}</span>
+        </div>
       </aside>
     </div>
   </div>
