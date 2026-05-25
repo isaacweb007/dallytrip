@@ -66,6 +66,13 @@
 
 * { box-sizing: border-box; }
 
+html {
+  /* Native smooth-scroll for anchor jumps + JS scrollTo */
+  scroll-behavior: smooth;
+  /* Less aggressive scroll snapping */
+  scroll-padding-top: 72px;
+}
+
 html, body {
   margin: 0;
   padding: 0;
@@ -74,6 +81,9 @@ html, body {
   background: var(--bg-main);
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
+  /* iOS momentum scroll */
+  -webkit-overflow-scrolling: touch;
+  text-rendering: optimizeLegibility;
 }
 
 body {
@@ -81,6 +91,41 @@ body {
   background-attachment: fixed;
   position: relative;
   overflow-x: hidden;
+}
+
+/* Honour user's reduced-motion preference */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* GPU promote frequently-animated layers — smooths scroll over them */
+.hero, .hero-bg, .hero-bg-slide, .hero-overlay,
+.char-stage, .char-stage .char-img,
+.liquid-card, .product-card, .stat-card, .dest-tile,
+.glass-card, .glass-panel, .hero-premium, .marquee-track,
+.bottom-nav, .app-header, .toast {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Heavy backdrop filters are expensive — disable while scrolling on mobile */
+@media (max-width: 768px) {
+  .liquid-card, .glass-card, .glass-panel, .glass-input, .search-bar,
+  .product-card, .stat-card, .bottom-nav, .app-header, .toast,
+  .dest-tile .overlay, .dt-modal, .feature-pill, .token-chip,
+  .badge.badge-on-image, .float-card, .demo-badge {
+    /* Slightly lighter blur on mobile for smooth fps */
+    backdrop-filter: blur(14px) saturate(140%);
+    -webkit-backdrop-filter: blur(14px) saturate(140%);
+  }
+  /* Disable the most expensive iridescent rim on mobile to free GPU */
+  .liquid-card::before { display: none; }
 }
 
 /* Iridescent floating orbs (페이지 분위기) */
@@ -1180,6 +1225,27 @@ select.glass-input { appearance: none; padding-right: 40px; background-image: ur
   background: var(--grad-main-cta); color: #fff; opacity: 1;
   box-shadow: 0 12px 24px rgba(34,184,255,0.30);
 }
+.admin-side nav a .side-icon {
+  width: 22px; height: 22px;
+  display: inline-grid; place-items: center;
+  flex-shrink: 0;
+}
+.admin-side nav a .side-icon svg { display: block; }
+
+/* Wallet kind pill (replaces emojis on wallet cards) */
+.wallet-kind-pill {
+  display: inline-flex; align-items: center;
+  height: 22px; padding: 0 10px;
+  border-radius: 999px;
+  font-size: 10px; font-weight: 800; letter-spacing: 0.08em;
+  background: rgba(154,174,196,0.20);
+  color: var(--text-main);
+  border: 1px solid rgba(255,255,255,0.5);
+}
+.wallet-kind-pill.master { background: linear-gradient(135deg, #FFB78E, #FF8A3D); color: #fff; }
+.wallet-kind-pill.pool   { background: linear-gradient(135deg, #6FD3FF, #22B8FF); color: #fff; }
+.wallet-kind-pill.escrow { background: linear-gradient(135deg, #B7A4FF, #7C5CFF); color: #fff; }
+.wallet-kind-pill.hot    { background: linear-gradient(135deg, #FF7B6B, #FF4D4D); color: #fff; }
 .admin-main { padding: 24px 28px 60px; }
 
 @media (max-width: 900px) {

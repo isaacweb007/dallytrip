@@ -8,7 +8,7 @@
 <meta http-equiv="Expires" content="0" />
 <title>DallyTrip — Admin</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
-<link rel="stylesheet" href="./assets/styles.css?v=20260525e" />
+<link rel="stylesheet" href="./assets/styles.css?v=20260525f" />
 <script src="./assets/i18n.js?v=20260525e"></script>
 <!-- Travelpayouts affiliate tracking (marker 532633) -->
 <script>(function(){var s=document.createElement('script');s.async=1;s.src='https://emrldco.com/NTMyNjMz.js?t=532633';document.head.appendChild(s);})();</script>
@@ -180,17 +180,17 @@ function shell(path, content) {
         <span>DallyTrip</span>
       </a>
       <nav class="mt-16">
-        ${sideLink('/dashboard', t('admin.side.dashboard'), '📊', path)}
-        ${sideLink('/products',  t('admin.side.products'),  '🛏️', path)}
-        ${sideLink('/bookings',  t('admin.side.bookings'),  '📅', path)}
-        ${sideLink('/payouts',   t('admin.side.payouts'),   '🪙', path)}
-        ${sideLink('/payments',  t('admin.side.payments'),  '💳', path)}
-        ${sideLink('/users',     t('admin.side.users'),     '👥', path)}
-        ${sideLink('/wallet',    t('admin.side.wallet'),    '👛', path)}
-        ${sideLink('/partners',  t('admin.side.partners'),  '🤝', path)}
-        ${sideLink('/api',       t('admin.side.api'),       '⚡', path)}
-        ${sideLink('/banners',   t('admin.side.banners'),   '🖼️', path)}
-        ${sideLink('/settings',  t('admin.side.settings'),  '⚙️', path)}
+        ${sideLink('/dashboard', t('admin.side.dashboard'), ICONS.dashboard, path)}
+        ${sideLink('/products',  t('admin.side.products'),  ICONS.products,  path)}
+        ${sideLink('/bookings',  t('admin.side.bookings'),  ICONS.bookings,  path)}
+        ${sideLink('/payouts',   t('admin.side.payouts'),   ICONS.payouts,   path)}
+        ${sideLink('/payments',  t('admin.side.payments'),  ICONS.payments,  path)}
+        ${sideLink('/users',     t('admin.side.users'),     ICONS.users,     path)}
+        ${sideLink('/wallet',    t('admin.side.wallet'),    ICONS.wallet,    path)}
+        ${sideLink('/partners',  t('admin.side.partners'),  ICONS.partners,  path)}
+        ${sideLink('/api',       t('admin.side.api'),       ICONS.api,       path)}
+        ${sideLink('/banners',   t('admin.side.banners'),   ICONS.banners,   path)}
+        ${sideLink('/settings',  t('admin.side.settings'),  ICONS.settings,  path)}
       </nav>
       <div style="flex:1;"></div>
       <div class="mt-16" data-dt-lang-mount></div>
@@ -206,7 +206,24 @@ function shell(path, content) {
   </div>
   `;
 }
-function sideLink(p,l,e,cur){ return `<a href="#${p}" class="${cur===p?'is-active':''}"><span style="width:22px;display:inline-grid;place-items:center;">${e}</span>${l}</a>`; }
+function sideLink(p,l,icon,cur){
+  return `<a href="#${p}" class="${cur===p?'is-active':''}"><span class="side-icon" aria-hidden="true">${icon}</span>${l}</a>`;
+}
+
+// SVG icon set for admin sidebar (line icons, 20×20, currentColor)
+const ICONS = {
+  dashboard:`<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>`,
+  products:`<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12V7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v5"/><path d="M3 12h18v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5z"/><path d="M7 12V9a1 1 0 0 1 1-1h3v4"/><path d="M16 19v2"/><path d="M8 19v2"/></svg>`,
+  bookings:`<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/><path d="M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01M16 18h.01"/></svg>`,
+  payouts:`<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 1 0 0 7h5a3.5 3.5 0 1 1 0 7H6"/></svg>`,
+  payments:`<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="14" rx="2"/><path d="M2 11h20"/><path d="M6 16h4"/></svg>`,
+  users:`<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,
+  wallet:`<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h15a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"/><path d="M3 7l2-3h12l2 3"/><path d="M17 13h.01"/></svg>`,
+  partners:`<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M11 12l3 3 4-4 3 3v3a2 2 0 0 1-2 2h-4l-4-4z"/><path d="M3 13l4-4 3 3 4-4 3 3"/><circle cx="6" cy="9" r="1"/></svg>`,
+  api:`<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`,
+  banners:`<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="11" r="2"/><path d="M21 17l-6-6-10 8"/></svg>`,
+  settings:`<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>`,
+};
 function logout(){ sessionStorage.removeItem('dt_admin'); store.loggedIn=false; location.hash='#/login'; render(); }
 window.logout = logout;
 
@@ -835,11 +852,11 @@ function apiPage() {
         <span class="kicker">${t('admin.api.kicker')}</span>
         <h2 class="h2 mt-8">${t('admin.api.title')}</h2>
       </div>
-      <button class="btn btn-primary" onclick="runHealthCheck()">⚡ ${t('admin.api.runCheck')}</button>
+      <button class="btn btn-primary" onclick="runHealthCheck()">${t('admin.api.runCheck')}</button>
     </div>
 
     <div class="grid grid-3 mb-16">
-      <div class="stat-card"><div class="label">${t('admin.api.endpoint')}s</div><div class="num">${API_ENDPOINTS.length}</div><div class="bubble blue">⚡</div></div>
+      <div class="stat-card"><div class="label">${t('admin.api.endpoint')}s</div><div class="num">${API_ENDPOINTS.length}</div><div class="bubble blue">API</div></div>
       <div class="stat-card"><div class="label">${t('admin.api.healthy')}</div><div class="num">${(store.envFlags?.healthy || 0)}</div><div class="bubble green">✓</div></div>
       <div class="stat-card"><div class="label">${t('admin.api.notConfigured')}</div><div class="num">${(store.envFlags?.notConfigured || 0)}</div><div class="bubble orange">!</div></div>
     </div>
@@ -988,7 +1005,7 @@ function walletPage() {
         <div class="glass-card" style="padding:22px; ${w.kind==='master' ? 'border:1px solid rgba(38,208,124,0.4);' : ''}">
           <div class="row items-center space-between">
             <div class="row items-center gap-8">
-              <span style="font-size:24px;">${({master:'👑',pool:'🌊',escrow:'🔒',hot:'🔥'})[w.kind]||'👛'}</span>
+              <span class="wallet-kind-pill ${w.kind}">${w.kind.toUpperCase()}</span>
               <b style="font-size:16px;">${w.label}</b>
             </div>
             ${w.protected ? '<span class="badge red">PROTECTED</span>' : ''}
@@ -1055,7 +1072,7 @@ function payoutsPage() {
 
     <div class="grid grid-4 mb-16">
       <div class="stat-card"><div class="label">${t('admin.payouts.queued')}</div><div class="num">${store.payouts.filter(p=>p.status==='queued').length}</div><div class="bubble orange">⏳</div></div>
-      <div class="stat-card"><div class="label">${t('admin.payouts.partnerPaid')}</div><div class="num">${store.payouts.filter(p=>p.status==='partner-paid').length}</div><div class="bubble blue">💳</div></div>
+      <div class="stat-card"><div class="label">${t('admin.payouts.partnerPaid')}</div><div class="num">${store.payouts.filter(p=>p.status==='partner-paid').length}</div><div class="bubble blue">PAID</div></div>
       <div class="stat-card"><div class="label">${t('admin.payouts.completed')}</div><div class="num">${store.payouts.filter(p=>p.status==='completed').length}</div><div class="bubble green">✓</div></div>
       <div class="stat-card"><div class="label">${t('admin.payouts.diff')}</div><div class="num">${fmt(store.payouts.reduce((s,p)=>s+(p.received-p.toPay),0).toFixed(2))} <span style="font-size:16px;color:var(--token-green);">$1</span></div><div class="bubble purple">📈</div></div>
     </div>

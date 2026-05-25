@@ -8,7 +8,7 @@
 <meta http-equiv="Expires" content="0" />
 <title>DallyTrip — App</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
-<link rel="stylesheet" href="./assets/styles.css?v=20260525e" />
+<link rel="stylesheet" href="./assets/styles.css?v=20260525f" />
 <script src="./assets/i18n.js?v=20260525e"></script>
 <!-- Travelpayouts affiliate tracking (marker 532633) -->
 <script>(function(){var s=document.createElement('script');s.async=1;s.src='https://emrldco.com/NTMyNjMz.js?t=532633';document.head.appendChild(s);})();</script>
@@ -911,7 +911,7 @@ function productCard(p) {
       ${saved > 0 ? `<span class="badge green" style="position:absolute;bottom:12px;left:12px;background:rgba(38,208,124,0.92);color:#fff;border:0;box-shadow:0 6px 14px rgba(38,208,124,0.45);">−$${fmt(saved)} ${t('app.search.cheaperHere')}</span>` : ''}
     </div>
     <div class="body">
-      <div class="loc">${trCountry(p.country)} · ${trCity(p.city)} ${isLive ? '· <span style="color:var(--premium-purple);font-weight:700;">via Travelpayouts</span>' : ''}</div>
+      <div class="loc">${trCountry(p.country)} · ${trCity(p.city)}</div>
       <div class="title">${p.name}</div>
       <div class="meta">${metaInner}</div>
       ${extAvg ? `
@@ -996,9 +996,6 @@ function pageSearch(params) {
       ? `<div class="glass-card" style="padding:48px; text-align:center;"><div class="h3">${t('app.search.noResults')}</div><p class="t-muted mt-8">${t('app.search.noResultsDesc')}</p></div>`
       : `<div class="grid grid-3">${filtered.map(productCard).join('')}</div>`
     }
-
-    <!-- External results from Travelpayouts (commission tracked) -->
-    <div id="externalResults" data-cat="${escapeHtml(cat)}" data-q="${escapeHtml(q)}" class="mt-32"></div>
   </div>
   `;
 }
@@ -1323,36 +1320,13 @@ function pageProduct(id) {
         <div class="row space-between mt-8"><span class="t-muted">${t('app.product.guestsNights')}</span><span id="b_units">x 2</span></div>
         <div class="row space-between mt-16" style="font-size:20px; font-weight:800;"><span>${t('common.total')}</span><span id="b_total">${price(p.price*2)}</span></div>
 
-        ${p.source === 'live'
-          ? `<a class="btn btn-warning btn-block btn-lg mt-16" href="${escapeHtml(p.bookingUrl || '#')}" target="_blank" rel="nofollow sponsored noopener">
-               🌐 ${({en:'Book on partner',ko:'외부에서 예약하기',ja:'パートナーで予約',zh:'去合作伙伴预订'})[window.__DT_LANG||'ko'] || '외부에서 예약하기'} →
-             </a>
-             <p class="t-small t-muted text-center mt-8">via Travelpayouts · commission tracked</p>
-             <button class="btn btn-secondary btn-block mt-12" onclick="showPaymentSoonModal(getCatalog().find(x=>x.id==='${p.id}'))">
-               🪙 ${t('btn.payWithDollar')} <span class="coming-soon-pill" style="margin-left:6px;">Coming Soon</span>
-             </button>`
-          : `<button class="btn btn-primary btn-block btn-lg mt-16" onclick="proceedCheckout('${p.id}')">
-               ${t('btn.payWithDollar')} <span class="coming-soon-pill" style="margin-left:8px;background:rgba(255,255,255,0.30);color:#fff;border-color:rgba(255,255,255,0.4);">Coming Soon</span>
-             </button>
-             <p class="t-small t-muted text-center mt-8">${t('app.product.networkNote')}</p>`
-        }
+        <!-- Single unified DallyTrip booking CTA — pays with $1 token (Coming Soon) -->
+        <button class="btn btn-primary btn-block btn-lg mt-16" onclick="proceedCheckout('${p.id}')">
+          ${t('btn.payWithDollar')}
+          <span class="coming-soon-pill" style="margin-left:8px;background:rgba(255,255,255,0.30);color:#fff;border-color:rgba(255,255,255,0.4);">Coming Soon</span>
+        </button>
+        <p class="t-small t-muted text-center mt-8">${t('app.product.networkNote')}</p>
 
-        ${p.source === 'live' ? '' : (() => {
-          // For admin (DallyTrip $1) products, also show a partner affiliate booking link
-          const kind = isFlight ? 'flight' : (p.cat==='Hotel' ? 'hotel' : (isTransport ? 'car' : 'activity'));
-          const sub = `dt_${p.id}`;
-          let href = '';
-          if (isFlight) href = tpDeeplink('flight', { from:p.fromCode, to:p.toCode, date:'2026-06-12', adults:2, subId:sub });
-          else if (p.cat==='Hotel') href = tpDeeplink('hotel', { city:p.city, checkin:'2026-06-12', checkout:'2026-06-14', adults:2, subId:sub });
-          else if (isTransport) href = tpDeeplink('car', { city:p.city, pickup:'2026-06-12', dropoff:'2026-06-13', subId:sub });
-          else href = tpDeeplink('activity', { city:p.city, q:p.name, subId:sub });
-          return `
-            <a class="btn btn-secondary btn-block mt-8" href="${href}" target="_blank" rel="nofollow sponsored noopener">
-              🌐 ${({en:'Book via partner',ko:'외부 제휴 예약',ja:'パートナーで予約',zh:'通过合作伙伴预订'})[window.__DT_LANG||'ko'] || '외부 제휴 예약'}
-            </a>
-            <p class="t-small t-muted text-center mt-8" style="opacity:0.75;">commission via Travelpayouts</p>
-          `;
-        })()}
       </aside>
     </div>
   </div>
