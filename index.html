@@ -17,7 +17,7 @@
   <div class="container row items-center space-between">
     <a class="brand" href="./">
       <span class="brand-logo">
-        <img src="./assets/character.png" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='grid';" />
+        <img src="./assets/character-mascot.png" alt="DallyTrip" onerror="this.style.display='none';this.nextElementSibling.style.display='grid';" />
         <span class="char-fallback" style="display:none;">💵</span>
       </span>
       <span>DallyTrip</span>
@@ -33,24 +33,26 @@
   </div>
 </header>
 
-<!-- ============== Hero ============== -->
+<!-- ============== Hero (premium) ============== -->
 <section class="hero">
   <span class="glow g1"></span>
   <span class="glow g2"></span>
   <span class="glow g3"></span>
 
   <div class="container">
-    <div class="glass-panel hero-card">
-      <div>
+    <div class="glass-panel hero-card hero-premium">
+      <!-- Left: Copy + CTA -->
+      <div style="position:relative; z-index:2;">
         <span class="feature-pill">
-          <span class="dot" style="width:8px;height:8px;border-radius:50%;background:var(--token-green);"></span>
+          <span class="dot" style="width:8px;height:8px;border-radius:50%;background:var(--token-green);box-shadow:0 0 0 4px rgba(38,208,124,0.25);"></span>
           <span data-i18n="hero.tag">TON Chain · $1 Token Only</span>
+          <span class="badge green" style="margin-left:6px;">LIVE</span>
         </span>
-        <h1 class="h1 mt-16">
-          <span data-i18n="hero.titleA">Travel </span><span data-i18n="hero.titleB" style="background:var(--grad-main-cta);-webkit-background-clip:text;background-clip:text;color:transparent;">with </span><span data-i18n="hero.titleC" style="background:var(--grad-main-cta);-webkit-background-clip:text;background-clip:text;color:transparent;">$1.</span>
+        <h1 class="hero-title">
+          <span data-i18n="hero.titleA">Travel </span><span class="grad" data-i18n="hero.titleB">with </span><span class="grad" data-i18n="hero.titleC">$1.</span>
         </h1>
-        <p class="mt-16" style="font-size:18px; color:var(--text-muted); max-width:520px; line-height:1.55;" data-i18n="hero.desc" data-i18n-html>
-          Book hotels, tours and activities with <b style="color:var(--text-main);">$1 Token</b> on TON Chain.
+        <p class="hero-sub" data-i18n="hero.desc" data-i18n-html>
+          Book hotels, tours and activities with <b>$1 Token</b> on TON Chain.
           No cards. No banks. Just one token.
         </p>
 
@@ -63,7 +65,7 @@
         </div>
 
         <!-- Quick booking pill -->
-        <div class="glass-card mt-32" style="padding:16px;">
+        <div class="glass-card mt-24" style="padding:14px;">
           <div class="row items-center gap-16" style="flex-wrap:wrap;">
             <div>
               <div class="t-small t-muted" style="font-weight:700;" data-i18n="hero.quick.destination">Destination</div>
@@ -85,47 +87,127 @@
             </a>
           </div>
         </div>
-      </div>
 
-      <!-- Floating character -->
-      <div style="position:relative;">
-        <div class="hero-character">
-          <img src="./assets/character.png" alt="DallyTrip $1 Token character"
-               onerror="this.style.display='none';document.getElementById('charSvg').style.display='block';" />
-          <!-- Fallback SVG mascot (used when character.png is missing) -->
-          <svg id="charSvg" class="char-svg" viewBox="0 0 200 200" style="display:none;" xmlns="http://www.w3.org/2000/svg">
-            <defs>
-              <radialGradient id="bg" cx="0.3" cy="0.3" r="0.8"><stop offset="0%" stop-color="#80F2BA"/><stop offset="100%" stop-color="#26D07C"/></radialGradient>
-              <linearGradient id="bill" x1="0" x2="1"><stop offset="0%" stop-color="#86E5A8"/><stop offset="100%" stop-color="#4ECD8A"/></linearGradient>
-            </defs>
-            <circle cx="100" cy="105" r="80" fill="url(#bg)" opacity="0.85"/>
-            <rect x="38" y="60" width="124" height="86" rx="14" fill="url(#bill)" stroke="#1f7a4a" stroke-width="2"/>
-            <rect x="46" y="68" width="108" height="70" rx="10" fill="none" stroke="#1f7a4a" stroke-width="1.5" stroke-dasharray="3 3" opacity="0.45"/>
-            <text x="100" y="120" text-anchor="middle" font-family="Inter, sans-serif" font-size="48" font-weight="900" fill="#fff" stroke="#1f7a4a" stroke-width="2">$1</text>
-            <!-- Sunglasses -->
-            <rect x="58" y="80" width="32" height="20" rx="6" fill="#111"/>
-            <rect x="98" y="80" width="32" height="20" rx="6" fill="#111"/>
-            <rect x="88" y="86" width="12" height="6" fill="#111"/>
-            <!-- Smile -->
-            <path d="M76 124 Q100 138 124 124" stroke="#1f7a4a" stroke-width="3" fill="none" stroke-linecap="round"/>
-            <!-- Sparkles -->
-            <circle cx="26" cy="36" r="3" fill="#FFE65B"/>
-            <circle cx="180" cy="50" r="4" fill="#22B8FF"/>
-            <circle cx="172" cy="158" r="3" fill="#FF8A3D"/>
-          </svg>
-          <div class="char-label"><span class="coin">$</span><span>$1 TOKEN</span></div>
+        <!-- Trust strip -->
+        <div class="trust-strip">
+          <div class="stat"><b>3.2K+</b><span>Wallets</span></div>
+          <div class="sep"></div>
+          <div class="stat"><b>$184K</b><span>Booked in $1</span></div>
+          <div class="sep"></div>
+          <div class="stat"><b>27</b><span>Cities</span></div>
+          <div class="sep"></div>
+          <div class="stat"><b>4.9★</b><span>Rating</span></div>
+          <div style="flex:1;"></div>
+          <span class="partner">⛓ TON Chain</span>
+          <span class="partner">✦ Cloudflare</span>
         </div>
-        <!-- Floating mini glass cards -->
-        <div class="glass-card" style="position:absolute; left:-10px; top:30px; padding:12px 16px; display:flex; align-items:center; gap:10px; z-index:3;">
-          <span class="dot" style="width:10px;height:10px;border-radius:50%;background:var(--token-green);box-shadow:0 0 0 4px rgba(38,208,124,0.25);"></span>
-          <div>
-            <div class="t-small t-muted" style="font-weight:700;" data-i18n="hero.wallet.label">Wallet</div>
-            <div style="font-weight:800;font-size:14px;">3,240 <span class="price"><span class="sym">$1</span></span></div>
+
+        <!-- Marquee of cities -->
+        <div class="marquee">
+          <div class="marquee-track" id="cityMarquee">
+            <!-- filled by JS for i18n-aware city names -->
           </div>
         </div>
-        <div class="glass-card" style="position:absolute; right:-10px; bottom:20px; padding:12px 16px; z-index:3;">
-          <div class="t-small t-muted" style="font-weight:700;" data-i18n="hero.resort.name">Da Nang Resort</div>
-          <div style="font-weight:800;font-size:14px;">150 <span class="price"><span class="sym">$1</span></span> <span data-i18n="hero.resort.per">/ night</span></div>
+      </div>
+
+      <!-- Right: Character stage -->
+      <div class="char-stage">
+        <img class="char-img"
+             src="./assets/character-mascot.png"
+             alt="DallyTrip $1 Token character"
+             onerror="this.style.display='none';document.getElementById('charSvg').style.display='block';" />
+
+        <!-- Fallback SVG mascot (used when character-mascot.png is missing) -->
+        <svg id="charSvg" class="char-svg" viewBox="0 0 220 240" style="display:none;" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="circBg" cx="0.5" cy="0.45" r="0.55">
+              <stop offset="0%" stop-color="#FFE780"/>
+              <stop offset="100%" stop-color="#FFB400"/>
+            </radialGradient>
+            <linearGradient id="billBody" x1="0" x2="0.5" y1="0" y2="1">
+              <stop offset="0%" stop-color="#7DDB6F"/>
+              <stop offset="100%" stop-color="#2F9A38"/>
+            </linearGradient>
+            <linearGradient id="chainGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#FFE16A"/>
+              <stop offset="100%" stop-color="#C68A1E"/>
+            </linearGradient>
+          </defs>
+
+          <!-- Yellow background circle -->
+          <circle cx="110" cy="110" r="92" fill="url(#circBg)"/>
+
+          <!-- Arms -->
+          <ellipse cx="46" cy="148" rx="14" ry="22" fill="#2F9A38" transform="rotate(-20 46 148)"/>
+          <ellipse cx="174" cy="148" rx="14" ry="22" fill="#2F9A38" transform="rotate(20 174 148)"/>
+
+          <!-- Dollar bill body -->
+          <rect x="44" y="50" width="132" height="158" rx="14" fill="url(#billBody)" stroke="#1f6e2f" stroke-width="3"/>
+          <rect x="52" y="58" width="116" height="142" rx="10" fill="none" stroke="#1f6e2f" stroke-width="1.5" stroke-dasharray="3 4" opacity="0.45"/>
+
+          <!-- Smile -->
+          <path d="M82 110 Q110 126 138 110" stroke="#0e3d1a" stroke-width="4" fill="none" stroke-linecap="round"/>
+          <!-- Tongue tip -->
+          <path d="M104 116 Q110 122 116 116" stroke="#d24d4d" stroke-width="3" fill="#ff6b6b" stroke-linecap="round"/>
+
+          <!-- Sunglasses -->
+          <rect x="58" y="78" width="48" height="22" rx="6" fill="#111"/>
+          <rect x="114" y="78" width="48" height="22" rx="6" fill="#111"/>
+          <rect x="104" y="84" width="14" height="6" fill="#111"/>
+          <!-- Pixel pattern on sunglasses -->
+          <g fill="#fff" opacity="0.95">
+            <rect x="62" y="82" width="6" height="6"/><rect x="74" y="82" width="6" height="6"/><rect x="86" y="82" width="6" height="6"/>
+            <rect x="68" y="88" width="6" height="6"/><rect x="80" y="88" width="6" height="6"/><rect x="92" y="88" width="6" height="6"/>
+            <rect x="118" y="82" width="6" height="6"/><rect x="130" y="82" width="6" height="6"/><rect x="142" y="82" width="6" height="6"/>
+            <rect x="124" y="88" width="6" height="6"/><rect x="136" y="88" width="6" height="6"/><rect x="148" y="88" width="6" height="6"/>
+          </g>
+
+          <!-- Gold chain -->
+          <g fill="url(#chainGrad)" stroke="#7a4d10" stroke-width="0.8">
+            <circle cx="76" cy="138" r="4"/><circle cx="86" cy="142" r="4"/><circle cx="96" cy="145" r="4"/><circle cx="106" cy="147" r="4"/><circle cx="116" cy="145" r="4"/><circle cx="126" cy="142" r="4"/><circle cx="136" cy="138" r="4"/>
+            <!-- Dollar pendant -->
+            <rect x="98" y="156" width="24" height="32" rx="5" fill="url(#chainGrad)" stroke="#7a4d10" stroke-width="1.5"/>
+            <text x="110" y="180" text-anchor="middle" font-family="Inter, sans-serif" font-size="20" font-weight="900" fill="#7a4d10">$</text>
+          </g>
+        </svg>
+
+        <!-- Sparkles -->
+        <span class="spark s1"></span>
+        <span class="spark s2"></span>
+        <span class="spark s3"></span>
+        <span class="spark s4"></span>
+
+        <!-- $1 TOKEN label -->
+        <div class="char-label"><span class="coin">$</span><span>$1 TOKEN</span></div>
+
+        <!-- Floating stat cards around the character -->
+        <div class="float-card f1">
+          <div class="icon green">$</div>
+          <div>
+            <div class="label" data-i18n="hero.wallet.label">Wallet</div>
+            <div class="value">3,240 <span style="color:var(--token-green);">$1</span></div>
+          </div>
+        </div>
+        <div class="float-card f2">
+          <div class="icon blue">✓</div>
+          <div>
+            <div class="label" data-i18n="toast.paymentConfirmed">Payment confirmed</div>
+            <div class="value">DT204812 · 240 $1</div>
+          </div>
+        </div>
+        <div class="float-card f3">
+          <div class="icon orange">★</div>
+          <div>
+            <div class="label">Rating</div>
+            <div class="value">4.9 <span class="t-muted t-small" style="font-weight:600;">· 248 reviews</span></div>
+          </div>
+        </div>
+        <div class="float-card f4">
+          <div class="icon purple">⛓</div>
+          <div>
+            <div class="label">TON Wallet</div>
+            <div class="value t-mono" style="font-size:12px;">EQB...9xA</div>
+          </div>
         </div>
       </div>
     </div>
@@ -259,15 +341,24 @@ const DESTS = [
 function renderDests() {
   const lang = (window.__dtLang && window.__dtLang.getLang()) || 'en';
   const grid = document.getElementById('destGrid');
-  if (!grid) return;
-  grid.innerHTML = DESTS.map(d => `
-    <div class="dest-tile" style="background-image:linear-gradient(135deg,rgba(0,0,0,0.0),rgba(0,0,0,0.2)),url('${d.img}');">
-      <div class="overlay">
-        <div class="country">${(COUNTRY_TR[d.country]||{})[lang] || d.country}</div>
-        <div class="city">${(CITY_TR[d.city]||{})[lang] || d.city}</div>
+  if (grid) {
+    grid.innerHTML = DESTS.map(d => `
+      <div class="dest-tile" style="background-image:linear-gradient(135deg,rgba(0,0,0,0.0),rgba(0,0,0,0.2)),url('${d.img}');">
+        <div class="overlay">
+          <div class="country">${(COUNTRY_TR[d.country]||{})[lang] || d.country}</div>
+          <div class="city">${(CITY_TR[d.city]||{})[lang] || d.city}</div>
+        </div>
       </div>
-    </div>
-  `).join('');
+    `).join('');
+  }
+  // City marquee in the hero — duplicated so the loop is seamless
+  const m = document.getElementById('cityMarquee');
+  if (m) {
+    const items = DESTS.concat(DESTS).map(d =>
+      `<span>${(CITY_TR[d.city]||{})[lang] || d.city}</span><span class="dot">●</span>`
+    ).join('');
+    m.innerHTML = items;
+  }
 }
 function toast(msg){ const wrap=document.createElement('div'); wrap.className='toast'; wrap.innerHTML=`<span class="dot"></span><span>${msg}</span>`;
   let stack=document.querySelector('.toast-stack'); if(!stack){stack=document.createElement('div');stack.className='toast-stack';document.body.appendChild(stack);}
