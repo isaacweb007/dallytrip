@@ -9,7 +9,7 @@
 <title>DallyTrip — App</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
 <link rel="stylesheet" href="./assets/styles.css?v=20260525a" />
-<script src="./assets/i18n.js?v=20260525a"></script>
+<script src="./assets/i18n.js?v=20260525b"></script>
 <!-- Travelpayouts affiliate tracking (marker 532633) -->
 <script>(function(){var s=document.createElement('script');s.async=1;s.src='https://emrldco.com/NTMyNjMz.js?t=532633';document.head.appendChild(s);})();</script>
 </head>
@@ -157,7 +157,15 @@ const state = {
   wallet: JSON.parse(localStorage.getItem('dt_wallet') || 'null'),
   bookings: JSON.parse(localStorage.getItem('dt_bookings') || '[]'),
   cart: JSON.parse(localStorage.getItem('dt_cart') || 'null'),
-  filter: { category: 'All', q: '' }
+  filter: { category: 'All', q: '' },
+  // External average USD prices keyed by `${cat}|${city}` — seeded; refined live from /api/tp/search
+  extAvg: {
+    'Hotel|Da Nang': 195, 'Hotel|Phu Quoc': 280, 'Hotel|Nha Trang': 160,
+    'Tour|Nha Trang': 78, 'Tour|Mui Ne': 55, 'Tour|Ha Long Bay': 220,
+    'Activity|Da Nang': 58, 'Activity|Bangkok': 38,
+    'Pickup|Ho Chi Minh': 28, 'Transport|Da Nang': 38, 'Transport|Ho Chi Minh': 92, 'Transport|Nha Trang': 42,
+    'Flight|Da Nang': 215, 'Flight|Ho Chi Minh': 290, 'Flight|Phu Quoc': 120, 'Flight|Ha Long Bay': 65,
+  }
 };
 
 function saveState() {
@@ -371,6 +379,11 @@ function productCard(p) {
     metaInner = `<span>🚗 ${t('transport.'+p.vehicle.toLowerCase())}</span><span>·</span><span>${p.distance}</span><span>·</span><span>⭐ ${p.rating}</span>`;
   }
 
+  // Price comparison: DallyTrip price ($1 = $1 USD) vs external average for this city/category
+  const extKey = `${p.cat}|${p.city}`;
+  const extAvg = state.extAvg[extKey];
+  const saved = extAvg && extAvg > p.price ? Math.round(extAvg - p.price) : 0;
+
   return `
   <a class="product-card" href="#/product/${p.id}">
     <div class="img" style="background-image:url('${p.img}')">
@@ -379,11 +392,18 @@ function productCard(p) {
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FF8A3D" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
       </button>
       ${isFlight ? `<span class="badge purple" style="position:absolute;top:14px;right:14px;background:rgba(255,255,255,0.85);color:#4830b0;">${p.flightNo}</span>` : ''}
+      ${saved > 0 ? `<span class="badge green" style="position:absolute;bottom:12px;left:12px;background:rgba(38,208,124,0.92);color:#fff;border:0;box-shadow:0 6px 14px rgba(38,208,124,0.45);">−$${fmt(saved)} ${t('app.search.cheaperHere')}</span>` : ''}
     </div>
     <div class="body">
       <div class="loc">${trCountry(p.country)} · ${trCity(p.city)}</div>
       <div class="title">${p.name}</div>
       <div class="meta">${metaInner}</div>
+      ${extAvg ? `
+        <div class="price-compare">
+          <span class="t-small t-muted">${t('app.search.externalAvg')}:</span>
+          <span class="t-small" style="text-decoration:line-through;color:var(--text-muted);font-weight:700;">$${fmt(extAvg)}</span>
+          <span class="t-small" style="color:var(--token-green);font-weight:800;">DallyTrip $${fmt(p.price)}</span>
+        </div>` : ''}
       <div class="price-row">
         <div>${price(p.price)} <span class="t-small t-muted">/ ${t(unitKey)}</span></div>
         <span class="btn btn-secondary btn-sm">${t('btn.view')}</span>
@@ -391,6 +411,27 @@ function productCard(p) {
     </div>
   </a>
   `;
+}
+
+// Refresh external average prices after live API returns, then re-render cards in place.
+function refreshExtAvgFromExternal(type, results) {
+  if (!Array.isArray(results) || results.length === 0) return;
+  // Average USD price per city, scoped to this category
+  const byCity = {};
+  results.forEach(r => {
+    const city = r.location || r.city || r.to || '';
+    const price = parseFloat(r.price);
+    if (!city || !price) return;
+    byCity[city] = byCity[city] || { sum: 0, n: 0 };
+    byCity[city].sum += price;
+    byCity[city].n += 1;
+  });
+  const catMap = { flights:'Flight', hotels:'Hotel', cars:'Transport', activities:'Activity' };
+  const cat = catMap[type];
+  if (!cat) return;
+  Object.entries(byCity).forEach(([city, { sum, n }]) => {
+    state.extAvg[`${cat}|${city}`] = Math.round(sum / n);
+  });
 }
 
 function pageSearch(params) {
@@ -435,9 +476,136 @@ function pageSearch(params) {
       ? `<div class="glass-card" style="padding:48px; text-align:center;"><div class="h3">${t('app.search.noResults')}</div><p class="t-muted mt-8">${t('app.search.noResultsDesc')}</p></div>`
       : `<div class="grid grid-3">${filtered.map(productCard).join('')}</div>`
     }
+
+    <!-- External results from Travelpayouts (commission tracked) -->
+    <div id="externalResults" data-cat="${escapeHtml(cat)}" data-q="${escapeHtml(q)}" class="mt-32"></div>
   </div>
   `;
 }
+
+// ============== External (Travelpayouts) results loader ==============
+async function loadExternalResults() {
+  const host = document.getElementById('externalResults');
+  if (!host) return;
+  const cat = host.dataset.cat || 'All';
+  const q   = host.dataset.q || '';
+
+  // Map our category → tp type
+  const typeMap = {
+    'All':'flights', 'Flights':'flights', 'Hotels':'hotels',
+    'Tours':'activities', 'Activities':'activities', 'Transport':'cars'
+  };
+  const type = typeMap[cat] || 'activities';
+  const city = q || (cat === 'Flights' ? '' : 'Da Nang');
+
+  // Build query for the unified endpoint
+  const u = new URL(location.origin + '/api/tp/search');
+  u.searchParams.set('type', type);
+  if (type === 'hotels')     { u.searchParams.set('city', city); }
+  else if (type === 'cars')  { u.searchParams.set('city', city); }
+  else if (type === 'activities') { u.searchParams.set('city', city); }
+  else if (type === 'flights')    { u.searchParams.set('from', 'SGN'); u.searchParams.set('to', 'BKK'); }
+
+  // Loading skeleton
+  host.innerHTML = `
+    <div class="row space-between items-center mb-16">
+      <h3 class="h3">🌐 ${t('app.search.partnerHeading')}</h3>
+      <span class="badge purple">${t('app.search.partnerCommission')}</span>
+    </div>
+    <div class="grid grid-3">
+      ${Array.from({length:3}).map(()=>`
+        <div class="glass-card" style="padding:18px;">
+          <div class="shimmer" style="height:140px; border-radius:16px;"></div>
+          <div class="shimmer mt-16" style="height:14px; width:60%; border-radius:6px;"></div>
+          <div class="shimmer mt-8" style="height:14px; width:40%; border-radius:6px;"></div>
+        </div>`).join('')}
+    </div>`;
+
+  let data;
+  try {
+    const r = await fetch(u.toString(), { headers: { 'Accept':'application/json' } });
+    data = await r.json();
+  } catch (e) {
+    host.innerHTML = `<div class="glass-card" style="padding:20px;">⚠ Partner search unavailable. (${e.message})</div>`;
+    return;
+  }
+
+  const results = (data && data.results) || [];
+
+  // Refresh price-comparison averages, then re-render any visible internal cards
+  refreshExtAvgFromExternal(type, results);
+  document.querySelectorAll('a.product-card[href^="#/product/"]').forEach(card => {
+    const id = (card.getAttribute('href') || '').split('/')[2];
+    const p = PRODUCTS.find(x => x.id === id);
+    if (p) {
+      const wrapper = document.createElement('div');
+      wrapper.innerHTML = productCard(p);
+      const fresh = wrapper.firstElementChild;
+      if (fresh) card.replaceWith(fresh);
+    }
+  });
+
+  if (results.length === 0) {
+    host.innerHTML = `
+      <div class="row space-between items-center mb-16">
+        <h3 class="h3">🌐 ${t('app.search.partnerHeading')}</h3>
+      </div>
+      <div class="glass-card" style="padding:24px;">
+        <div class="t-muted">${t('app.search.partnerEmpty')}</div>
+      </div>`;
+    return;
+  }
+
+  host.innerHTML = `
+    <div class="row space-between items-center mb-16" style="flex-wrap:wrap;gap:8px;">
+      <h3 class="h3">🌐 ${t('app.search.partnerHeading')} <span class="t-small t-muted" style="font-weight:600;">· ${results.length} ${t('common.results').trim()}</span></h3>
+      <span class="badge purple">${t('app.search.partnerCommission')}</span>
+    </div>
+    <div class="grid grid-3">
+      ${results.map(r => externalCard(r, type)).join('')}
+    </div>
+  `;
+}
+
+function externalCard(r, type) {
+  // Normalize fields for display
+  let title, sub, img;
+  if (type === 'flights') {
+    title = `${r.from} → ${r.to}`;
+    sub = `${r.airline||'Multiple'} · ${r.depart||''}`;
+    img = 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=600&q=70';
+  } else if (type === 'hotels') {
+    title = r.name || 'Hotel';
+    sub = `${r.stars?'⭐'.repeat(Math.round(r.stars))+' · ':''}${r.location||''}`;
+    img = 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&q=70';
+  } else if (type === 'cars') {
+    title = `${r.type} · ${r.model}`;
+    sub = `${r.supplier} · ${r.seats} seats · ${r.transmission}`;
+    img = 'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=600&q=70';
+  } else {
+    title = r.name || 'Activity';
+    sub = `⭐ ${r.rating||'-'} · ${r.reviews||0} reviews`;
+    img = 'https://images.unsplash.com/photo-1580974511812-2c4c8ddf2456?w=600&q=70';
+  }
+  const usd = r.price ? `$${fmt(r.price)}` : '—';
+  return `
+    <a class="product-card" href="${escapeHtml(r.bookingUrl||'#')}" target="_blank" rel="nofollow sponsored noopener">
+      <div class="img" style="background-image:url('${img}')">
+        <span class="badge badge-on-image" style="background:linear-gradient(135deg,#E0D7FF,#C5B5FF);color:#4830b0;">🌐 External</span>
+      </div>
+      <div class="body">
+        <div class="loc">via ${escapeHtml(({flights:'Aviasales',hotels:'Hotellook',cars:'DiscoverCars',activities:'GetYourGuide'})[type])}</div>
+        <div class="title">${escapeHtml(title)}</div>
+        <div class="meta">${escapeHtml(sub)}</div>
+        <div class="price-row">
+          <div><span style="font-size:20px;font-weight:800;color:var(--text-main);">${usd}</span> <span class="t-small t-muted">USD</span></div>
+          <span class="btn btn-secondary btn-sm">${t('btn.book')}</span>
+        </div>
+      </div>
+    </a>
+  `;
+}
+window.loadExternalResults = loadExternalResults;
 
 function pageProduct(id) {
   const p = PRODUCTS.find(x => x.id === id);
@@ -958,6 +1126,10 @@ function router() {
   renderBottomNav();
   bindProductTotals();
   window.scrollTo({ top: 0, behavior: 'instant' });
+  // After the page is in the DOM, fetch live partner results (if any)
+  if (document.getElementById('externalResults')) {
+    setTimeout(() => loadExternalResults(), 30);
+  }
 }
 
 function bindProductTotals() {

@@ -251,3 +251,82 @@
 ```
 
 `https://dallytrip.com`은 이미 라이브이므로 영업팀이 사이트 확인해도 정상 OK.
+
+---
+
+## 📈 추가 sub-key 가입으로 commission 더 높이기
+
+Travelpayouts 키 하나로 이미 항공/호텔/렌트카/액티비티 모두 commission 추적됩니다. 다만 **분야별 직접 affiliate**에 추가 가입하면 같은 예약에서 commission이 더 올라갑니다.
+
+### 1) GetYourGuide 직접 partner (액티비티 8%)
+
+**가입 (3분):**
+1. 👉 https://partner.getyourguide.com/ 접속
+2. **"Become an Affiliate"** 또는 **"Sign up"** 클릭
+3. 사이트 URL `https://dallytrip.com` + 사업 정보 입력
+4. 1~3일 심사 → 승인 메일
+5. 로그인 → **Dashboard → Tracking** → `Partner ID` 복사 (예: `D2N1G7`)
+
+**Cloudflare 환경변수 등록:**
+| 이름 | 값 |
+|---|---|
+| `GETYOURGUIDE_PARTNER_ID` | (받은 Partner ID) |
+
+→ 등록 후 `/api/activities/search` 응답에 `provider: "getyourguide-direct"`로 표시되면 직접 commission 모드 활성화.
+
+### 2) DiscoverCars 직접 affiliate (렌트카 5~8%)
+
+**가입 (즉시 자동 승인):**
+1. 👉 https://www.discovercars.com/affiliate 접속
+2. **"Join now"** → 이메일·이름 입력
+3. 즉시 승인 + 대시보드 로그인
+4. **My Affiliate** 페이지에서 `Affiliate ID` (a_aid 값) 복사
+
+**Cloudflare 환경변수:**
+| 이름 | 값 |
+|---|---|
+| `DISCOVERCARS_AFFILIATE_ID` | (받은 a_aid) |
+
+→ 등록 후 `/api/cars/search` 응답에 `provider: "discovercars-direct"`로 표시.
+
+### 3) Booking.com Affiliate (호텔 4~6%) ⭐ 가장 높은 호텔 commission
+
+**가입 (5분, 자동 승인 多):**
+1. 👉 https://www.booking.com/affiliate-program/v2/index.html 접속
+2. **"Sign up now"** 클릭 → 가입
+3. 사이트 정보 입력 → 대부분 즉시 승인
+4. 대시보드 → **"API & feed"** 또는 **"Settings"** → `aid`(Affiliate ID) 복사
+
+**Cloudflare 환경변수:**
+| 이름 | 값 |
+|---|---|
+| `BOOKING_AID` | (받은 aid 숫자) |
+
+→ 등록 후 신규 endpoint `https://dallytrip.com/api/booking/search?city=Da+Nang` 호출 시 `provider: "booking-direct"` + Booking 직접 deeplink 반환.
+
+### 4) Skyscanner Travel API (선택 — 항공 fresh data)
+
+**가입 (1~2주 심사):**
+1. 👉 https://www.partners.skyscanner.net/products 접속
+2. **"Apply for partner"** 양식 작성
+3. 1~2주 후 승인 메일 + API key
+
+**Cloudflare 환경변수:**
+| 이름 | 값 |
+|---|---|
+| `SKYSCANNER_API_KEY` | (받은 API key) |
+
+---
+
+## 🎯 단계적 가입 추천 순서
+
+| 우선순위 | 서비스 | 가입 시간 | 추가 commission 효과 |
+|---|---|---|---|
+| **1차 (지금)** | ✅ Travelpayouts | 5분 (완료) | 모든 카테고리 1.6~8% |
+| **2차** | DiscoverCars | 5분 (즉시 자동 승인) | 렌트카 5~8% (Travelpayouts 보다 직접) |
+| **3차** | Booking.com Affiliate | 5분 (대부분 즉시 승인) | 호텔 4~6% (가장 큰 인벤토리) |
+| **4차** | GetYourGuide Partner | 3분 가입 + 1~3일 심사 | 액티비티 8% (직접) |
+| **5차** | Skyscanner Travel | 신청 + 1~2주 심사 | 항공 fresh data + commission 차익 |
+
+각 단계 가입할 때마다 환경변수 1개 추가 → Cloudflare가 자동 재배포 → 코드 수정 없이 즉시 활성화.
+

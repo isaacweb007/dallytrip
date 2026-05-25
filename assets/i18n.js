@@ -161,6 +161,11 @@
     'app.search.rating':        { ko:'평점',           en:'Rating',          ja:'評価',           zh:'评分' },
     'app.search.noResults':     { ko:'결과가 없습니다',en:'No results',      ja:'結果がありません',zh:'无结果' },
     'app.search.noResultsDesc': { ko:'다른 키워드 또는 카테고리를 시도해 보세요.', en:'Try another keyword or category.', ja:'別のキーワードやカテゴリーをお試しください。', zh:'尝试其他关键字或类别。' },
+    'app.search.partnerHeading':{ ko:'제휴 파트너 추천', en:'More options on partner sites', ja:'パートナー提案', zh:'合作伙伴推荐' },
+    'app.search.partnerCommission':{ ko:'$1 결제 외 옵션', en:'Affiliate offers', ja:'パートナー予約', zh:'合作伙伴预订' },
+    'app.search.partnerEmpty':  { ko:'해당 조건의 파트너 결과가 없습니다. 다른 도시·노선을 시도해 보세요.', en:'No partner results for this query. Try a different city or route.', ja:'該当する結果がありません。', zh:'未找到合作伙伴结果。' },
+    'app.search.cheaperHere':   { ko:'DallyTrip이 더 저렴해요', en:'Cheaper on DallyTrip', ja:'DallyTripの方がお得', zh:'DallyTrip 更便宜' },
+    'app.search.externalAvg':   { ko:'외부 평균', en:'avg. external', ja:'外部平均', zh:'外部均价' },
 
     'app.product.reviews':      { ko:'리뷰',           en:'reviews',         ja:'件のレビュー',    zh:'条评论' },
     'app.product.dollarOnly':   { ko:'$1만',           en:'$1 only',         ja:'$1のみ',         zh:'仅 $1' },

@@ -12,12 +12,15 @@ export const onRequestOptions = corsPreflight;
 export async function onRequestGet({ request, env }) {
   const url = new URL(request.url);
   const city = url.searchParams.get('city') || 'Da Nang';
-  const partnerId = env.GETYOURGUIDE_PARTNER_ID || '';
+  // Prefer dedicated GetYourGuide partner ID; otherwise fall back to TP marker
+  // (Travelpayouts is also a GYG affiliate sub-network, so marker still tracks).
+  const partnerId = env.GETYOURGUIDE_PARTNER_ID || env.TRAVELPAYOUTS_MARKER || env.TRAVELPAYOUTS_TRS || '';
+  const sub = url.searchParams.get('sub_id') || '';
 
   const link = (q) =>
-    `https://www.getyourguide.com/-l36/-tc2/${encodeURIComponent(
-      q.replace(/\s+/g, '-').toLowerCase()
-    )}?partner_id=${encodeURIComponent(partnerId)}`;
+    `https://www.getyourguide.com/s/?q=${encodeURIComponent(q || city)}` +
+    `&partner_id=${encodeURIComponent(partnerId)}` +
+    (sub ? `&utm_content=${encodeURIComponent(sub)}` : '');
 
   // Curated activities (real GetYourGuide categories, real commission links)
   const baseSet = {
@@ -54,5 +57,9 @@ export async function onRequestGet({ request, env }) {
     bookingUrl: link(`${city} ${a.name}`),
   }));
 
-  return json({ provider: 'getyourguide-affiliate', count: results.length, results });
+  return json({
+    provider: env.GETYOURGUIDE_PARTNER_ID ? 'getyourguide-direct' : 'getyourguide-via-travelpayouts',
+    count: results.length,
+    results
+  });
 }
