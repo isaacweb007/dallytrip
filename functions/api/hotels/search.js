@@ -71,109 +71,47 @@ export async function onRequestGet({ request, env }) {
   } catch (e) { /* swallow and use fallback */ }
 
   // If live returned nothing, build curated showcase with commission deeplinks.
-  // We try Hotellook autocomplete in parallel for each curated hotel to get a
-  // REAL hotelId (and thus a real photo). If that fails, the index-based pool
-  // picker guarantees every curated hotel in the city gets a DIFFERENT photo
-  // (no hash collisions like the previous version).
-  let debugInfo = null;
+  // We use index-based image picking (NOT hash): each curated hotel in a city
+  // gets a deterministic, DIFFERENT photo from the 20-image per-city pool.
+  //
+  // Note: Hotellook's lookup-by-name endpoints (lookup.json, autocomplete.json,
+  // suggest/hotels.json) all return 404 as of 2026 — Travelpayouts has retired
+  // them. So we can't fetch the "real" per-hotel photo via name search anymore;
+  // index-based pool selection is the most reliable visual diversity we can
+  // guarantee until we integrate a different photo source (Booking, Marriott
+  // direct, etc).
   if (liveResults.length === 0) {
     const showcase = CURATED[city] || CURATED._default(city);
-    const debugDump = [];
-    liveResults = await Promise.all(showcase.map(async (h, i) => {
-      const { id: realId, debug } = await lookupHotelId(h.name, city, TOKEN);
-      if (i < 2) debugDump.push({ name: h.name, ...debug });
-      return {
-        id: `tph_curated_${city.toLowerCase().replace(/\s+/g,'_')}_${i}`,
-        hotelId: realId || null,
-        name: h.name,
-        stars: h.stars,
-        location: city,
-        country: COUNTRY_OF[city] || '',
-        price: h.price,
-        currency: 'USD',
-        // Per-hotel real photo from Hotellook's CDN when we found a hotelId,
-        // else index-based selection from a per-city pool (no hash collisions).
-        image: realId
-          ? `https://photo.hotellook.com/image_v2/limit/h${realId}_1/800/520.auto`
-          : pickCityHotelImageByIndex(city, i),
-        bookingUrl: withMarker(
-          `https://search.hotellook.com/hotels?destination=${encodeURIComponent(city)}` +
-            `&checkIn=${checkin}&checkOut=${checkout}&adults=${adults}`,
-          MARKER
-        ),
-      };
+    liveResults = showcase.map((h, i) => ({
+      id: `tph_curated_${city.toLowerCase().replace(/\s+/g,'_')}_${i}`,
+      hotelId: null,
+      name: h.name,
+      stars: h.stars,
+      location: city,
+      country: COUNTRY_OF[city] || '',
+      price: h.price,
+      currency: 'USD',
+      image: pickCityHotelImageByIndex(city, i),
+      bookingUrl: withMarker(
+        `https://search.hotellook.com/hotels?destination=${encodeURIComponent(city)}` +
+          `&checkIn=${checkin}&checkOut=${checkout}&adults=${adults}`,
+        MARKER
+      ),
     }));
-    debugInfo = debugDump;
   }
 
-  const payload = {
+  return json({
     provider: 'hotellook',
     city,
     count: liveResults.length,
     results: liveResults,
-  };
-  if (url.searchParams.get('debug') === '1' && debugInfo) {
-    payload.debug = debugInfo;
-  }
-  return json(payload);
+  });
 }
 
 // Resolve a curated hotel name to its real Hotellook ID so we can pull the
 // REAL photo of that specific hotel (not a generic city stock shot).
 // Returns { id, debug } — id is null on any failure; debug surfaces what the
 // API actually returned so we can diagnose without redeploying.
-// Resolve a curated hotel name to its real Hotellook ID using the autocomplete
-// endpoint (yasen.hotellook.com), which is the live, supported path. The old
-// /api/v2/lookup.json is dead (returns 404).
-//
-// Autocomplete response shape (approx):
-//   { hotels: [{ id, label, locationName, ... }], locations: [...] }
-async function lookupHotelId(hotelName, city, token) {
-  if (!hotelName || !token) return { id: null, debug: 'no name/token' };
-  // Try several known-good Hotellook search endpoints in order. As soon as one
-  // returns a hotel id, we use it.
-  const candidates = [
-    // (a) autocomplete — fastest, supports partial names
-    `https://yasen.hotellook.com/autocomplete?term=${encodeURIComponent(hotelName)}&lang=en&token=${encodeURIComponent(token)}`,
-    // (b) public autocomplete via the engine subdomain
-    `https://engine.hotellook.com/api/v2/autocomplete.json?term=${encodeURIComponent(hotelName + ' ' + city)}&lang=en&token=${encodeURIComponent(token)}`,
-    // (c) suggest endpoint (sometimes still works)
-    `https://engine.hotellook.com/api/v2/suggest/hotels.json?query=${encodeURIComponent(hotelName)}&lang=en&token=${encodeURIComponent(token)}`,
-  ];
-  const tries = [];
-  for (const url of candidates) {
-    try {
-      const res = await fetch(url);
-      const status = res.status;
-      const ct = res.headers.get('content-type') || '';
-      const rawText = await res.text();
-      let data = null;
-      try { data = JSON.parse(rawText); } catch {}
-      // Extract hotels list from any of the known wrapper shapes.
-      const hotels =
-        (Array.isArray(data?.hotels) ? data.hotels : null)
-        || (Array.isArray(data?.results?.hotels) ? data.results.hotels : null)
-        || (Array.isArray(data) ? data : null)
-        || [];
-      // Filter to entries that actually have a numeric id (locations don't).
-      const hotelOnly = hotels.filter(x => x && (x.id || x.hotelId) && (x.label || x.name || x.fullName));
-      const first = hotelOnly[0] || null;
-      const realId = first?.id || first?.hotelId || null;
-      tries.push({
-        url: url.replace(token, '***'),
-        status,
-        contentType: ct,
-        rawSample: rawText.slice(0, 200),
-        hotelsLen: hotels.length,
-        gotId: !!realId,
-      });
-      if (realId) return { id: realId, debug: { hit: tries.length, tries } };
-    } catch (e) {
-      tries.push({ url: url.replace(token, '***'), error: String(e?.message || e) });
-    }
-  }
-  return { id: null, debug: { hit: null, tries } };
-}
 
 async function safeJson(res) {
   try { return await res.json(); }
