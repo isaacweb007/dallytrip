@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DallyTrip — Admin</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+<link rel="stylesheet" href="./assets/styles.css" />
+<script src="./assets/i18n.js"></script>
+</head>
+<body>
+
+<div id="root"></div>
+<div class="toast-stack" id="toasts"></div>
+
+<script>
+// ================= Mock data =================
+const seedProducts = () => ([
+  { id:'p1', cat:'Hotel', country:'Vietnam', city:'Da Nang', name:'Da Nang Ocean View Resort', price:150, status:'Live', featured:true, created:'2026-04-12', img:'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=400&auto=format&fit=crop&q=70' },
+  { id:'p2', cat:'Tour', country:'Vietnam', city:'Nha Trang', name:'Nha Trang Hopping Tour', price:55, status:'Live', featured:true, created:'2026-04-08', img:'https://images.unsplash.com/photo-1571175443880-49e1d25b2bc5?w=400&auto=format&fit=crop&q=70' },
+  { id:'p3', cat:'Hotel', country:'Vietnam', city:'Phu Quoc', name:'Phu Quoc Pool Villa', price:220, status:'Live', featured:false, created:'2026-03-28', img:'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=400&auto=format&fit=crop&q=70' },
+  { id:'p4', cat:'Pickup', country:'Vietnam', city:'Ho Chi Minh', name:'Tan Son Nhat Airport Pickup', price:18, status:'Live', featured:false, created:'2026-03-12', img:'https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=400&auto=format&fit=crop&q=70' },
+  { id:'p5', cat:'Activity', country:'Vietnam', city:'Da Nang', name:'Ba Na Hills Cable Car Ticket', price:42, status:'Hidden', featured:false, created:'2026-02-22', img:'https://images.unsplash.com/photo-1580974511812-2c4c8ddf2456?w=400&auto=format&fit=crop&q=70' },
+  { id:'p6', cat:'Tour', country:'Vietnam', city:'Mui Ne', name:'Mui Ne Desert Jeep Tour', price:38, status:'Live', featured:false, created:'2026-02-01', img:'https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?w=400&auto=format&fit=crop&q=70' },
+]);
+
+const seedBookings = () => ([
+  { id:'DT204812', wallet:'EQB...9xA', product:'Da Nang Ocean View Resort', date:'2026-06-12', guests:2, amount:300, tx:'EQABCD12', status:'Pending Confirmation' },
+  { id:'DT204803', wallet:'EQF...4Kp', product:'Nha Trang Hopping Tour', date:'2026-06-04', guests:4, amount:220, tx:'EQXYZ772', status:'Confirmed' },
+  { id:'DT204791', wallet:'EQH...1Bv', product:'Phu Quoc Pool Villa', date:'2026-05-29', guests:2, amount:660, tx:'EQHJKL55', status:'Completed' },
+  { id:'DT204776', wallet:'EQB...9xA', product:'Tan Son Nhat Airport Pickup', date:'2026-05-25', guests:1, amount:18, tx:'EQPNTR03', status:'Payment Completed' },
+  { id:'DT204760', wallet:'EQM...4Tq', product:'Ba Na Hills Cable Car Ticket', date:'2026-05-20', guests:3, amount:126, tx:'EQBNH912', status:'Cancel Requested' },
+  { id:'DT204744', wallet:'EQR...8Ab', product:'Mui Ne Desert Jeep Tour', date:'2026-05-15', guests:2, amount:76, tx:'EQMNE441', status:'Cancelled' },
+]);
+
+const seedPayments = () => ([
+  { tx:'EQABCD12...9876', wallet:'EQB...9xA', amount:300, network:'TON Chain', status:'Confirmed', date:'2026-05-25 14:21', bookingId:'DT204812' },
+  { tx:'EQXYZ772...4423', wallet:'EQF...4Kp', amount:220, network:'TON Chain', status:'Confirmed', date:'2026-05-24 09:08', bookingId:'DT204803' },
+  { tx:'EQHJKL55...1132', wallet:'EQH...1Bv', amount:660, network:'TON Chain', status:'Confirmed', date:'2026-05-22 19:55', bookingId:'DT204791' },
+  { tx:'EQPNTR03...7711', wallet:'EQB...9xA', amount:18, network:'TON Chain', status:'Confirmed', date:'2026-05-22 06:30', bookingId:'DT204776' },
+  { tx:'EQBNH912...2210', wallet:'EQM...4Tq', amount:126, network:'TON Chain', status:'Refunded', date:'2026-05-21 22:12', bookingId:'DT204760' },
+]);
+
+const seedUsers = () => ([
+  { wallet:'EQB...9xA', bookings:3, paid:336, joined:'2026-02-12', status:'Active' },
+  { wallet:'EQF...4Kp', bookings:1, paid:220, joined:'2026-04-02', status:'Active' },
+  { wallet:'EQH...1Bv', bookings:2, paid:880, joined:'2026-01-10', status:'Active' },
+  { wallet:'EQM...4Tq', bookings:1, paid:126, joined:'2026-03-21', status:'Active' },
+  { wallet:'EQR...8Ab', bookings:1, paid:76, joined:'2026-03-30', status:'Suspended' },
+]);
+
+const seedBanners = () => ([
+  { title:'Travel Da Nang with $1', subtitle:'Beachfront resorts from 120 $1 / night', buttonText:'Explore Da Nang', link:'/app/search?cat=Hotels', status:'Live', order:1 },
+  { title:'$1 only · Web3 booking', subtitle:'Pay every trip with one token', buttonText:'Launch App', link:'/app', status:'Live', order:2 },
+]);
+
+const store = {
+  loggedIn: sessionStorage.getItem('dt_admin') === '1',
+  products: JSON.parse(localStorage.getItem('dt_admin_products') || 'null') || seedProducts(),
+  bookings: JSON.parse(localStorage.getItem('dt_admin_bookings') || 'null') || seedBookings(),
+  payments: JSON.parse(localStorage.getItem('dt_admin_payments') || 'null') || seedPayments(),
+  users: JSON.parse(localStorage.getItem('dt_admin_users') || 'null') || seedUsers(),
+  banners: JSON.parse(localStorage.getItem('dt_admin_banners') || 'null') || seedBanners(),
+  settings: JSON.parse(localStorage.getItem('dt_admin_settings') || 'null') || { wallet:'EQADMIN...9zZ', fee:'0%', email:'admin@dallytrip.io' }
+};
+function persist() {
+  localStorage.setItem('dt_admin_products', JSON.stringify(store.products));
+  localStorage.setItem('dt_admin_bookings', JSON.stringify(store.bookings));
+  localStorage.setItem('dt_admin_payments', JSON.stringify(store.payments));
+  localStorage.setItem('dt_admin_users', JSON.stringify(store.users));
+  localStorage.setItem('dt_admin_banners', JSON.stringify(store.banners));
+  localStorage.setItem('dt_admin_settings', JSON.stringify(store.settings));
+}
+
+const fmt = n => Number(n).toLocaleString('en-US');
+const escapeHtml = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function toast(msg){ const wrap=document.getElementById('toasts'); const el=document.createElement('div'); el.className='toast'; el.innerHTML=`<span class="dot"></span><span>${escapeHtml(msg)}</span>`; wrap.appendChild(el); setTimeout(()=>el.style.opacity=0,2400); setTimeout(()=>el.remove(),2700); }
+
+// City translations
+const CITY_TR = {
+  'Da Nang':    { ko:'다낭',    en:'Da Nang',    ja:'ダナン',    zh:'岘港' },
+  'Nha Trang':  { ko:'나트랑',  en:'Nha Trang',  ja:'ニャチャン',zh:'芽庄' },
+  'Phu Quoc':   { ko:'푸꾸옥',  en:'Phu Quoc',   ja:'フーコック',zh:'富国岛' },
+  'Ho Chi Minh':{ ko:'호치민',  en:'Ho Chi Minh',ja:'ホーチミン',zh:'胡志明' },
+  'Mui Ne':     { ko:'무이네',  en:'Mui Ne',     ja:'ムイネー', zh:'美奈' },
+};
+const trCity = c => { const lang = window.__dtLang ? window.__dtLang.getLang() : 'en'; return (CITY_TR[c]||{})[lang] || c; };
+
+const STATUS_OPTIONS = ['Payment Completed','Pending Confirmation','Confirmed','Completed','Cancel Requested','Cancelled'];
+function badgeForStatus(s){ return ({
+  'Payment Completed':'status-paid',
+  'Pending Confirmation':'status-pending',
+  'Confirmed':'status-confirmed',
+  'Completed':'status-completed',
+  'Cancel Requested':'orange',
+  'Cancelled':'status-cancelled',
+  'Refunded':'gray',
+  'Live':'green', 'Hidden':'gray', 'Active':'green', 'Suspended':'red'
+})[s] || 'gray'; }
+
+// ================= Pages =================
+function loginPage() {
+  return `
+  <div style="min-height:100vh; display:grid; place-items:center; padding:24px;">
+    <div class="glass-panel" style="width:100%; max-width:420px; padding:36px;">
+      <div class="row space-between items-center">
+        <a class="brand" href="./index.html">
+          <span class="brand-logo">D</span>
+          <span>${t('admin.brand')}</span>
+        </a>
+        <span data-dt-lang-mount></span>
+      </div>
+      <h2 class="h2 mt-16" style="font-size:28px;">${t('admin.login.welcome')}</h2>
+      <p class="t-muted mt-8">${t('admin.login.desc')}</p>
+      <form onsubmit="event.preventDefault();doLogin();" class="mt-24 col gap-12">
+        <div class="field">
+          <label>${t('common.email')}</label>
+          <input class="glass-input" id="loginEmail" type="email" placeholder="admin@dallytrip.io" value="admin@dallytrip.io" />
+        </div>
+        <div class="field">
+          <label>${t('common.password')}</label>
+          <input class="glass-input" id="loginPw" type="password" placeholder="••••••••" value="admin1234" />
+        </div>
+        <button class="btn btn-primary btn-block btn-lg mt-8" type="submit">${t('btn.signin')}</button>
+        <a href="./index.html" class="btn btn-ghost btn-block">${t('btn.backSite')}</a>
+      </form>
+    </div>
+  </div>
+  `;
+}
+function doLogin() {
+  const e = document.getElementById('loginEmail').value;
+  const p = document.getElementById('loginPw').value;
+  if (e && p) { sessionStorage.setItem('dt_admin','1'); store.loggedIn=true; location.hash='#/dashboard'; render(); toast(t('toast.welcomeAdmin')); }
+}
+window.doLogin = doLogin;
+
+// ---------- Shell ----------
+function shell(path, content) {
+  return `
+  <div class="admin-shell">
+    <aside class="admin-side">
+      <a class="brand" href="#/dashboard">
+        <span class="brand-logo">D</span>
+        <span>DallyTrip</span>
+      </a>
+      <nav class="mt-16">
+        ${sideLink('/dashboard', t('admin.side.dashboard'), '📊', path)}
+        ${sideLink('/products',  t('admin.side.products'),  '🛏️', path)}
+        ${sideLink('/bookings',  t('admin.side.bookings'),  '📅', path)}
+        ${sideLink('/payments',  t('admin.side.payments'),  '💳', path)}
+        ${sideLink('/users',     t('admin.side.users'),     '👥', path)}
+        ${sideLink('/banners',   t('admin.side.banners'),   '🖼️', path)}
+        ${sideLink('/settings',  t('admin.side.settings'),  '⚙️', path)}
+      </nav>
+      <div style="flex:1;"></div>
+      <div class="mt-16" data-dt-lang-mount></div>
+      <div class="glass-card mt-8" style="padding:14px;">
+        <div class="t-small t-muted">${t('admin.side.adminWallet')}</div>
+        <div class="t-mono t-small" style="font-weight:700;">${store.settings.wallet}</div>
+      </div>
+      <button class="btn btn-ghost btn-sm mt-8" onclick="logout()">${t('btn.signout')}</button>
+    </aside>
+    <main class="admin-main">
+      ${content}
+    </main>
+  </div>
+  `;
+}
+function sideLink(p,l,e,cur){ return `<a href="#${p}" class="${cur===p?'is-active':''}"><span style="width:22px;display:inline-grid;place-items:center;">${e}</span>${l}</a>`; }
+function logout(){ sessionStorage.removeItem('dt_admin'); store.loggedIn=false; location.hash='#/login'; render(); }
+window.logout = logout;
+
+// ---------- Dashboard ----------
+function dashboardPage() {
+  const today = store.bookings.length;
+  const totalPay = store.payments.filter(p=>p.status==='Confirmed').reduce((s,p)=>s+p.amount,0);
+  const pending = store.bookings.filter(b=>b.status==='Pending Confirmation').length;
+  const users = store.users.length;
+
+  return `
+  <div class="page-enter">
+    <div class="row space-between items-center mb-16">
+      <div>
+        <span class="kicker">${t('admin.dash.kicker')}</span>
+        <h2 class="h2 mt-8">${t('admin.dash.title')}</h2>
+      </div>
+      <div class="row gap-12">
+        <button class="btn btn-secondary btn-sm">${t('btn.export')}</button>
+        <a class="btn btn-primary btn-sm" href="#/products/new">${t('btn.newProduct')}</a>
+      </div>
+    </div>
+
+    <div class="grid grid-4">
+      <div class="stat-card">
+        <div class="label">${t('admin.dash.today')}</div>
+        <div class="num">${today}</div>
+        <div class="bubble blue">${today}</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">${t('admin.dash.totalPay')}</div>
+        <div class="num">${fmt(totalPay)} <span style="font-size:18px;color:var(--token-green);">$1</span></div>
+        <div class="bubble green">$</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">${t('admin.dash.pending')}</div>
+        <div class="num">${pending}</div>
+        <div class="bubble orange">${pending}</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">${t('admin.dash.users')}</div>
+        <div class="num">${users}</div>
+        <div class="bubble purple">${users}</div>
+      </div>
+    </div>
+
+    <div class="grid" style="grid-template-columns: 2fr 1fr; gap:20px; margin-top:24px;">
+      <div class="glass-card" style="padding:24px;">
+        <div class="row space-between items-center">
+          <h3 class="h3">${t('admin.dash.recent')}</h3>
+          <a class="t-small" href="#/bookings" style="font-weight:700;color:var(--ocean-blue);">${t('admin.dash.viewAll')}</a>
+        </div>
+        <div class="mt-16">
+          <table class="glass-table" style="border:0;">
+            <thead><tr><th>${t('admin.dash.booking')}</th><th>${t('common.product')}</th><th>${t('common.amount')}</th><th>${t('common.status')}</th></tr></thead>
+            <tbody>
+              ${store.bookings.slice(0,5).map(b=>`
+                <tr>
+                  <td><b>${b.id}</b><div class="t-small t-muted t-mono">${b.wallet}</div></td>
+                  <td>${b.product}<div class="t-small t-muted">${b.date}</div></td>
+                  <td><b>${fmt(b.amount)} $1</b></td>
+                  <td><span class="badge ${badgeForStatus(b.status)}">${t('status.'+b.status)}</span></td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="glass-card" style="padding:24px;">
+        <h3 class="h3">${t('admin.dash.topDest')}</h3>
+        <div class="col mt-16 gap-12">
+          ${['Da Nang','Phu Quoc','Nha Trang','Ho Chi Minh'].map((c,i)=>`
+            <div class="row items-center space-between">
+              <div class="row items-center gap-8">
+                <span style="width:32px;height:32px;border-radius:10px;background:var(--grad-main-cta);display:grid;place-items:center;color:#fff;font-weight:800;font-size:13px;">${c[0]}</span>
+                <div><b>${trCity(c)}</b><div class="t-small t-muted">${4-i} ${t('admin.dash.bookings')}</div></div>
+              </div>
+              <div style="width:120px;height:8px;border-radius:999px;background:rgba(255,255,255,0.55);overflow:hidden;">
+                <div style="height:100%;width:${[80,60,45,30][i]}%;background:var(--grad-main-cta);"></div>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+
+        <h3 class="h3 mt-24">${t('admin.dash.statusMix')}</h3>
+        <div class="col mt-16 gap-8">
+          ${['Confirmed','Pending Confirmation','Completed','Cancelled'].map(s=>{
+            const n = store.bookings.filter(b=>b.status===s).length;
+            return `<div class="row space-between"><span class="badge ${badgeForStatus(s)}">${t('status.'+s)}</span><b>${n}</b></div>`;
+          }).join('')}
+        </div>
+      </div>
+    </div>
+  </div>
+  `;
+}
+
+// ---------- Products list ----------
+function productsPage() {
+  return `
+  <div class="page-enter">
+    <div class="row space-between items-center mb-16">
+      <div>
+        <span class="kicker">${t('admin.products.kicker')}</span>
+        <h2 class="h2 mt-8">${t('admin.products.title')}</h2>
+      </div>
+      <a class="btn btn-primary" href="#/products/new">${t('btn.addProduct')}</a>
+    </div>
+
+    <div class="glass-card" style="padding:16px;">
+      <div class="row gap-12 items-center" style="flex-wrap:wrap;">
+        <input class="glass-input" placeholder="${t('admin.products.searchPh')}" style="flex:1; min-width:240px;" />
+        <select class="glass-input" style="max-width:180px;"><option>${t('common.allCat')}</option><option>${t('cat.Hotel')}</option><option>${t('cat.Tour')}</option><option>${t('cat.Activity')}</option><option>${t('cat.Pickup')}</option></select>
+        <select class="glass-input" style="max-width:140px;"><option>${t('common.allStatus')}</option><option>${t('common.live')}</option><option>${t('common.hidden')}</option></select>
+      </div>
+    </div>
+
+    <div class="mt-16" style="overflow-x:auto;">
+      <table class="glass-table">
+        <thead><tr>
+          <th>${t('common.image')}</th><th>${t('common.product')}</th><th>${t('common.category')}</th><th>${t('common.city')}</th><th>${t('common.price')} $1</th><th>${t('common.status')}</th><th>${t('common.created')}</th><th>${t('common.actions')}</th>
+        </tr></thead>
+        <tbody>
+          ${store.products.map(p=>`
+            <tr>
+              <td><div style="width:48px;height:48px;border-radius:12px;background:url('${p.img}') center/cover;"></div></td>
+              <td><b>${p.name}</b>${p.featured?` <span class="badge purple">${t('admin.products.featured')}</span>`:''}</td>
+              <td><span class="badge blue">${t('cat.'+p.cat)}</span></td>
+              <td>${trCity(p.city)}</td>
+              <td><b>${p.price}</b></td>
+              <td><span class="badge ${badgeForStatus(p.status)}">${t('status.'+p.status)}</span></td>
+              <td>${p.created}</td>
+              <td>
+                <button class="btn btn-ghost btn-sm" onclick="toggleProduct('${p.id}')">${p.status==='Live'?t('btn.hide'):t('btn.show')}</button>
+                <button class="btn btn-ghost btn-sm" onclick="deleteProduct('${p.id}')">${t('btn.delete')}</button>
+              </td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  `;
+}
+function toggleProduct(id){ const p = store.products.find(x=>x.id===id); p.status = p.status==='Live'?'Hidden':'Live'; persist(); toast(p.status==='Live'?t('toast.productLive'):t('toast.productHidden')); render(); }
+function deleteProduct(id){ if(!confirm(t('admin.products.confirmDel'))) return; store.products = store.products.filter(x=>x.id!==id); persist(); toast(t('toast.productDeleted')); render(); }
+window.toggleProduct = toggleProduct; window.deleteProduct = deleteProduct;
+
+// ---------- Product new ----------
+function productNewPage() {
+  return `
+  <div class="page-enter">
+    <div class="row items-center gap-8 mb-16">
+      <a class="icon-btn" href="#/products"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m15 18-6-6 6-6"/></svg></a>
+      <div>
+        <span class="kicker">${t('admin.pn.kicker')}</span>
+        <h2 class="h2 mt-8">${t('admin.pn.title')}</h2>
+      </div>
+    </div>
+
+    <form onsubmit="event.preventDefault();saveNewProduct()" class="grid" style="grid-template-columns: 2fr 1fr; gap:20px;">
+      <div class="col gap-16">
+        <div class="glass-card" style="padding:24px;">
+          <h4 class="h4">${t('admin.pn.basics')}</h4>
+          <div class="form-grid mt-16">
+            <div class="field"><label>${t('admin.pn.productName')}</label><input id="f_name" class="glass-input" placeholder="Da Nang Ocean View Resort" required /></div>
+            <div class="field"><label>${t('common.category')}</label><select id="f_cat" class="glass-input"><option>Hotel</option><option>Tour</option><option>Activity</option><option>Pickup</option></select></div>
+            <div class="field"><label>${t('common.country')}</label><input id="f_country" class="glass-input" placeholder="Vietnam" value="Vietnam" /></div>
+            <div class="field"><label>${t('common.city')}</label><input id="f_city" class="glass-input" placeholder="Da Nang" /></div>
+            <div class="field" style="grid-column:1/-1;"><label>${t('admin.pn.address')}</label><input id="f_addr" class="glass-input" placeholder="Vo Nguyen Giap Street, Son Tra, Da Nang" /></div>
+          </div>
+        </div>
+
+        <div class="glass-card" style="padding:24px;">
+          <h4 class="h4">${t('admin.pn.media')}</h4>
+          <div class="form-grid mt-16">
+            <div class="field"><label>${t('admin.pn.mainImg')}</label><input id="f_img" class="glass-input" placeholder="https://..." value="https://images.unsplash.com/photo-1582719508461-905c673771fd?w=600&q=70" /></div>
+            <div class="field"><label>${t('admin.pn.galleryImg')}</label><textarea class="glass-input" rows="3"></textarea></div>
+          </div>
+        </div>
+
+        <div class="glass-card" style="padding:24px;">
+          <h4 class="h4">${t('admin.pn.desc')}</h4>
+          <div class="field mt-16"><label>${t('admin.pn.desc')}</label><textarea class="glass-input">Beachfront 5-star resort with infinity pool overlooking the East Sea.</textarea></div>
+          <div class="form-grid mt-16">
+            <div class="field"><label>${t('admin.pn.included')}</label><textarea class="glass-input" rows="3">Breakfast
+WiFi
+Pool access</textarea></div>
+            <div class="field"><label>${t('admin.pn.excluded')}</label><textarea class="glass-input" rows="3">Lunch / Dinner
+Spa</textarea></div>
+          </div>
+          <div class="field mt-16"><label>${t('common.cancelPolicy')}</label><input class="glass-input" value="Free cancellation up to 48h before check-in." /></div>
+        </div>
+      </div>
+
+      <aside class="col gap-16">
+        <div class="glass-card" style="padding:24px;">
+          <h4 class="h4">${t('admin.pn.pricing')}</h4>
+          <div class="field mt-16"><label>${t('admin.pn.priceIn')}</label>
+            <div class="row gap-8 items-center">
+              <input id="f_price" class="glass-input" type="number" min="1" value="150" style="text-align:right;" />
+              <span class="token-chip"><span class="coin">$</span>$1</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="glass-card" style="padding:24px;">
+          <h4 class="h4">${t('admin.pn.availability')}</h4>
+          <div class="form-grid mt-16">
+            <div class="field"><label>${t('admin.pn.from')}</label><input class="glass-input" type="date" value="2026-06-01" /></div>
+            <div class="field"><label>${t('admin.pn.to')}</label><input class="glass-input" type="date" value="2026-12-31" /></div>
+            <div class="field"><label>${t('admin.pn.min')}</label><input class="glass-input" type="number" value="1" /></div>
+            <div class="field"><label>${t('admin.pn.max')}</label><input class="glass-input" type="number" value="4" /></div>
+          </div>
+        </div>
+
+        <div class="glass-card" style="padding:24px;">
+          <h4 class="h4">${t('admin.pn.visibility')}</h4>
+          <div class="row items-center space-between mt-16">
+            <div><b>${t('admin.pn.liveOnShop')}</b><div class="t-muted t-small">${t('admin.pn.liveDesc')}</div></div>
+            <div class="toggle on" id="t_status" onclick="this.classList.toggle('on')"></div>
+          </div>
+          <div class="row items-center space-between mt-16">
+            <div><b>${t('admin.pn.featuredFlag')}</b><div class="t-muted t-small">${t('admin.pn.featuredDesc')}</div></div>
+            <div class="toggle" id="t_featured" onclick="this.classList.toggle('on')"></div>
+          </div>
+        </div>
+
+        <div class="row gap-12">
+          <a class="btn btn-ghost" href="#/products">${t('btn.cancel')}</a>
+          <button class="btn btn-primary" style="flex:1;" type="submit">${t('btn.saveProduct')}</button>
+        </div>
+      </aside>
+    </form>
+  </div>
+  `;
+}
+function saveNewProduct() {
+  const p = {
+    id: 'p' + (Math.floor(Math.random()*9000)+1000),
+    cat: document.getElementById('f_cat').value,
+    country: document.getElementById('f_country').value,
+    city: document.getElementById('f_city').value,
+    name: document.getElementById('f_name').value,
+    price: parseInt(document.getElementById('f_price').value || '1'),
+    img: document.getElementById('f_img').value,
+    status: document.getElementById('t_status').classList.contains('on') ? 'Live' : 'Hidden',
+    featured: document.getElementById('t_featured').classList.contains('on'),
+    created: new Date().toISOString().slice(0,10)
+  };
+  store.products.unshift(p);
+  persist();
+  toast(t('toast.productSaved'));
+  location.hash = '#/products'; render();
+}
+window.saveNewProduct = saveNewProduct;
+
+// ---------- Bookings ----------
+function bookingsPage() {
+  return `
+  <div class="page-enter">
+    <div class="row space-between items-center mb-16">
+      <div>
+        <span class="kicker">${t('admin.bk.kicker')}</span>
+        <h2 class="h2 mt-8">${t('admin.bk.title')}</h2>
+      </div>
+      <div class="row gap-8">
+        <button class="btn btn-secondary btn-sm">${t('btn.exportCsv')}</button>
+      </div>
+    </div>
+
+    <div class="glass-card" style="padding:16px;">
+      <div class="row gap-12" style="flex-wrap:wrap;">
+        <input class="glass-input" placeholder="${t('admin.bk.searchPh')}" style="flex:1; min-width:240px;" />
+        <select class="glass-input" style="max-width:200px;">
+          <option>${t('common.allStatus')}</option>
+          ${STATUS_OPTIONS.map(s=>`<option>${t('status.'+s)}</option>`).join('')}
+        </select>
+        <input class="glass-input" type="date" style="max-width:180px;" />
+      </div>
+    </div>
+
+    <div class="mt-16" style="overflow-x:auto;">
+      <table class="glass-table">
+        <thead><tr>
+          <th>${t('admin.bk.bookingId')}</th><th>${t('admin.bk.userWallet')}</th><th>${t('common.product')}</th><th>${t('common.date')}</th><th>${t('common.guests')}</th><th>${t('common.amount')} $1</th><th>${t('app.wallet.tx')}</th><th>${t('common.status')}</th><th>${t('common.actions')}</th>
+        </tr></thead>
+        <tbody>
+          ${store.bookings.map(b=>`
+            <tr>
+              <td><b>${b.id}</b></td>
+              <td><span class="t-mono">${b.wallet}</span></td>
+              <td>${b.product}</td>
+              <td>${b.date}</td>
+              <td>${b.guests}</td>
+              <td><b>${fmt(b.amount)}</b></td>
+              <td><a href="#" onclick="event.preventDefault();toast(t('toast.tonExplorer'))" class="t-mono t-small" style="color:var(--ocean-blue);">${b.tx}</a></td>
+              <td>
+                <select class="glass-input" style="height:36px;padding:0 14px;font-size:12px;" onchange="changeStatus('${b.id}', this.value)">
+                  ${STATUS_OPTIONS.map(s=>`<option value="${s}" ${s===b.status?'selected':''}>${t('status.'+s)}</option>`).join('')}
+                </select>
+              </td>
+              <td><button class="btn btn-ghost btn-sm" onclick="toast(t('toast.bookingDetail'))">${t('btn.view')}</button></td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  `;
+}
+function changeStatus(id, status) {
+  const b = store.bookings.find(x=>x.id===id);
+  if (!b) return;
+  b.status = status;
+  persist(); toast(t('toast.statusUpdated') + t('status.'+status)); render();
+}
+window.changeStatus = changeStatus;
+
+// ---------- Payments ----------
+function paymentsPage() {
+  return `
+  <div class="page-enter">
+    <div class="row space-between items-center mb-16">
+      <div>
+        <span class="kicker">${t('admin.pay.kicker')}</span>
+        <h2 class="h2 mt-8">${t('admin.pay.title')}</h2>
+      </div>
+    </div>
+
+    <div class="grid grid-3 mb-16">
+      <div class="stat-card"><div class="label">${t('admin.pay.confirmed')}</div><div class="num">${fmt(store.payments.filter(p=>p.status==='Confirmed').reduce((s,p)=>s+p.amount,0))} <span style="font-size:18px;color:var(--token-green);">$1</span></div><div class="bubble green">$</div></div>
+      <div class="stat-card"><div class="label">${t('admin.pay.refunded')}</div><div class="num">${fmt(store.payments.filter(p=>p.status==='Refunded').reduce((s,p)=>s+p.amount,0))} <span style="font-size:18px;color:var(--text-muted);">$1</span></div><div class="bubble orange">↩</div></div>
+      <div class="stat-card"><div class="label">${t('admin.pay.txcount')}</div><div class="num">${store.payments.length}</div><div class="bubble blue">#</div></div>
+    </div>
+
+    <div class="mt-16" style="overflow-x:auto;">
+      <table class="glass-table">
+        <thead><tr><th>${t('admin.pay.txHash')}</th><th>${t('admin.bk.userWallet')}</th><th>${t('common.amount')} $1</th><th>${t('common.network')}</th><th>${t('common.status')}</th><th>${t('common.date')}</th><th>${t('admin.dash.booking')}</th></tr></thead>
+        <tbody>
+          ${store.payments.map(p=>`
+            <tr>
+              <td><a href="#" onclick="event.preventDefault();toast(t('toast.tonExplorer'))" class="t-mono t-small" style="color:var(--ocean-blue);">${p.tx}</a></td>
+              <td><span class="t-mono">${p.wallet}</span></td>
+              <td><b>${fmt(p.amount)}</b></td>
+              <td>${p.network}</td>
+              <td><span class="badge ${p.status==='Confirmed'?'green':'gray'}">${t('status.'+p.status)}</span></td>
+              <td>${p.date}</td>
+              <td>${p.bookingId}</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  `;
+}
+
+// ---------- Users ----------
+function usersPage() {
+  return `
+  <div class="page-enter">
+    <div class="row space-between items-center mb-16">
+      <div>
+        <span class="kicker">${t('admin.usr.kicker')}</span>
+        <h2 class="h2 mt-8">${t('admin.usr.title')}</h2>
+      </div>
+    </div>
+
+    <div class="mt-16" style="overflow-x:auto;">
+      <table class="glass-table">
+        <thead><tr><th>${t('admin.usr.walletAddr')}</th><th>${t('admin.usr.totalBookings')}</th><th>${t('admin.usr.totalPaid')} $1</th><th>${t('admin.usr.joined')}</th><th>${t('common.status')}</th><th></th></tr></thead>
+        <tbody>
+          ${store.users.map(u=>`
+            <tr>
+              <td><span class="t-mono">${u.wallet}</span></td>
+              <td>${u.bookings}</td>
+              <td><b>${fmt(u.paid)}</b></td>
+              <td>${u.joined}</td>
+              <td><span class="badge ${badgeForStatus(u.status)}">${t('status.'+u.status)}</span></td>
+              <td><button class="btn btn-ghost btn-sm" onclick="toast(t('toast.userDetail'))">${t('btn.view')}</button></td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  `;
+}
+
+// ---------- Banners ----------
+function bannersPage() {
+  return `
+  <div class="page-enter">
+    <div class="row space-between items-center mb-16">
+      <div>
+        <span class="kicker">${t('admin.bn.kicker')}</span>
+        <h2 class="h2 mt-8">${t('admin.bn.title')}</h2>
+      </div>
+      <button class="btn btn-primary" onclick="addBanner()">${t('btn.newBanner')}</button>
+    </div>
+
+    <div class="grid grid-2">
+      ${store.banners.map((b,i)=>`
+        <div class="glass-card" style="padding:0;overflow:hidden;">
+          <div style="aspect-ratio:16/8;background:var(--grad-main-cta);position:relative;color:#fff;padding:24px;">
+            <div style="position:absolute;top:14px;right:14px;">
+              <span class="badge ${b.status==='Live'?'green':'gray'}">${t('status.'+b.status)}</span>
+            </div>
+            <div style="position:absolute;bottom:24px;left:24px;right:24px;">
+              <div style="font-size:24px;font-weight:800;">${b.title}</div>
+              <div class="t-small" style="opacity:0.9;margin-top:4px;">${b.subtitle}</div>
+            </div>
+          </div>
+          <div style="padding:18px;">
+            <div class="row space-between items-center">
+              <div class="t-small t-muted">${t('admin.bn.order')}: ${b.order} · ${t('admin.bn.link')}: ${b.link}</div>
+              <div class="row gap-8">
+                <button class="btn btn-ghost btn-sm" onclick="toggleBanner(${i})">${b.status==='Live'?t('btn.hide'):t('btn.show')}</button>
+                <button class="btn btn-ghost btn-sm" onclick="deleteBanner(${i})">${t('btn.delete')}</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+
+    <div class="glass-card mt-24" style="padding:24px;">
+      <h4 class="h4">${t('admin.bn.addNew')}</h4>
+      <form class="form-grid mt-16" onsubmit="event.preventDefault();addBanner(true)">
+        <div class="field"><label>${t('common.title')}</label><input id="bn_title" class="glass-input" required /></div>
+        <div class="field"><label>${t('common.subtitle')}</label><input id="bn_sub" class="glass-input" /></div>
+        <div class="field"><label>${t('admin.bn.btnText')}</label><input id="bn_btn" class="glass-input" value="Launch App" /></div>
+        <div class="field"><label>${t('admin.bn.btnLink')}</label><input id="bn_link" class="glass-input" value="/app" /></div>
+        <div class="field" style="grid-column:1/-1;">
+          <button class="btn btn-primary" type="submit">${t('btn.saveBanner')}</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  `;
+}
+function toggleBanner(i){ store.banners[i].status = store.banners[i].status==='Live'?'Hidden':'Live'; persist(); render(); }
+function deleteBanner(i){ if(!confirm(t('admin.bn.confirmDel'))) return; store.banners.splice(i,1); persist(); render(); }
+function addBanner(real){
+  if (!real) { document.getElementById('bn_title')?.focus(); return; }
+  const b = {
+    title: document.getElementById('bn_title').value,
+    subtitle: document.getElementById('bn_sub').value,
+    buttonText: document.getElementById('bn_btn').value,
+    link: document.getElementById('bn_link').value,
+    status: 'Live',
+    order: store.banners.length + 1
+  };
+  store.banners.push(b); persist(); toast(t('toast.bannerAdded')); render();
+}
+window.toggleBanner = toggleBanner; window.deleteBanner = deleteBanner; window.addBanner = addBanner;
+
+// ---------- Settings ----------
+function settingsPage() {
+  const s = store.settings;
+  return `
+  <div class="page-enter" style="max-width:760px;">
+    <span class="kicker">${t('admin.st.kicker')}</span>
+    <h2 class="h2 mt-8 mb-16">${t('admin.st.title')}</h2>
+
+    <div class="glass-card" style="padding:24px;">
+      <h4 class="h4">${t('admin.st.account')}</h4>
+      <div class="form-grid mt-16">
+        <div class="field"><label>${t('common.email')}</label><input id="s_email" class="glass-input" value="${s.email}" /></div>
+        <div class="field"><label>${t('admin.st.newPw')}</label><input class="glass-input" type="password" placeholder="••••••••" /></div>
+      </div>
+    </div>
+
+    <div class="glass-card mt-16" style="padding:24px;">
+      <h4 class="h4">${t('admin.st.payment')}</h4>
+      <div class="form-grid mt-16">
+        <div class="field"><label>${t('admin.st.recvWallet')}</label><input id="s_wallet" class="glass-input" value="${s.wallet}" /></div>
+        <div class="field"><label>${t('admin.st.platformFee')}</label><input id="s_fee" class="glass-input" value="${s.fee}" /></div>
+        <div class="field" style="grid-column:1/-1;"><label>${t('admin.st.allowedToken')}</label>
+          <div class="row gap-8">
+            <span class="token-chip"><span class="coin">$</span>$1 Token (TON Chain)</span>
+            <span class="badge gray">${t('admin.st.tokenLocked')}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="glass-card mt-16" style="padding:24px;">
+      <h4 class="h4">${t('admin.st.site')}</h4>
+      <div class="form-grid mt-16">
+        <div class="field"><label>${t('admin.st.siteName')}</label><input class="glass-input" value="DallyTrip" /></div>
+        <div class="field"><label>${t('admin.st.slogan')}</label><input class="glass-input" value="Travel with $1" /></div>
+      </div>
+    </div>
+
+    <div class="row gap-12 mt-24">
+      <button class="btn btn-primary" onclick="saveSettings()">${t('btn.saveSettings')}</button>
+      <a class="btn btn-ghost" href="#/dashboard">${t('btn.cancel')}</a>
+    </div>
+  </div>
+  `;
+}
+function saveSettings(){
+  store.settings.email = document.getElementById('s_email').value;
+  store.settings.wallet = document.getElementById('s_wallet').value;
+  store.settings.fee = document.getElementById('s_fee').value;
+  persist(); toast(t('toast.settingsSaved'));
+}
+window.saveSettings = saveSettings;
+
+// ================= Router =================
+function render() {
+  const root = document.getElementById('root');
+  if (!store.loggedIn) {
+    root.innerHTML = loginPage();
+    if (window.__dtLang) window.__dtLang.mountSwitchers();
+    return;
+  }
+  const hash = location.hash || '#/dashboard';
+  const path = hash.replace(/^#/, '');
+  let content = '';
+  if (path === '/' || path === '/dashboard') content = dashboardPage();
+  else if (path === '/products') content = productsPage();
+  else if (path === '/products/new') content = productNewPage();
+  else if (path === '/bookings') content = bookingsPage();
+  else if (path === '/payments') content = paymentsPage();
+  else if (path === '/users') content = usersPage();
+  else if (path === '/banners') content = bannersPage();
+  else if (path === '/settings') content = settingsPage();
+  else content = '<div class="glass-card" style="padding:32px;">Page not found.</div>';
+  root.innerHTML = shell(path, content);
+  if (window.__dtLang) window.__dtLang.mountSwitchers();
+  window.scrollTo(0,0);
+}
+window.addEventListener('hashchange', render);
+window.addEventListener('dt:lang', render);
+window.addEventListener('load', () => {
+  if (store.loggedIn && (!location.hash || location.hash === '#/')) location.hash = '#/dashboard';
+  render();
+});
+</script>
+
+</body>
+</html>

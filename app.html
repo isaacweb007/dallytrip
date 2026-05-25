@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DallyTrip — App</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+<link rel="stylesheet" href="./assets/styles.css" />
+<script src="./assets/i18n.js"></script>
+</head>
+<body>
+
+<!-- ============== App Header ============== -->
+<header class="app-header">
+  <div class="container row items-center space-between">
+    <a class="brand" href="#/">
+      <span class="brand-logo">D</span>
+      <span>DallyTrip</span>
+    </a>
+    <div class="row items-center gap-12" id="topRight">
+      <!-- wallet status + lang switcher injected by JS -->
+    </div>
+  </div>
+</header>
+
+<main class="container app-main mt-24" id="view"></main>
+
+<!-- ============== Mobile bottom nav ============== -->
+<nav class="bottom-nav" id="bottomNav"></nav>
+
+<div class="toast-stack" id="toasts"></div>
+
+<script>
+// ================= City / Country translations =================
+const COUNTRY_TR = {
+  Vietnam: { ko:'베트남', en:'Vietnam', ja:'ベトナム', zh:'越南' },
+  Thailand:{ ko:'태국',   en:'Thailand',ja:'タイ',     zh:'泰国' },
+  Japan:   { ko:'일본',   en:'Japan',   ja:'日本',    zh:'日本' },
+  Korea:   { ko:'한국',   en:'Korea',   ja:'韓国',    zh:'韩国' },
+};
+const CITY_TR = {
+  'Da Nang':    { ko:'다낭',    en:'Da Nang',    ja:'ダナン',    zh:'岘港' },
+  'Nha Trang':  { ko:'나트랑',  en:'Nha Trang',  ja:'ニャチャン',zh:'芽庄' },
+  'Phu Quoc':   { ko:'푸꾸옥',  en:'Phu Quoc',   ja:'フーコック',zh:'富国岛' },
+  'Ho Chi Minh':{ ko:'호치민',  en:'Ho Chi Minh',ja:'ホーチミン',zh:'胡志明' },
+  'Bangkok':    { ko:'방콕',    en:'Bangkok',    ja:'バンコク',  zh:'曼谷' },
+  'Tokyo':      { ko:'도쿄',    en:'Tokyo',      ja:'東京',     zh:'东京' },
+  'Mui Ne':     { ko:'무이네',  en:'Mui Ne',     ja:'ムイネー', zh:'美奈' },
+  'Ha Long Bay':{ ko:'하롱베이',en:'Ha Long Bay',ja:'ハロン湾', zh:'下龙湾' },
+};
+const trCity = c => { const lang = window.__dtLang ? window.__dtLang.getLang() : 'en'; return (CITY_TR[c]||{})[lang] || c; };
+const trCountry = c => { const lang = window.__dtLang ? window.__dtLang.getLang() : 'en'; return (COUNTRY_TR[c]||{})[lang] || c; };
+
+// ================= Mock data =================
+const PRODUCTS = [
+  { id: 'p1', cat:'Hotel', country:'Vietnam', city:'Da Nang', name:'Da Nang Ocean View Resort', price:150, rating:4.8, reviews:248, img:'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=900&auto=format&fit=crop&q=70', desc:'Beachfront 5-star resort with infinity pool overlooking the East Sea.', included:['Breakfast','WiFi','Pool access','Airport shuttle (paid)'], excluded:['Lunch / Dinner','Spa'], cancel:'Free cancellation up to 48h before check-in.' },
+  { id: 'p2', cat:'Tour', country:'Vietnam', city:'Nha Trang', name:'Nha Trang Hopping Tour', price:55, rating:4.7, reviews:122, img:'https://images.unsplash.com/photo-1571175443880-49e1d25b2bc5?w=900&auto=format&fit=crop&q=70', desc:'Speedboat tour visiting 3 islands, snorkeling and seafood lunch included.', included:['Lunch','Snorkeling gear','Hotel pickup'], excluded:['Drinks'], cancel:'24h cancellation policy.' },
+  { id: 'p3', cat:'Hotel', country:'Vietnam', city:'Phu Quoc', name:'Phu Quoc Pool Villa', price:220, rating:4.9, reviews:98, img:'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=900&auto=format&fit=crop&q=70', desc:'Private villa with rooftop pool, ocean view and butler service.', included:['Breakfast','Private pool','Butler service'], excluded:['Airport pickup'], cancel:'72h cancellation policy.' },
+  { id: 'p4', cat:'Pickup', country:'Vietnam', city:'Ho Chi Minh', name:'Tan Son Nhat Airport Pickup', price:18, rating:4.8, reviews:401, img:'https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=900&auto=format&fit=crop&q=70', desc:'Private sedan pickup from Tan Son Nhat International Airport to your hotel.', included:['Sedan car (up to 3 pax)','English-speaking driver','Bottled water'], excluded:['Tolls'], cancel:'Free cancellation up to 6h.' },
+  { id: 'p5', cat:'Activity', country:'Vietnam', city:'Da Nang', name:'Ba Na Hills Cable Car Ticket', price:42, rating:4.6, reviews:312, img:'https://images.unsplash.com/photo-1580974511812-2c4c8ddf2456?w=900&auto=format&fit=crop&q=70', desc:'Skip-the-line entry to Sun World Ba Na Hills including the famous Golden Bridge.', included:['Entry ticket','Cable car ride'], excluded:['Meals','Transport'], cancel:'No refund within 24h.' },
+  { id: 'p6', cat:'Tour', country:'Vietnam', city:'Mui Ne', name:'Mui Ne Desert Jeep Tour', price:38, rating:4.5, reviews:88, img:'https://images.unsplash.com/photo-1509316975850-ff9c5deb0cd9?w=900&auto=format&fit=crop&q=70', desc:'Sunrise jeep ride across the red and white sand dunes of Mui Ne.', included:['Jeep (4 pax)','Driver','Sandboard'], excluded:['Hotel pickup'], cancel:'24h cancellation policy.' },
+  { id: 'p7', cat:'Tour', country:'Vietnam', city:'Ha Long Bay', name:'Ha Long Bay Overnight Cruise', price:185, rating:4.9, reviews:540, img:'https://images.unsplash.com/photo-1528127269322-539801943592?w=900&auto=format&fit=crop&q=70', desc:'2-day overnight cruise across Ha Long Bay with all meals and kayaking.', included:['All meals','Kayaking','Tai chi'], excluded:['Drinks','Spa'], cancel:'7 days cancellation policy.' },
+  { id: 'p8', cat:'Activity', country:'Thailand', city:'Bangkok', name:'Bangkok Sky Bar Pass', price:28, rating:4.4, reviews:160, img:'https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=900&auto=format&fit=crop&q=70', desc:'Skip-the-line entry to top Bangkok rooftop bars with welcome drink.', included:['Welcome drink','Skip-the-line'], excluded:['Dinner'], cancel:'24h policy.' },
+];
+
+const DESTS = [
+  { city:'Da Nang', country:'Vietnam', img:'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=600&auto=format&fit=crop&q=70'},
+  { city:'Nha Trang', country:'Vietnam', img:'https://images.unsplash.com/photo-1571175443880-49e1d25b2bc5?w=600&auto=format&fit=crop&q=70'},
+  { city:'Phu Quoc', country:'Vietnam', img:'https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=600&auto=format&fit=crop&q=70'},
+  { city:'Ho Chi Minh', country:'Vietnam', img:'https://images.unsplash.com/photo-1583417267826-aebc4d1542e1?w=600&auto=format&fit=crop&q=70'},
+  { city:'Bangkok', country:'Thailand', img:'https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=600&auto=format&fit=crop&q=70'},
+  { city:'Tokyo', country:'Japan', img:'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=600&auto=format&fit=crop&q=70'},
+];
+
+// ================= App state =================
+const state = {
+  wallet: JSON.parse(localStorage.getItem('dt_wallet') || 'null'),
+  bookings: JSON.parse(localStorage.getItem('dt_bookings') || '[]'),
+  cart: JSON.parse(localStorage.getItem('dt_cart') || 'null'),
+  filter: { category: 'All', q: '' }
+};
+
+function saveState() {
+  localStorage.setItem('dt_wallet', JSON.stringify(state.wallet));
+  localStorage.setItem('dt_bookings', JSON.stringify(state.bookings));
+  localStorage.setItem('dt_cart', JSON.stringify(state.cart));
+}
+
+function connectWallet() {
+  state.wallet = { address: 'EQB...9xA', balance: 3240 };
+  saveState();
+  toast(t('toast.walletConnected'));
+  renderTopRight();
+  router();
+}
+function disconnectWallet() {
+  state.wallet = null;
+  saveState();
+  toast(t('toast.walletDisconnected'));
+  renderTopRight();
+  router();
+}
+
+// ================= Utilities =================
+const $ = (s, el=document) => el.querySelector(s);
+const fmt = n => n.toLocaleString('en-US');
+const price = (n) => `<span class="price">${fmt(n)}<span class="sym">$1</span></span>`;
+const escapeHtml = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+function toast(msg) {
+  const wrap = document.getElementById('toasts');
+  const el = document.createElement('div');
+  el.className = 'toast';
+  el.innerHTML = `<span class="dot"></span><span>${escapeHtml(msg)}</span>`;
+  wrap.appendChild(el);
+  setTimeout(() => { el.style.opacity = 0; el.style.transform = 'translateY(8px)'; el.style.transition = 'all 220ms ease-out'; }, 2400);
+  setTimeout(() => el.remove(), 2700);
+}
+
+// ================= Top Right (wallet + lang) =================
+function renderTopRight() {
+  const w = state.wallet;
+  const el = document.getElementById('topRight');
+  let html = '';
+  if (w) {
+    html = `
+      <div class="token-chip">
+        <span class="coin">$</span>
+        <span>${fmt(w.balance)} $1</span>
+      </div>
+      <a href="#/wallet" class="btn btn-ghost btn-sm">${w.address}</a>
+    `;
+  } else {
+    html = `<button class="btn btn-primary btn-sm" onclick="connectWallet()">${t('btn.connectWallet')}</button>`;
+  }
+  html += `<span data-dt-lang-mount></span>`;
+  el.innerHTML = html;
+  if (window.__dtLang) window.__dtLang.mountSwitchers();
+}
+
+function renderBottomNav() {
+  const path = (location.hash || '#/').replace(/^#/, '');
+  document.getElementById('bottomNav').innerHTML = `
+    <a href="#/" data-nav="/" class="${path==='/'?'is-active':''}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10l9-7 9 7"/><path d="M5 9v11h14V9"/></svg>
+      ${t('bottom.home')}
+    </a>
+    <a href="#/search" data-nav="/search" class="${path==='/search'?'is-active':''}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      ${t('bottom.search')}
+    </a>
+    <a href="#/bookings" data-nav="/bookings" class="${path==='/bookings'?'is-active':''}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="3"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+      ${t('bottom.bookings')}
+    </a>
+    <a href="#/wallet" data-nav="/wallet" class="${path==='/wallet'?'is-active':''}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M16 12h2"/></svg>
+      ${t('bottom.wallet')}
+    </a>
+    <a href="#/profile" data-nav="/profile" class="${path==='/profile'?'is-active':''}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg>
+      ${t('bottom.my')}
+    </a>
+  `;
+}
+
+// ================= Page templates =================
+function pageHome() {
+  const featured = PRODUCTS.slice(0, 6);
+  return `
+  <div class="page-enter">
+    <!-- Search panel -->
+    <div class="glass-panel" style="padding:22px;">
+      <div class="row items-center gap-12" style="flex-wrap:wrap;">
+        <div style="flex:2; min-width:240px;">
+          <div class="t-small t-muted" style="font-weight:700;">${t('app.home.where')}</div>
+          <input class="glass-input mt-8" placeholder="${t('app.home.searchPh')}" id="homeSearch" />
+        </div>
+        <div style="flex:1; min-width:140px;">
+          <div class="t-small t-muted" style="font-weight:700;">${t('common.date')}</div>
+          <input class="glass-input mt-8" type="date" />
+        </div>
+        <div style="flex:1; min-width:120px;">
+          <div class="t-small t-muted" style="font-weight:700;">${t('common.guests')}</div>
+          <select class="glass-input mt-8">
+            <option>1 ${t('common.adults')}</option><option selected>2 ${t('common.adults')}</option><option>3 ${t('common.adults')}</option><option>4 ${t('common.adults')}</option>
+          </select>
+        </div>
+        <a class="btn btn-primary btn-lg" href="#/search">${t('btn.search')}</a>
+      </div>
+      <div class="chip-group mt-16">
+        ${['All','Hotels','Tours','Activities','Airport Pickup'].map((c,i)=>`<a class="chip ${i===0?'is-active':''}" href="#/search?cat=${encodeURIComponent(c)}">${t('cat.'+c.replace(/\s/g,''))}</a>`).join('')}
+      </div>
+    </div>
+
+    <!-- Destinations -->
+    <div class="section-title">
+      <h2>${t('app.home.popular')}</h2>
+      <a href="#/search">${t('btn.viewAll')} →</a>
+    </div>
+    <div class="scroll-x">
+      <div class="tile-row">
+        ${DESTS.map(d => `
+          <div class="dest-tile" style="background-image:linear-gradient(135deg,rgba(0,0,0,0),rgba(0,0,0,.25)),url('${d.img}');">
+            <div class="overlay">
+              <div class="country">${trCountry(d.country)}</div>
+              <div class="city">${trCity(d.city)}</div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+
+    <!-- Featured products -->
+    <div class="section-title">
+      <h2>${t('app.home.featured')}</h2>
+      <a href="#/search">${t('btn.viewAll')} →</a>
+    </div>
+    <div class="grid grid-3">
+      ${featured.map(productCard).join('')}
+    </div>
+
+    <!-- $1 banner -->
+    <div class="glass-panel mt-32" style="padding:28px; display:grid; grid-template-columns: 1fr auto; gap:24px; align-items:center;">
+      <div>
+        <span class="kicker">${t('app.home.bannerKicker')}</span>
+        <h3 class="h3 mt-8">${t('app.home.bannerTitle')}</h3>
+        <p class="t-muted mt-8">${t('app.home.bannerDesc')}</p>
+      </div>
+      <a class="btn btn-primary btn-lg" href="#/wallet">${t('app.home.manageWallet')}</a>
+    </div>
+  </div>
+  `;
+}
+
+function productCard(p) {
+  const unitKey = p.cat==='Hotel' ? 'units.night' : 'units.pp';
+  return `
+  <a class="product-card" href="#/product/${p.id}">
+    <div class="img" style="background-image:url('${p.img}')">
+      <span class="badge badge-on-image">${t('cat.'+p.cat)}</span>
+      <button class="like" onclick="event.preventDefault();event.stopPropagation();toast(t('toast.favorite'))">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FF8A3D" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      </button>
+    </div>
+    <div class="body">
+      <div class="loc">${trCountry(p.country)} · ${trCity(p.city)}</div>
+      <div class="title">${p.name}</div>
+      <div class="meta">
+        <span>⭐ ${p.rating}</span>
+        <span>·</span>
+        <span>${p.reviews} ${t('app.product.reviews')}</span>
+      </div>
+      <div class="price-row">
+        <div>${price(p.price)} <span class="t-small t-muted">/ ${t(unitKey)}</span></div>
+        <span class="btn btn-secondary btn-sm">${t('btn.view')}</span>
+      </div>
+    </div>
+  </a>
+  `;
+}
+
+function pageSearch(params) {
+  const cat = params.get('cat') || state.filter.category || 'All';
+  const q = (params.get('q') || state.filter.q || '').toLowerCase();
+  state.filter = { category: cat, q };
+  const filtered = PRODUCTS.filter(p => {
+    const matchCat = cat === 'All' || cat === 'Hotels' && p.cat==='Hotel' || cat === 'Tours' && p.cat==='Tour' || cat === 'Activities' && p.cat==='Activity' || cat === 'Airport Pickup' && p.cat==='Pickup';
+    const matchQ = !q || p.name.toLowerCase().includes(q) || p.city.toLowerCase().includes(q) || p.country.toLowerCase().includes(q);
+    return matchCat && matchQ;
+  });
+  return `
+  <div class="page-enter">
+    <div class="search-bar" style="margin-bottom:16px;">
+      <span class="icon-l">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      </span>
+      <input id="searchInput" placeholder="${t('app.search.placeholder')}" value="${escapeHtml(q)}"/>
+      <button class="btn-action" onclick="onSearchSubmit()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+      </button>
+    </div>
+
+    <div class="chip-group mb-16">
+      ${['All','Hotels','Tours','Activities','Airport Pickup'].map(c => `<a class="chip ${cat===c?'is-active':''}" href="#/search?cat=${encodeURIComponent(c)}">${t('cat.'+c.replace(/\s/g,''))}</a>`).join('')}
+    </div>
+
+    <div class="row items-center space-between" style="margin-bottom:12px;">
+      <div class="t-muted t-small"><b style="color:var(--text-main);">${filtered.length}</b> ${t('common.results')} ${t('app.search.resultsNote')}</div>
+      <div class="row gap-8">
+        <span class="chip">${t('app.search.priceAsc')}</span>
+        <span class="chip">${t('app.search.rating')}</span>
+      </div>
+    </div>
+
+    ${filtered.length === 0
+      ? `<div class="glass-card" style="padding:48px; text-align:center;"><div class="h3">${t('app.search.noResults')}</div><p class="t-muted mt-8">${t('app.search.noResultsDesc')}</p></div>`
+      : `<div class="grid grid-3">${filtered.map(productCard).join('')}</div>`
+    }
+  </div>
+  `;
+}
+
+function pageProduct(id) {
+  const p = PRODUCTS.find(x => x.id === id);
+  if (!p) return `<div class="glass-card" style="padding:32px;">Product not found.</div>`;
+  const unitKey = p.cat==='Hotel' ? 'units.night' : 'units.pp';
+  return `
+  <div class="page-enter">
+    <div class="row items-center space-between mb-16">
+      <a href="#/search" class="icon-btn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m15 18-6-6 6-6"/></svg>
+      </a>
+      <div class="row gap-8">
+        <button class="icon-btn" onclick="toast(t('toast.favorite'))">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FF8A3D" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        </button>
+        <button class="icon-btn" onclick="toast(t('toast.copied'))">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="glass-panel" style="overflow:hidden;">
+      <div style="aspect-ratio:16/8; background:url('${p.img}') center/cover;"></div>
+    </div>
+
+    <div class="grid" style="grid-template-columns: 1.6fr 1fr; gap:24px; margin-top:24px;">
+      <div>
+        <div class="glass-card" style="padding:28px;">
+          <span class="badge blue">${t('cat.'+p.cat)}</span>
+          <h2 class="h2 mt-16" style="font-size:32px;">${p.name}</h2>
+          <div class="row gap-12 items-center mt-8 t-muted">
+            <span>📍 ${trCity(p.city)}, ${trCountry(p.country)}</span>
+            <span>·</span>
+            <span>⭐ ${p.rating} (${p.reviews})</span>
+          </div>
+          <p class="mt-16" style="line-height:1.6;">${p.desc}</p>
+        </div>
+
+        <div class="glass-card mt-16" style="padding:28px;">
+          <h4 class="h4">${t('common.included')}</h4>
+          <ul class="mt-8" style="padding-left:18px; line-height:1.8;">
+            ${p.included.map(x => `<li>✓ ${x}</li>`).join('')}
+          </ul>
+          <h4 class="h4 mt-16">${t('common.notIncluded')}</h4>
+          <ul class="mt-8" style="padding-left:18px; line-height:1.8; color:var(--text-muted);">
+            ${p.excluded.map(x => `<li>✗ ${x}</li>`).join('')}
+          </ul>
+          <h4 class="h4 mt-16">${t('common.cancelPolicy')}</h4>
+          <p class="t-muted mt-8">${p.cancel}</p>
+        </div>
+      </div>
+
+      <!-- Booking panel -->
+      <aside class="glass-panel" style="padding:24px; position:sticky; top:96px; align-self:start;">
+        <div class="row items-center space-between">
+          <div>
+            <div class="t-muted t-small">${t('common.from')}</div>
+            <div style="font-size:30px;">${price(p.price)} <span class="t-small t-muted">/ ${t(unitKey)}</span></div>
+          </div>
+          <span class="badge green">${t('app.product.dollarOnly')}</span>
+        </div>
+
+        <div class="form-grid mt-16">
+          <div class="field">
+            <label>${p.cat==='Hotel'?t('common.checkin'):t('common.date')}</label>
+            <input id="b_date" class="glass-input" type="date" value="2026-06-12" />
+          </div>
+          ${p.cat==='Hotel' ? `<div class="field"><label>${t('common.checkout')}</label><input id="b_date2" class="glass-input" type="date" value="2026-06-14" /></div>` : ''}
+          <div class="field">
+            <label>${t('common.adults')}</label>
+            <select id="b_adults" class="glass-input">
+              <option>1</option><option selected>2</option><option>3</option><option>4</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>${t('common.children')}</label>
+            <select id="b_children" class="glass-input">
+              <option selected>0</option><option>1</option><option>2</option>
+            </select>
+          </div>
+          ${p.cat==='Hotel' ? `<div class="field" style="grid-column:1/-1;"><label>${t('app.product.room')}</label><select id="b_option" class="glass-input"><option>Deluxe Ocean Room</option><option>Premium Suite (+50 $1)</option></select></div>` : ''}
+        </div>
+
+        <div class="divider"></div>
+        <div class="row space-between"><span class="t-muted">${t('app.product.base')}</span><span>${price(p.price)}</span></div>
+        <div class="row space-between mt-8"><span class="t-muted">${t('app.product.guestsNights')}</span><span id="b_units">x 2</span></div>
+        <div class="row space-between mt-16" style="font-size:20px; font-weight:800;"><span>${t('common.total')}</span><span id="b_total">${price(p.price*2)}</span></div>
+
+        <button class="btn btn-primary btn-block btn-lg mt-16" onclick="proceedCheckout('${p.id}')">${t('btn.payWithDollar')}</button>
+        <p class="t-small t-muted text-center mt-8">${t('app.product.networkNote')}</p>
+      </aside>
+    </div>
+  </div>
+  `;
+}
+
+function pageCheckout() {
+  if (!state.cart) { setTimeout(()=>location.hash='#/', 100); return `<div class="glass-card" style="padding:28px;">No item selected.</div>`; }
+  const { product, total, units, date } = state.cart;
+  const wallet = state.wallet;
+  const unitKey = product.cat==='Hotel' ? 'units.nights' : 'units.guestsPlural';
+  return `
+  <div class="page-enter" style="max-width:760px; margin:0 auto;">
+    <div class="steps mb-16"><div class="step done"></div><div class="step done"></div><div class="step done"></div><div class="step"></div></div>
+
+    <h2 class="h2">${t('app.checkout.title')}</h2>
+    <p class="t-muted mt-8">${t('app.checkout.desc')}</p>
+
+    <div class="glass-card mt-16" style="padding:24px;">
+      <h4 class="h4">${t('app.checkout.summary')}</h4>
+      <div class="row items-center mt-16 gap-16">
+        <div style="width:88px;height:88px;border-radius:18px;background:url('${product.img}') center/cover;border:1px solid var(--glass-border);"></div>
+        <div style="flex:1;">
+          <div class="t-muted t-small">${trCountry(product.country)} · ${trCity(product.city)}</div>
+          <div style="font-weight:800;font-size:16px;">${product.name}</div>
+          <div class="t-muted t-small mt-8">${date} · ${units} ${t(unitKey)}</div>
+        </div>
+        <div style="text-align:right;">
+          <div class="t-muted t-small">${t('common.total')}</div>
+          <div style="font-size:22px;">${price(total)}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="glass-card mt-16" style="padding:24px;">
+      <h4 class="h4">${t('app.checkout.wallet')}</h4>
+      ${wallet ? `
+        <div class="row items-center space-between mt-16">
+          <div class="row gap-12 items-center">
+            <span class="token-chip"><span class="coin">$</span>${fmt(wallet.balance)} $1</span>
+            <span class="badge gray">${wallet.address}</span>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="disconnectWallet()">${t('btn.disconnect')}</button>
+        </div>
+      ` : `
+        <button class="btn btn-primary btn-block mt-16" onclick="connectWallet()">${t('btn.connectWallet')}</button>
+      `}
+    </div>
+
+    <div class="glass-card mt-16" style="padding:24px;">
+      <h4 class="h4">${t('app.checkout.payment')}</h4>
+      <div class="row space-between mt-16"><span class="t-muted">${t('common.amount')}</span><span>${price(total)}</span></div>
+      <div class="row space-between mt-8"><span class="t-muted">${t('common.network')}</span><span>TON Chain</span></div>
+      <div class="row space-between mt-8"><span class="t-muted">${t('common.token')}</span><span>$1</span></div>
+      <div class="row space-between mt-8"><span class="t-muted">${t('app.checkout.networkFee')}</span><span class="t-small">~ 0.01 TON</span></div>
+
+      ${wallet ? (wallet.balance >= total
+        ? `<button class="btn btn-primary btn-block btn-lg mt-16" onclick="confirmPayment()">${t('btn.confirmPayment')}</button>`
+        : `<div class="glass-card mt-16" style="padding:16px; border:1px solid rgba(255,138,61,0.5);">${t('app.checkout.insufficient')}</div>
+           <button class="btn btn-secondary btn-block btn-lg mt-16" disabled>${t('btn.confirmPayment')}</button>`
+      ) : `<button class="btn btn-primary btn-block btn-lg mt-16" onclick="connectWallet()">${t('btn.connectFirst')}</button>`}
+    </div>
+  </div>
+  `;
+}
+
+function pageBookingSuccess(id) {
+  const b = state.bookings.find(x => x.id === id);
+  if (!b) { setTimeout(()=>location.hash='#/bookings',100); return ''; }
+  return `
+  <div class="page-enter" style="max-width:560px; margin:0 auto; text-align:center;">
+    <div class="glass-panel" style="padding:48px 32px;">
+      <div style="width:88px;height:88px;border-radius:50%;margin:0 auto;display:grid;place-items:center;background:var(--grad-main-cta);color:#fff;font-size:42px;box-shadow:0 18px 40px rgba(38,208,124,0.45);">✓</div>
+      <h2 class="h2 mt-16">${t('app.success.title')}</h2>
+      <p class="t-muted mt-8">${t('app.success.desc')}</p>
+
+      <div class="glass-card mt-24" style="padding:20px; text-align:left;">
+        <div class="row space-between"><span class="t-muted">${t('app.success.bookingId')}</span><b>${b.id}</b></div>
+        <div class="row space-between mt-8"><span class="t-muted">${t('common.product')}</span><b>${b.product.name}</b></div>
+        <div class="row space-between mt-8"><span class="t-muted">${t('common.date')}</span><b>${b.date}</b></div>
+        <div class="row space-between mt-8"><span class="t-muted">${t('common.amount')}</span><b>${price(b.amount)}</b></div>
+        <div class="row space-between mt-8"><span class="t-muted">${t('common.status')}</span><span class="badge status-pending">${t('status.Pending Confirmation')}</span></div>
+      </div>
+
+      <div class="row gap-12 mt-24" style="justify-content:center;">
+        <a class="btn btn-secondary" href="#/bookings">${t('btn.viewMyBookings')}</a>
+        <a class="btn btn-primary" href="#/">${t('btn.backHome')}</a>
+      </div>
+    </div>
+  </div>
+  `;
+}
+
+function pageBookings() {
+  const list = state.bookings;
+  const statusChips = ['All','Pending','Confirmed','Completed','Cancelled'];
+  return `
+  <div class="page-enter">
+    <h2 class="h2">${t('app.bookings.title')}</h2>
+    <div class="chip-group mt-16">
+      ${statusChips.map((c,i)=>`<span class="chip ${i===0?'is-active':''}">${c==='All'?t('cat.All'):c}</span>`).join('')}
+    </div>
+
+    ${list.length === 0 ? `
+      <div class="glass-card mt-24" style="padding:60px; text-align:center;">
+        <div style="font-size:48px;">🗺️</div>
+        <h3 class="h3 mt-16">${t('app.bookings.empty')}</h3>
+        <p class="t-muted mt-8">${t('app.bookings.emptyDesc')}</p>
+        <a class="btn btn-primary mt-16" href="#/search">${t('btn.exploreApp')}</a>
+      </div>
+    ` : `
+      <div class="grid grid-2 mt-16">
+        ${list.map(b => {
+          const unitKey = b.product.cat==='Hotel' ? 'units.nights' : 'units.guestsPlural';
+          return `
+          <div class="glass-card" style="padding:18px; display:flex; gap:16px;">
+            <div style="width:96px;height:96px;border-radius:18px;background:url('${b.product.img}') center/cover; flex-shrink:0;"></div>
+            <div style="flex:1;">
+              <div class="row space-between items-center">
+                <span class="badge ${badgeForStatus(b.status)}">${t('status.'+b.status)}</span>
+                <span class="t-small t-muted">${b.id}</span>
+              </div>
+              <div style="font-weight:800;font-size:15px;margin-top:6px;">${b.product.name}</div>
+              <div class="t-small t-muted">${b.date} · ${b.units} ${t(unitKey)}</div>
+              <div class="row space-between items-end mt-8">
+                <span>${price(b.amount)}</span>
+                <button class="btn btn-ghost btn-sm" onclick="toast(t('toast.bookingDetail'))">${t('btn.view')}</button>
+              </div>
+            </div>
+          </div>
+        `}).join('')}
+      </div>
+    `}
+  </div>
+  `;
+}
+function badgeForStatus(s) {
+  return ({
+    'Payment Completed':'status-paid',
+    'Pending Confirmation':'status-pending',
+    'Confirmed':'status-confirmed',
+    'Completed':'status-completed',
+    'Cancelled':'status-cancelled'
+  })[s] || 'gray';
+}
+
+function pageWallet() {
+  const w = state.wallet;
+  return `
+  <div class="page-enter" style="max-width:760px; margin:0 auto;">
+    <h2 class="h2">${t('app.wallet.title')}</h2>
+
+    ${!w ? `
+      <div class="glass-panel mt-16" style="padding:40px; text-align:center;">
+        <div style="width:72px;height:72px;border-radius:18px;margin:0 auto;display:grid;place-items:center;background:var(--grad-premium);color:#fff;font-size:28px;">⛓</div>
+        <h3 class="h3 mt-16">${t('app.wallet.connectTitle')}</h3>
+        <p class="t-muted mt-8">${t('app.wallet.connectDesc')}</p>
+        <button class="btn btn-primary mt-16" onclick="connectWallet()">${t('btn.connectWallet')}</button>
+      </div>
+    ` : `
+      <div class="glass-panel mt-16" style="padding:28px; position:relative; overflow:hidden;">
+        <div style="position:absolute;top:-60px;right:-60px;width:240px;height:240px;border-radius:50%;background:radial-gradient(circle,rgba(38,208,124,0.45),transparent 70%);filter:blur(40px);"></div>
+        <div class="row space-between items-center">
+          <div>
+            <div class="t-muted t-small" style="font-weight:700;">${t('app.wallet.cardLabel')}</div>
+            <div style="font-size:40px;font-weight:800;letter-spacing:-0.02em;margin-top:4px;">${fmt(w.balance)} <span style="color:var(--token-green);font-size:24px;">$1</span></div>
+            <div class="t-muted t-small mt-8">${t('common.network')} · TON Chain</div>
+            <div class="t-mono t-small mt-8" style="font-size:13px;">${w.address}</div>
+          </div>
+          <div class="dollar-orb" style="width:120px;height:120px;font-size:50px;animation:none;">$</div>
+        </div>
+        <div class="row gap-12 mt-24">
+          <button class="btn btn-secondary" onclick="toast(t('toast.topupDemo'))">${t('btn.topup')}</button>
+          <button class="btn btn-ghost" onclick="disconnectWallet()">${t('btn.disconnect')}</button>
+        </div>
+      </div>
+
+      <h3 class="h3 mt-32">${t('app.wallet.recent')}</h3>
+      <div class="glass-card mt-16" style="padding:8px;">
+        <table class="glass-table" style="border:0;background:transparent;">
+          <thead><tr><th>${t('app.wallet.type')}</th><th>${t('common.amount')}</th><th>${t('common.date')}</th><th>${t('app.wallet.tx')}</th></tr></thead>
+          <tbody>
+            ${(state.bookings.slice(0,5).map(b => `
+              <tr>
+                <td><span class="badge orange">${t('admin.dash.booking')}</span> ${b.product.name}</td>
+                <td>-${fmt(b.amount)} $1</td>
+                <td>${b.createdAt}</td>
+                <td><a class="t-mono t-small" href="#" onclick="event.preventDefault();toast(t('toast.tonExplorer'))">${b.tx}</a></td>
+              </tr>
+            `).join('')) || `<tr><td colspan="4" class="text-center t-muted" style="padding:24px;">${t('app.wallet.empty')}</td></tr>`}
+          </tbody>
+        </table>
+      </div>
+    `}
+  </div>
+  `;
+}
+
+function pageProfile() {
+  const w = state.wallet;
+  return `
+  <div class="page-enter" style="max-width:760px; margin:0 auto;">
+    <h2 class="h2">${t('app.profile.title')}</h2>
+    <div class="glass-card mt-16" style="padding:24px;">
+      <div class="row gap-16 items-center">
+        <div style="width:64px;height:64px;border-radius:50%;background:var(--grad-premium);display:grid;place-items:center;color:#fff;font-weight:800;font-size:24px;">U</div>
+        <div>
+          <div style="font-weight:800;font-size:18px;">${w ? t('app.profile.traveler') : t('app.profile.guest')}</div>
+          <div class="t-muted t-small">${w ? w.address : t('common.notConnected')}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-2 mt-16">
+      <a class="glass-card" style="padding:20px;text-decoration:none;color:inherit;" href="#/bookings">
+        <div class="h4">${t('app.profile.myBookings')}</div>
+        <div class="t-muted t-small mt-8">${state.bookings.length} ${t('app.profile.bookingsCount')}</div>
+      </a>
+      <a class="glass-card" style="padding:20px;text-decoration:none;color:inherit;" href="#/wallet">
+        <div class="h4">${t('app.wallet.title')}</div>
+        <div class="t-muted t-small mt-8">${w ? fmt(w.balance) + ' $1' : t('common.notConnected')}</div>
+      </a>
+      <div class="glass-card" style="padding:20px;cursor:pointer;" onclick="toast(t('toast.comingSoon'))">
+        <div class="h4">${t('app.profile.help')}</div>
+        <div class="t-muted t-small mt-8">${t('app.profile.helpDesc')}</div>
+      </div>
+      <div class="glass-card" style="padding:20px;">
+        <div class="h4">${t('common.language')}</div>
+        <div class="t-muted t-small mt-8">한국어 · English · 日本語 · 中文</div>
+      </div>
+    </div>
+
+    <a class="btn btn-ghost btn-block mt-24" href="./index.html">${t('btn.backLanding')}</a>
+  </div>
+  `;
+}
+
+// ================= Actions =================
+function proceedCheckout(productId) {
+  const p = PRODUCTS.find(x => x.id === productId);
+  const units = parseInt(document.getElementById('b_adults')?.value || '2');
+  const date = document.getElementById('b_date')?.value || '2026-06-12';
+  const total = p.price * units;
+  state.cart = { product: p, total, units, date };
+  saveState();
+  location.hash = '#/checkout';
+}
+window.proceedCheckout = proceedCheckout;
+window.connectWallet = connectWallet;
+window.disconnectWallet = disconnectWallet;
+
+function confirmPayment() {
+  if (!state.wallet || !state.cart) return;
+  toast(t('toast.waitingWallet'));
+  setTimeout(() => toast(t('toast.txPending')), 600);
+  setTimeout(() => {
+    const id = 'DT' + Math.floor(100000 + Math.random()*900000);
+    const tx = 'EQ' + Math.random().toString(36).slice(2,10).toUpperCase();
+    state.bookings.unshift({
+      id,
+      product: state.cart.product,
+      amount: state.cart.total,
+      units: state.cart.units,
+      date: state.cart.date,
+      status: 'Pending Confirmation',
+      tx,
+      createdAt: new Date().toISOString().slice(0,10)
+    });
+    state.wallet.balance -= state.cart.total;
+    state.cart = null;
+    saveState();
+    renderTopRight();
+    toast(t('toast.paymentConfirmed'));
+    setTimeout(() => { location.hash = '#/booking-success/' + id; }, 600);
+  }, 1300);
+}
+window.confirmPayment = confirmPayment;
+
+function onSearchSubmit() {
+  const v = document.getElementById('searchInput').value.trim();
+  location.hash = '#/search?q=' + encodeURIComponent(v) + (state.filter.category!=='All' ? '&cat='+encodeURIComponent(state.filter.category):'');
+}
+window.onSearchSubmit = onSearchSubmit;
+
+// ================= Router =================
+function router() {
+  const hash = location.hash || '#/';
+  const [path, qs] = hash.replace(/^#/, '').split('?');
+  const params = new URLSearchParams(qs || '');
+  const view = document.getElementById('view');
+  let html = '';
+  if (path === '/' || path === '') html = pageHome();
+  else if (path === '/search') html = pageSearch(params);
+  else if (path.startsWith('/product/')) html = pageProduct(path.split('/')[2]);
+  else if (path === '/checkout') html = pageCheckout();
+  else if (path.startsWith('/booking-success/')) html = pageBookingSuccess(path.split('/')[2]);
+  else if (path === '/bookings') html = pageBookings();
+  else if (path === '/wallet') html = pageWallet();
+  else if (path === '/profile') html = pageProfile();
+  else html = `<div class="glass-card" style="padding:32px;">Page not found.</div>`;
+  view.innerHTML = html;
+  renderBottomNav();
+  bindProductTotals();
+  window.scrollTo({ top: 0, behavior: 'instant' });
+}
+
+function bindProductTotals() {
+  const adults = document.getElementById('b_adults');
+  const totalEl = document.getElementById('b_total');
+  const unitsEl = document.getElementById('b_units');
+  if (!adults || !totalEl) return;
+  const path = (location.hash||'').replace(/^#/, '').split('?')[0];
+  const id = path.split('/')[2];
+  const p = PRODUCTS.find(x => x.id === id);
+  if (!p) return;
+  const update = () => {
+    const n = parseInt(adults.value || '1');
+    totalEl.innerHTML = price(p.price * n);
+    unitsEl.textContent = `x ${n}`;
+  };
+  adults.addEventListener('change', update);
+  const opt = document.getElementById('b_option');
+  if (opt) opt.addEventListener('change', () => {
+    const extra = /\+50/.test(opt.value) ? 50 : 0;
+    const n = parseInt(adults.value || '1');
+    totalEl.innerHTML = price((p.price + extra) * n);
+  });
+}
+
+window.addEventListener('hashchange', router);
+window.addEventListener('dt:lang', () => { renderTopRight(); router(); });
+window.addEventListener('load', () => { renderTopRight(); router(); });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>DallyTrip — Travel with $1</title>
+<meta name="description" content="DallyTrip은 TON Chain 기반 $1 토큰으로만 호텔, 투어, 액티비티를 예약하는 Web3 여행앱입니다." />
+<link rel="preconnect" href="https://cdn.jsdelivr.net" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+<link rel="stylesheet" href="./assets/styles.css" />
+<script src="./assets/i18n.js"></script>
+</head>
+<body>
+
+<!-- ============== Header ============== -->
+<header class="app-header">
+  <div class="container row items-center space-between">
+    <a class="brand" href="./">
+      <span class="brand-logo">D</span>
+      <span>DallyTrip</span>
+    </a>
+    <nav class="row items-center gap-8" id="topnav">
+      <a class="nav-link nav-desktop" href="#features" data-i18n="nav.about">About</a>
+      <a class="nav-link nav-desktop" href="#how" data-i18n="nav.howItWorks">How it works</a>
+      <a class="nav-link nav-desktop" href="#destinations" data-i18n="nav.destinations">Destinations</a>
+      <button class="btn btn-secondary btn-sm nav-desktop" onclick="window.t&&toast?toast(t('toast.tonconnectDemo')):alert('TonConnect (demo)')" data-i18n="btn.connectWallet">Connect Wallet</button>
+      <a class="btn btn-primary btn-sm" href="./app.html" data-i18n="btn.launchApp">Launch App</a>
+      <span data-dt-lang-mount></span>
+    </nav>
+  </div>
+</header>
+
+<!-- ============== Hero ============== -->
+<section class="hero">
+  <span class="glow g1"></span>
+  <span class="glow g2"></span>
+  <span class="glow g3"></span>
+
+  <div class="container">
+    <div class="glass-panel hero-card">
+      <div>
+        <span class="feature-pill">
+          <span class="dot" style="width:8px;height:8px;border-radius:50%;background:var(--token-green);"></span>
+          <span data-i18n="hero.tag">TON Chain · $1 Token Only</span>
+        </span>
+        <h1 class="h1 mt-16">
+          <span data-i18n="hero.titleA">Travel </span><span data-i18n="hero.titleB" style="background:var(--grad-main-cta);-webkit-background-clip:text;background-clip:text;color:transparent;">with </span><span data-i18n="hero.titleC" style="background:var(--grad-main-cta);-webkit-background-clip:text;background-clip:text;color:transparent;">$1.</span>
+        </h1>
+        <p class="mt-16" style="font-size:18px; color:var(--text-muted); max-width:520px; line-height:1.55;" data-i18n="hero.desc" data-i18n-html>
+          Book hotels, tours and activities with <b style="color:var(--text-main);">$1 Token</b> on TON Chain.
+          No cards. No banks. Just one token.
+        </p>
+
+        <div class="row gap-12 mt-24" style="flex-wrap:wrap;">
+          <a class="btn btn-primary btn-lg" href="./app.html">
+            <span data-i18n="btn.launchDally">Launch DallyTrip</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+          </a>
+          <a class="btn btn-secondary btn-lg" href="#destinations" data-i18n="btn.explore">Explore Trips</a>
+        </div>
+
+        <!-- Quick booking pill -->
+        <div class="glass-card mt-32" style="padding:16px;">
+          <div class="row items-center gap-16" style="flex-wrap:wrap;">
+            <div>
+              <div class="t-small t-muted" style="font-weight:700;" data-i18n="hero.quick.destination">Destination</div>
+              <div style="font-weight:700;" data-i18n="hero.quick.destinationVal">Da Nang, Vietnam</div>
+            </div>
+            <div style="width:1px;height:32px;background:rgba(0,0,0,0.08);"></div>
+            <div>
+              <div class="t-small t-muted" style="font-weight:700;" data-i18n="hero.quick.checkin">Check-in</div>
+              <div style="font-weight:700;" data-i18n="hero.quick.selectDate">Select date</div>
+            </div>
+            <div style="width:1px;height:32px;background:rgba(0,0,0,0.08);"></div>
+            <div>
+              <div class="t-small t-muted" style="font-weight:700;" data-i18n="hero.quick.guests">Guests</div>
+              <div style="font-weight:700;" data-i18n="hero.quick.guestsVal">2 adults</div>
+            </div>
+            <div style="flex:1;"></div>
+            <a class="btn btn-primary" href="./app.html#/search" data-i18n="btn.searchTrips">
+              Search Trips
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Floating dollar orb -->
+      <div style="position:relative;">
+        <div class="dollar-orb">$</div>
+        <!-- Floating mini glass cards -->
+        <div class="glass-card" style="position:absolute; left:-10px; top:30px; padding:12px 16px; display:flex; align-items:center; gap:10px;">
+          <span class="dot" style="width:10px;height:10px;border-radius:50%;background:var(--token-green);box-shadow:0 0 0 4px rgba(38,208,124,0.25);"></span>
+          <div>
+            <div class="t-small t-muted" style="font-weight:700;" data-i18n="hero.wallet.label">Wallet</div>
+            <div style="font-weight:800;font-size:14px;">3,240 <span class="price"><span class="sym">$1</span></span></div>
+          </div>
+        </div>
+        <div class="glass-card" style="position:absolute; right:-10px; bottom:20px; padding:12px 16px;">
+          <div class="t-small t-muted" style="font-weight:700;" data-i18n="hero.resort.name">Da Nang Resort</div>
+          <div style="font-weight:800;font-size:14px;">150 <span class="price"><span class="sym">$1</span></span> <span data-i18n="hero.resort.per">/ night</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============== Feature Cards ============== -->
+<section id="features" class="container">
+  <div class="grid grid-3">
+    <div class="glass-card" style="padding:28px;">
+      <div style="width:48px;height:48px;border-radius:14px;background:var(--grad-main-cta);display:grid;place-items:center;color:#fff;font-weight:800;box-shadow:0 8px 20px rgba(38,208,124,0.35);">$1</div>
+      <h3 class="h3 mt-16" data-i18n="feat.payment.title">$1 Only Payment</h3>
+      <p class="t-muted mt-8" style="line-height:1.55;" data-i18n="feat.payment.desc">All bookings are paid only with $1 Token. No cards, no banks, no other crypto.</p>
+    </div>
+    <div class="glass-card" style="padding:28px;">
+      <div style="width:48px;height:48px;border-radius:14px;background:var(--grad-premium);display:grid;place-items:center;color:#fff;font-weight:800;">⛓</div>
+      <h3 class="h3 mt-16" data-i18n="feat.wallet.title">TON Wallet Connect</h3>
+      <p class="t-muted mt-8" style="line-height:1.55;" data-i18n="feat.wallet.desc">Connect your TON wallet via TonConnect and book instantly with one click.</p>
+    </div>
+    <div class="glass-card" style="padding:28px;">
+      <div style="width:48px;height:48px;border-radius:14px;background:var(--grad-warning);display:grid;place-items:center;color:#fff;font-weight:800;">✈</div>
+      <h3 class="h3 mt-16" data-i18n="feat.travel.title">Web3 Travel</h3>
+      <p class="t-muted mt-8" style="line-height:1.55;" data-i18n="feat.travel.desc">Hotels, tours and activities — booked in one simple Web3 travel app.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============== How It Works ============== -->
+<section id="how" class="container mt-48">
+  <div class="section-title">
+    <h2 data-i18n="how.title">How it works</h2>
+    <span class="kicker" data-i18n="how.kicker">4 simple steps</span>
+  </div>
+  <div class="grid grid-4">
+    <div class="glass-card" style="padding:24px;">
+      <div class="badge blue"><span data-i18n="how.step">Step</span> 1</div>
+      <h4 class="h4 mt-16" data-i18n="how.1.title">Connect TON wallet</h4>
+      <p class="t-muted t-small mt-8" data-i18n="how.1.desc">Tap Connect Wallet and approve via TonConnect.</p>
+    </div>
+    <div class="glass-card" style="padding:24px;">
+      <div class="badge green"><span data-i18n="how.step">Step</span> 2</div>
+      <h4 class="h4 mt-16" data-i18n="how.2.title">Pick a trip</h4>
+      <p class="t-muted t-small mt-8" data-i18n="how.2.desc">Choose a hotel, tour or activity from curated lists.</p>
+    </div>
+    <div class="glass-card" style="padding:24px;">
+      <div class="badge orange"><span data-i18n="how.step">Step</span> 3</div>
+      <h4 class="h4 mt-16" data-i18n="how.3.title">Pay with $1</h4>
+      <p class="t-muted t-small mt-8" data-i18n="how.3.desc">Confirm payment with a single $1 token transaction.</p>
+    </div>
+    <div class="glass-card" style="padding:24px;">
+      <div class="badge purple"><span data-i18n="how.step">Step</span> 4</div>
+      <h4 class="h4 mt-16" data-i18n="how.4.title">Enjoy your trip</h4>
+      <p class="t-muted t-small mt-8" data-i18n="how.4.desc">Receive booking confirmation and travel — that's it.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============== Popular Destinations ============== -->
+<section id="destinations" class="container mt-48">
+  <div class="section-title">
+    <h2 data-i18n="dest.title">Popular destinations</h2>
+    <a href="./app.html#/search" data-i18n="btn.viewAll">See all →</a>
+  </div>
+  <div class="grid grid-4" id="destGrid"></div>
+</section>
+
+<!-- ============== CTA Section ============== -->
+<section class="container mt-48">
+  <div class="glass-panel" style="padding:48px; text-align:center; position:relative; overflow:hidden;">
+    <div style="position:absolute;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(34,184,255,0.4),transparent 70%);filter:blur(50px);top:-100px;right:-50px;"></div>
+    <div style="position:absolute;width:240px;height:240px;border-radius:50%;background:radial-gradient(circle,rgba(38,208,124,0.4),transparent 70%);filter:blur(50px);bottom:-80px;left:-40px;"></div>
+
+    <span class="kicker" data-i18n="cta.kicker">Ready to travel?</span>
+    <h2 class="h2 mt-16" data-i18n="cta.title" data-i18n-html>One token. <br/>Infinite destinations.</h2>
+    <p class="t-muted mt-16" style="max-width:480px;margin:16px auto 0;" data-i18n="cta.desc">
+      Launch DallyTrip and book your next trip with $1 — instantly, on-chain.
+    </p>
+    <div class="row gap-12 mt-24" style="justify-content:center;flex-wrap:wrap;">
+      <a class="btn btn-primary btn-lg" href="./app.html" data-i18n="btn.launchApp">Launch App</a>
+      <a class="btn btn-ghost btn-lg" href="./admin.html" data-i18n="btn.adminPanel">Admin Panel</a>
+    </div>
+  </div>
+</section>
+
+<!-- ============== Footer ============== -->
+<footer class="app-footer">
+  <div class="container row items-center space-between" style="flex-wrap:wrap; gap:16px;">
+    <div class="row items-center gap-12">
+      <a class="brand" href="./">
+        <span class="brand-logo">D</span>
+        <span>DallyTrip</span>
+      </a>
+      <span class="t-muted t-small" data-i18n="footer.copy">© 2026 DallyTrip · Travel with $1</span>
+    </div>
+    <div class="row gap-16 items-center">
+      <a class="t-muted t-small nav-link" href="#" data-i18n="footer.terms">Terms</a>
+      <a class="t-muted t-small nav-link" href="#" data-i18n="footer.privacy">Privacy</a>
+      <a class="t-muted t-small nav-link" href="#" data-i18n="footer.contact">Contact</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+// Destinations (city names kept untranslated as proper nouns; country labels translated where possible)
+const COUNTRY_TR = {
+  Vietnam: { ko:'베트남', en:'Vietnam', ja:'ベトナム', zh:'越南' },
+  Thailand:{ ko:'태국',   en:'Thailand',ja:'タイ',     zh:'泰国' },
+  Japan:   { ko:'일본',   en:'Japan',   ja:'日本',    zh:'日本' },
+  Korea:   { ko:'한국',   en:'Korea',   ja:'韓国',    zh:'韩国' },
+};
+const CITY_TR = {
+  'Da Nang':    { ko:'다낭',    en:'Da Nang',    ja:'ダナン',    zh:'岘港' },
+  'Nha Trang':  { ko:'나트랑',  en:'Nha Trang',  ja:'ニャチャン',zh:'芽庄' },
+  'Phu Quoc':   { ko:'푸꾸옥',  en:'Phu Quoc',   ja:'フーコック',zh:'富国岛' },
+  'Ho Chi Minh':{ ko:'호치민',  en:'Ho Chi Minh',ja:'ホーチミン',zh:'胡志明' },
+  'Bangkok':    { ko:'방콕',    en:'Bangkok',    ja:'バンコク',  zh:'曼谷' },
+  'Tokyo':      { ko:'도쿄',    en:'Tokyo',      ja:'東京',     zh:'东京' },
+  'Seoul':      { ko:'서울',    en:'Seoul',      ja:'ソウル',   zh:'首尔' },
+  'Ha Long Bay':{ ko:'하롱베이',en:'Ha Long Bay',ja:'ハロン湾', zh:'下龙湾' },
+};
+const DESTS = [
+  { city:'Da Nang',     country:'Vietnam', img:'https://images.unsplash.com/photo-1528127269322-539801943592?w=600&auto=format&fit=crop&q=70' },
+  { city:'Nha Trang',   country:'Vietnam', img:'https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=600&auto=format&fit=crop&q=70' },
+  { city:'Phu Quoc',    country:'Vietnam', img:'https://images.unsplash.com/photo-1528181304800-259b08848526?w=600&auto=format&fit=crop&q=70' },
+  { city:'Ho Chi Minh', country:'Vietnam', img:'https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=600&auto=format&fit=crop&q=70&fp-y=0.4' },
+  { city:'Bangkok',     country:'Thailand',img:'https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=600&auto=format&fit=crop&q=70' },
+  { city:'Tokyo',       country:'Japan',   img:'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=600&auto=format&fit=crop&q=70' },
+  { city:'Seoul',       country:'Korea',   img:'https://images.unsplash.com/photo-1538485399081-7c8970f1d0c1?w=600&auto=format&fit=crop&q=70' },
+  { city:'Ha Long Bay', country:'Vietnam', img:'https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=600&auto=format&fit=crop&q=70' },
+];
+function renderDests() {
+  const lang = (window.__dtLang && window.__dtLang.getLang()) || 'en';
+  const grid = document.getElementById('destGrid');
+  if (!grid) return;
+  grid.innerHTML = DESTS.map(d => `
+    <div class="dest-tile" style="background-image:linear-gradient(135deg,rgba(0,0,0,0.0),rgba(0,0,0,0.2)),url('${d.img}');">
+      <div class="overlay">
+        <div class="country">${(COUNTRY_TR[d.country]||{})[lang] || d.country}</div>
+        <div class="city">${(CITY_TR[d.city]||{})[lang] || d.city}</div>
+      </div>
+    </div>
+  `).join('');
+}
+function toast(msg){ const wrap=document.createElement('div'); wrap.className='toast'; wrap.innerHTML=`<span class="dot"></span><span>${msg}</span>`;
+  let stack=document.querySelector('.toast-stack'); if(!stack){stack=document.createElement('div');stack.className='toast-stack';document.body.appendChild(stack);}
+  stack.appendChild(wrap); setTimeout(()=>wrap.style.opacity=0,2400); setTimeout(()=>wrap.remove(),2700);
+}
+window.toast = toast;
+window.addEventListener('DOMContentLoaded', renderDests);
+window.addEventListener('dt:lang', renderDests);
+
+// Smooth scroll
+document.querySelectorAll('a[href^="#"]').forEach(a => {
+  a.addEventListener('click', e => {
+    const id = a.getAttribute('href');
+    if (id.length > 1) {
+      const el = document.querySelector(id);
+      if (el) { e.preventDefault(); el.scrollIntoView({behavior:'smooth', block:'start'}); }
+    }
+  });
+});
+</script>
+</body>
+</html>
