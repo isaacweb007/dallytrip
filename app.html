@@ -542,33 +542,59 @@ function normalizeHotel(h, city) {
   };
 }
 
+// Parse ISO 8601 duration (e.g. "PT5H30M") → "5h 30m"
+function parseISODuration(dur) {
+  if (!dur) return '';
+  const m = dur.match(/PT(?:(\d+)H)?(?:(\d+)M)?/);
+  if (!m) return dur;
+  const h = parseInt(m[1] || '0', 10);
+  const min = parseInt(m[2] || '0', 10);
+  if (h && min) return `${h}h ${min}m`;
+  if (h) return `${h}h`;
+  return `${min}m`;
+}
+
 function normalizeFlight(f) {
+  const isDuffel = f.provider === 'duffel';
   const toAirport = f.to || 'DAD';
   const cityFromAirport = AIRPORT_TO_CITY[toAirport] || toAirport;
+  const durationStr = isDuffel ? parseISODuration(f.duration) : (f.duration || '');
+  const airlineDisplay = (isDuffel ? f.airlineName : f.airline) || f.airline || 'Multiple';
+  const baggageIncl = isDuffel && f.baggageInfo ? f.baggageInfo : '기내 수하물 1개';
+  const baggageExcl = isDuffel && f.baggageInfo ? [] : ['위탁 수하물 (항공사별 상이)', '식사'];
+
   return {
     id: `live_f_${f.id || f.flightNumber || Math.random().toString(36).slice(2,8)}`,
     source: 'live',
+    provider: f.provider || 'travelpayouts',
     cat: 'Flight',
     country: COUNTRY_OF_CITY[cityFromAirport] || 'Vietnam',
     city: cityFromAirport,
-    name: `${f.from} → ${f.to}${f.airline ? ' · ' + f.airline : ''}`,
+    name: `${f.from} → ${f.to}${airlineDisplay !== 'Multiple' ? ' · ' + airlineDisplay : ''}`,
     fromCode: f.from, toCode: f.to,
     fromCity: AIRPORT_TO_CITY[f.from] || f.from,
     toCity: cityFromAirport,
-    airline: f.airline || 'Multiple',
-    flightNo: f.flightNumber || '',
-    depart: f.depart || '', arrive: '',
-    duration: '', stops: f.stops || 0,
+    airline: airlineDisplay,
+    airlineLogo: f.airlineLogo || null,
+    flightNo: f.flightNumber || f.flightNo || '',
+    depart: f.departTime || f.depart || '',
+    arrive: f.arriveTime || '',
+    duration: durationStr,
+    stops: f.stops || 0,
     cabin: 'Economy',
+    baggageInfo: baggageIncl,
+    offerId: f.offerId || null,
     priceUSD: Number(f.price || 0),
     price: usdToToken(f.price || 0),
     rating: 4.6, reviews: Math.floor(80 + Math.random() * 600),
     img: LIVE_IMG.flight,
-    desc: `Flight from ${f.from} to ${f.to}. Live fare via Aviasales.`,
-    included: ['Carry-on baggage', 'Online check-in'],
-    excluded: ['Checked baggage (varies)', 'Meals'],
-    cancel: 'Per airline policy.',
-    bookingUrl: f.bookingUrl,
+    desc: isDuffel
+      ? `${f.from}에서 ${f.to}행 실시간 항공편. ${airlineDisplay}. ${baggageIncl}.`
+      : `${f.from}에서 ${f.to}행 항공편. 아비아세일즈 제공 최저가.`,
+    included: [baggageIncl, '온라인 체크인'],
+    excluded: baggageExcl,
+    cancel: '항공사 정책에 따름.',
+    bookingUrl: f.bookingUrl || null,
   };
 }
 
@@ -955,9 +981,15 @@ function refreshExtAvgFromExternal(type, results) {
 }
 
 function pageSearch(params) {
-  const cat = params.get('cat') || state.filter.category || 'All';
-  const q = (params.get('q') || state.filter.q || '').toLowerCase();
+  const cat  = params.get('cat') || state.filter.category || 'All';
+  const q    = (params.get('q') || state.filter.q || '').toLowerCase();
+  // Pre-populate flight params from URL (e.g. from landing search form)
+  const urlFrom  = params.get('from') || 'ICN';
+  const urlTo    = params.get('to')   || 'SGN';
+  const urlDate  = params.get('date') || '';
+  const urlAdult = params.get('adults') || '1';
   state.filter = { category: cat, q };
+
   const filtered = getCatalog().filter(p => {
     const matchCat = cat === 'All'
       || (cat === 'Hotels'     && p.cat === 'Hotel')
@@ -968,6 +1000,48 @@ function pageSearch(params) {
     const matchQ = !q || p.name.toLowerCase().includes(q) || p.city.toLowerCase().includes(q) || p.country.toLowerCase().includes(q);
     return matchCat && matchQ;
   });
+
+  // Flights: show dedicated search form + live results section
+  const isFlights = cat === 'Flights';
+  const flightSearchForm = isFlights ? `
+    <div class="glass-card neu" style="padding:20px;margin-bottom:20px;">
+      <div class="row items-center gap-8 mb-12">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--ocean-blue)" stroke-width="2"><path d="M17.8 19.2L16 11l3.5-3.5C21 6 21 4 19 2c-2-2-4-2-5.5-.5L10 5 1.8 3.2l-1.6 1.6L6 10l-2 3-3 1v2l4-1 .8.8-1 4h2l1-3 3-2 3.8 5.8 1.6-1.6z"/></svg>
+        <span style="font-weight:700;">실시간 항공 검색</span>
+        <span class="badge" style="background:#F0FFF4;color:#15803d;font-size:11px;">Duffel Live</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:10px;align-items:end;flex-wrap:wrap;">
+        <div class="field" style="margin:0;">
+          <label style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">출발지 (IATA)</label>
+          <input id="s_from" class="glass-input" placeholder="ICN" maxlength="3"
+                 value="${escapeHtml(urlFrom)}" style="text-transform:uppercase;font-weight:700;font-size:16px;text-align:center;" />
+        </div>
+        <div class="field" style="margin:0;">
+          <label style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">도착지 (IATA)</label>
+          <input id="s_to" class="glass-input" placeholder="DAD" maxlength="3"
+                 value="${escapeHtml(urlTo)}" style="text-transform:uppercase;font-weight:700;font-size:16px;text-align:center;" />
+        </div>
+        <div class="field" style="margin:0;">
+          <label style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">출발일</label>
+          <input id="s_date" class="glass-input" type="date" value="${escapeHtml(urlDate)}" />
+        </div>
+        <div class="field" style="margin:0;">
+          <label style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">성인</label>
+          <select id="s_adults" class="glass-input">
+            ${[1,2,3,4].map(n=>`<option value="${n}" ${n===parseInt(urlAdult)?'selected':''}>${n}명</option>`).join('')}
+          </select>
+        </div>
+        <button class="btn btn-primary" onclick="loadExternalResults()" style="white-space:nowrap;height:48px;padding:0 20px;">
+          ✈ 검색
+        </button>
+      </div>
+    </div>
+  ` : '';
+
+  const extDataAttrs = isFlights
+    ? `data-cat="${escapeHtml(cat)}" data-from="${escapeHtml(urlFrom)}" data-to="${escapeHtml(urlTo)}" data-date="${escapeHtml(urlDate)}"`
+    : `data-cat="${escapeHtml(cat)}" data-q="${escapeHtml(q)}"`;
+
   return `
   <div class="page-enter">
     <div class="search-bar" style="margin-bottom:16px;">
@@ -984,6 +1058,9 @@ function pageSearch(params) {
       ${['All','Flights','Hotels','Tours','Activities','Transport'].map(c => `<a class="chip ${cat===c?'is-active':''}" href="#/search?cat=${encodeURIComponent(c)}">${t('cat.'+c.replace(/\s/g,''))}</a>`).join('')}
     </div>
 
+    ${flightSearchForm}
+
+    ${!isFlights ? `
     <div class="row items-center space-between" style="margin-bottom:12px;">
       <div class="t-muted t-small"><b style="color:var(--text-main);">${filtered.length}</b> ${t('common.results')} ${t('app.search.resultsNote')}</div>
       <div class="row gap-8">
@@ -995,7 +1072,10 @@ function pageSearch(params) {
     ${filtered.length === 0
       ? `<div class="glass-card" style="padding:48px; text-align:center;"><div class="h3">${t('app.search.noResults')}</div><p class="t-muted mt-8">${t('app.search.noResultsDesc')}</p></div>`
       : `<div class="grid grid-3">${filtered.map(productCard).join('')}</div>`
-    }
+    }` : ''}
+
+    <!-- Live partner results (Duffel / Travelpayouts) -->
+    <div id="externalResults" class="mt-24" ${extDataAttrs}></div>
   </div>
   `;
 }
@@ -1021,7 +1101,21 @@ async function loadExternalResults() {
   if (type === 'hotels')     { u.searchParams.set('city', city); }
   else if (type === 'cars')  { u.searchParams.set('city', city); }
   else if (type === 'activities') { u.searchParams.set('city', city); }
-  else if (type === 'flights')    { u.searchParams.set('from', 'SGN'); u.searchParams.set('to', 'BKK'); }
+  else if (type === 'flights') {
+    // Read values from search form if available, else use smart defaults
+    const fromEl   = document.getElementById('s_from');
+    const toEl     = document.getElementById('s_to');
+    const dateEl   = document.getElementById('s_date');
+    const adultsEl = document.getElementById('s_adults');
+    const fromCode = fromEl?.value?.trim().toUpperCase() || host.dataset.from || 'ICN';
+    const toCode   = toEl?.value?.trim().toUpperCase()   || host.dataset.to   || 'SGN';
+    const dateVal  = dateEl?.value || host.dataset.date || '';
+    const adultsVal= adultsEl?.value || '1';
+    u.searchParams.set('from', fromCode);
+    u.searchParams.set('to',   toCode);
+    if (dateVal) u.searchParams.set('date', dateVal);
+    u.searchParams.set('adults', adultsVal);
+  }
 
   // Loading skeleton
   host.innerHTML = `
@@ -1085,6 +1179,11 @@ async function loadExternalResults() {
 }
 
 function externalCard(r, type) {
+  // Duffel flights: special rich card
+  if (type === 'flights' && r.provider === 'duffel') {
+    return duffelFlightCard(r);
+  }
+
   // Normalize fields for display
   let title, sub, img;
   if (type === 'flights') {
@@ -1122,6 +1221,45 @@ function externalCard(r, type) {
     </a>
   `;
 }
+
+// ── Duffel 전용 항공 카드 (실시간 재고, 항공사 로고, 수하물 정보) ─────────
+function duffelFlightCard(r) {
+  const usd   = r.price ? `$${fmt(r.price)}` : '—';
+  const stops = r.transfers === 0 || r.stops === 0 ? '직항' : `${r.stops||r.transfers}회 경유`;
+  const dur   = r.duration ? ` · ${r.duration}` : '';
+  const logoHtml = r.airlineLogo
+    ? `<img src="${escapeHtml(r.airlineLogo)}" alt="" style="height:22px;width:auto;object-fit:contain;border-radius:4px;">`
+    : `<span style="font-size:13px;font-weight:700;color:var(--text-main);">${escapeHtml(r.airline||'')}</span>`;
+
+  return `
+    <div class="product-card" style="cursor:pointer;" onclick="location.hash='/product/'+${JSON.stringify(r.id||'')}"
+         data-offer="${escapeHtml(r.offerId||'')}">
+      <div class="img" style="background-image:url('https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=600&q=70')">
+        <span class="badge badge-on-image" style="background:rgba(255,255,255,0.92);color:#16a34a;font-weight:700;">✈ Duffel Live</span>
+      </div>
+      <div class="body">
+        <!-- Route row -->
+        <div class="row items-center space-between" style="margin-bottom:8px;">
+          ${logoHtml}
+          <span class="badge" style="background:#F0FFF4;color:#15803d;font-size:11px;">${stops}${dur}</span>
+        </div>
+        <div class="row items-center gap-8" style="font-size:15px;font-weight:800;letter-spacing:-0.01em;">
+          <span>${escapeHtml(r.from||'')}</span>
+          <span style="color:var(--ocean-blue);font-size:18px;">→</span>
+          <span>${escapeHtml(r.to||'')}</span>
+          ${r.depart ? `<span class="t-muted t-small">${escapeHtml(r.depart)}</span>` : ''}
+          ${r.arrive ? `<span class="t-muted" style="font-size:11px;">→ ${escapeHtml(r.arrive)}</span>` : ''}
+        </div>
+        ${r.baggageInfo ? `<div class="t-small t-muted" style="margin-top:4px;">🧳 ${escapeHtml(r.baggageInfo)}</div>` : ''}
+        <div class="price-row" style="margin-top:10px;">
+          <div><span style="font-size:20px;font-weight:800;color:var(--text-main);">${usd}</span> <span class="t-small t-muted">USD</span></div>
+          <span class="btn btn-primary btn-sm">예약하기</span>
+        </div>
+      </div>
+    </div>`;
+}
+window.duffelFlightCard = duffelFlightCard;
+
 window.loadExternalResults = loadExternalResults;
 
 function pageProduct(id) {
