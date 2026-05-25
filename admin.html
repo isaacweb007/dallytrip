@@ -122,24 +122,48 @@ function loginPage() {
       <p class="t-muted mt-8">${t('admin.login.desc')}</p>
       <form onsubmit="event.preventDefault();doLogin();" class="mt-24 col gap-12">
         <div class="field">
-          <label>${t('common.email')}</label>
-          <input class="glass-input" id="loginEmail" type="email" placeholder="admin@dallytrip.io" value="admin@dallytrip.io" />
+          <label>ID</label>
+          <input class="glass-input" id="loginEmail" type="text" autocomplete="username" placeholder="admin" value="admin" />
         </div>
         <div class="field">
           <label>${t('common.password')}</label>
-          <input class="glass-input" id="loginPw" type="password" placeholder="••••••••" value="admin1234" />
+          <input class="glass-input" id="loginPw" type="password" autocomplete="current-password" placeholder="••••••••" value="123456" />
         </div>
+        <div id="loginErr" class="t-small" style="display:none;color:#b03b3b;font-weight:700;margin-top:-6px;"></div>
         <button class="btn btn-primary btn-block btn-lg mt-8" type="submit">${t('btn.signin')}</button>
         <a href="./index.html" class="btn btn-ghost btn-block">${t('btn.backSite')}</a>
+        <p class="t-small t-muted text-center mt-8" style="opacity:0.75;">Demo: <b>admin</b> / <b>123456</b></p>
       </form>
     </div>
   </div>
   `;
 }
+
+// Hard-coded demo credentials for the admin panel
+const ADMIN_USER = 'admin';
+const ADMIN_PASS = '123456';
+
 function doLogin() {
-  const e = document.getElementById('loginEmail').value;
-  const p = document.getElementById('loginPw').value;
-  if (e && p) { sessionStorage.setItem('dt_admin','1'); store.loggedIn=true; location.hash='#/dashboard'; render(); toast(t('toast.welcomeAdmin')); }
+  const id = (document.getElementById('loginEmail').value || '').trim();
+  const pw = (document.getElementById('loginPw').value || '').trim();
+  const err = document.getElementById('loginErr');
+  if (id === ADMIN_USER && pw === ADMIN_PASS) {
+    sessionStorage.setItem('dt_admin','1');
+    store.loggedIn = true;
+    location.hash = '#/dashboard';
+    render();
+    toast(t('toast.welcomeAdmin'));
+  } else {
+    if (err) {
+      err.style.display = 'block';
+      err.textContent = ({
+        ko:'아이디 또는 비밀번호가 올바르지 않습니다.',
+        en:'Invalid username or password.',
+        ja:'IDまたはパスワードが正しくありません。',
+        zh:'用户名或密码不正确。'
+      })[window.__DT_LANG||'ko'] || 'Invalid username or password.';
+    }
+  }
 }
 window.doLogin = doLogin;
 
