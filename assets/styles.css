@@ -399,13 +399,22 @@ select.glass-input { appearance: none; padding-right: 40px; background-image: ur
    stat cards, sparkles, and ambient particles.
    ============================================================ */
 
-/* The hero panel itself */
+/* The hero panel itself — premium frosted glass sitting over the travel photo */
 .hero-premium {
   position: relative;
-  padding: 28px;
-  border-radius: 36px;
+  padding: 32px 36px 28px;
+  border-radius: 40px;
   overflow: hidden;
   isolation: isolate;
+  background: rgba(255,255,255,0.18) !important;
+  backdrop-filter: blur(36px) saturate(180%);
+  -webkit-backdrop-filter: blur(36px) saturate(180%);
+  border: 1px solid rgba(255,255,255,0.45);
+  box-shadow:
+    0 50px 100px rgba(15,32,48,0.30),
+    inset 0 1px 0 rgba(255,255,255,0.75),
+    -10px -10px 32px rgba(255,255,255,0.18),
+    14px 14px 36px rgba(15,32,48,0.18);
 }
 .hero-premium::before {
   /* Subtle inner shine sweep */
@@ -423,6 +432,22 @@ select.glass-input { appearance: none; padding-right: 40px; background-image: ur
   100% { transform: translateX(100%); }
 }
 
+/* Iridescent rim light around the hero panel */
+.hero-premium::after {
+  content: '';
+  position: absolute; inset: -1px;
+  border-radius: 40px;
+  pointer-events: none;
+  background: conic-gradient(from 0deg, rgba(124,92,255,0.45), rgba(34,184,255,0.45), rgba(38,208,124,0.45), rgba(255,138,61,0.45), rgba(124,92,255,0.45));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+  padding: 1px;
+  opacity: 0.7;
+  animation: spinHalo 20s linear infinite;
+  z-index: 0;
+}
+
 /* Stage that wraps the character + all floating ornaments */
 .char-stage {
   position: relative;
@@ -431,24 +456,28 @@ select.glass-input { appearance: none; padding-right: 40px; background-image: ur
   max-width: 520px;
   margin: 0 auto;
   display: grid; place-items: center;
+  transform-style: preserve-3d;
+  transition: transform 280ms ease-out;
 }
+.char-stage .char-img,
+.char-stage .char-svg { transition: transform 280ms ease-out; }
 
-/* Rotating conic-gradient halo ring */
+/* Rotating conic-gradient halo ring (outermost) */
 .char-stage::before {
   content: '';
-  position: absolute; inset: 6%;
+  position: absolute; inset: 4%;
   border-radius: 50%;
   background:
     conic-gradient(from 0deg,
-      rgba(38,208,124,0.55),
-      rgba(34,184,255,0.55),
-      rgba(124,92,255,0.5),
-      rgba(255,138,61,0.5),
-      rgba(38,208,124,0.55));
-  filter: blur(38px);
-  opacity: 0.85;
+      rgba(38,208,124,0.65),
+      rgba(34,184,255,0.65),
+      rgba(124,92,255,0.6),
+      rgba(255,138,61,0.6),
+      rgba(38,208,124,0.65));
+  filter: blur(44px);
+  opacity: 0.9;
   z-index: 0;
-  animation: spinHalo 18s linear infinite;
+  animation: spinHalo 22s linear infinite;
 }
 @keyframes spinHalo { to { transform: rotate(360deg); } }
 
@@ -458,16 +487,70 @@ select.glass-input { appearance: none; padding-right: 40px; background-image: ur
   position: absolute; inset: 14%;
   border-radius: 50%;
   background:
-    radial-gradient(circle at 30% 25%, rgba(255,255,255,0.7), rgba(255,255,255,0.05) 60%),
-    rgba(255,255,255,0.2);
-  backdrop-filter: blur(14px);
-  border: 1px solid rgba(255,255,255,0.55);
+    radial-gradient(circle at 30% 25%, rgba(255,255,255,0.8), rgba(255,255,255,0.1) 60%),
+    rgba(255,255,255,0.28);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255,255,255,0.7);
   box-shadow:
-    inset 0 2px 6px rgba(255,255,255,0.7),
-    inset 0 -10px 30px rgba(31,61,88,0.10),
-    0 30px 60px rgba(31,61,88,0.18);
+    inset 0 2px 8px rgba(255,255,255,0.8),
+    inset 0 -10px 30px rgba(31,61,88,0.12),
+    0 30px 60px rgba(31,61,88,0.22);
   z-index: 0;
 }
+
+/* Dashed orbit ring (medium layer, counter-rotation) */
+.char-orbit {
+  position: absolute; inset: 8%;
+  border-radius: 50%;
+  border: 2px dashed rgba(255,255,255,0.45);
+  z-index: 1;
+  animation: spinHaloRev 36s linear infinite;
+  pointer-events: none;
+}
+@keyframes spinHaloRev { to { transform: rotate(-360deg); } }
+
+/* Pulse glow (innermost, breathing) */
+.char-pulse {
+  position: absolute; inset: 12%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,255,255,0.45) 0%, transparent 60%);
+  z-index: 1;
+  animation: charPulse 3.6s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes charPulse {
+  0%, 100% { opacity: 0.5; transform: scale(0.95); }
+  50%      { opacity: 0.9; transform: scale(1.05); }
+}
+
+/* Orbiting mini-icons around the character (3 small badges) */
+.char-orbiter {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 0; height: 0;
+  z-index: 3;
+  animation: orbit 14s linear infinite;
+  pointer-events: none;
+}
+.char-orbiter.o2 { animation-duration: 18s; animation-direction: reverse; }
+.char-orbiter.o3 { animation-duration: 22s; animation-delay: -7s; }
+.char-orbiter .badge-icon {
+  position: absolute;
+  left: 130px; top: -16px;
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  background: rgba(255,255,255,0.95);
+  border: 1px solid rgba(255,255,255,0.8);
+  box-shadow: 0 8px 18px rgba(31,61,88,0.20);
+  font-size: 14px;
+  /* counter-rotate so the icon stays upright */
+  animation: orbitCounter 14s linear infinite;
+}
+.char-orbiter.o2 .badge-icon { animation-duration: 18s; animation-direction: reverse; }
+.char-orbiter.o3 .badge-icon { animation-duration: 22s; }
+@keyframes orbit { to { transform: rotate(360deg); } }
+@keyframes orbitCounter { to { transform: rotate(-360deg); } }
 
 /* The character image / svg sits on top of the disc */
 .char-stage .char-img,
@@ -585,6 +668,18 @@ select.glass-input { appearance: none; padding-right: 40px; background-image: ur
 }
 .hero-sub b { color: var(--text-main); }
 
+/* Reviewer avatar stack */
+.avatar-stack {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  color: #fff;
+  font-weight: 800;
+  font-size: 14px;
+  border: 2px solid #fff;
+  box-shadow: 0 4px 12px rgba(31,61,88,0.18);
+}
+
 /* Trust strip under hero */
 .trust-strip {
   display: flex; flex-wrap: wrap; gap: 14px 22px;
@@ -659,11 +754,79 @@ select.glass-input { appearance: none; padding-right: 40px; background-image: ur
 /* ========== Hero (landing) ========== */
 .hero {
   position: relative;
-  padding: 80px 0 120px;
+  padding: 100px 0 140px;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* ===== Full-screen travel photo background with Ken Burns slideshow ===== */
+.hero-bg {
+  position: absolute; inset: 0;
+  z-index: -2;
+  overflow: hidden;
+  pointer-events: none;
+}
+.hero-bg-slide {
+  position: absolute; inset: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 0;
+  transform: scale(1.05);
+  will-change: opacity, transform;
+  animation: kenburns 30s ease-in-out infinite;
+}
+/* 3-slide rotation: each slide visible 10s, fades 1s */
+.hero-bg-slide.s1 { animation-delay: 0s; }
+.hero-bg-slide.s2 { animation-delay: 10s; }
+.hero-bg-slide.s3 { animation-delay: 20s; }
+@keyframes kenburns {
+  0%   { opacity: 0; transform: scale(1.10) translate(-2%, -2%); }
+  3%   { opacity: 1; }
+  30%  { opacity: 1; transform: scale(1.18) translate(2%, 2%); }
+  33%  { opacity: 0; }
+  100% { opacity: 0; transform: scale(1.05); }
+}
+
+/* Vignette + color cast over the photo for readability */
+.hero-overlay {
+  position: absolute; inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    /* color cast tying into brand palette */
+    linear-gradient(135deg, rgba(124,92,255,0.18) 0%, rgba(34,184,255,0.10) 50%, rgba(38,208,124,0.16) 100%),
+    /* vignette around the edges */
+    radial-gradient(120% 90% at 50% 35%, transparent 0%, rgba(15,32,48,0.20) 60%, rgba(15,32,48,0.55) 100%),
+    /* top fade for header readability */
+    linear-gradient(180deg, rgba(255,255,255,0.45) 0%, transparent 25%, transparent 75%, rgba(15,32,48,0.10) 100%);
+}
+
+/* Particle layer (CSS-only stars sparkling across the hero) */
+.hero-particles {
+  position: absolute; inset: 0;
+  z-index: -1;
+  pointer-events: none;
   overflow: hidden;
 }
+.hero-particles span {
+  position: absolute;
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.85);
+  box-shadow: 0 0 8px rgba(255,255,255,0.6);
+  animation: drift linear infinite;
+}
+@keyframes drift {
+  0%   { transform: translateY(100vh) translateX(0); opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: 1; }
+  100% { transform: translateY(-10vh) translateX(40px); opacity: 0; }
+}
+
+/* Legacy glow blobs — keep for layer richness but lower opacity now */
 .hero .glow {
-  position: absolute; pointer-events: none; filter: blur(70px); border-radius: 50%; opacity: 0.7;
+  position: absolute; pointer-events: none; filter: blur(80px); border-radius: 50%; opacity: 0.35;
+  z-index: -1;
 }
 .hero .glow.g1 { width: 360px; height: 360px; background: radial-gradient(circle, rgba(34,184,255,0.55), transparent 65%); top: 20px; right: 8%; }
 .hero .glow.g2 { width: 280px; height: 280px; background: radial-gradient(circle, rgba(38,208,124,0.55), transparent 65%); bottom: 40px; left: 6%; }

@@ -38,6 +38,15 @@
 
 <!-- ============== Hero (premium) ============== -->
 <section class="hero">
+  <!-- Full-screen travel background (Ken Burns slideshow) -->
+  <div class="hero-bg" aria-hidden="true">
+    <div class="hero-bg-slide s1" style="background-image:url('https://images.unsplash.com/photo-1528127269322-539801943592?w=2000&q=80&auto=format&fit=crop');"></div>
+    <div class="hero-bg-slide s2" style="background-image:url('https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=2000&q=80&auto=format&fit=crop');"></div>
+    <div class="hero-bg-slide s3" style="background-image:url('https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=2000&q=80&auto=format&fit=crop');"></div>
+  </div>
+  <div class="hero-overlay" aria-hidden="true"></div>
+  <div class="hero-particles" id="heroParticles" aria-hidden="true"></div>
+
   <span class="glow g1"></span>
   <span class="glow g2"></span>
   <span class="glow g3"></span>
@@ -91,6 +100,20 @@
           </div>
         </div>
 
+        <!-- Mini reviewer avatars + rating pill -->
+        <div class="row gap-12 items-center mt-16" style="flex-wrap:wrap;">
+          <div style="display:flex; align-items:center;">
+            <span class="avatar-stack" style="background:linear-gradient(135deg,#FF8A3D,#FFCB57)">A</span>
+            <span class="avatar-stack" style="background:linear-gradient(135deg,#22B8FF,#7C5CFF); margin-left:-10px;">M</span>
+            <span class="avatar-stack" style="background:linear-gradient(135deg,#26D07C,#22B8FF); margin-left:-10px;">K</span>
+            <span class="avatar-stack" style="background:linear-gradient(135deg,#7C5CFF,#FF8A3D); margin-left:-10px;">+</span>
+          </div>
+          <div>
+            <div style="font-weight:800;">★★★★★ <span style="color:var(--text-muted);font-weight:600;">4.9</span></div>
+            <div class="t-small t-muted" style="font-weight:600;">3,240+ travelers booked with $1</div>
+          </div>
+        </div>
+
         <!-- Trust strip -->
         <div class="trust-strip">
           <div class="stat"><b>3.2K+</b><span>Wallets</span></div>
@@ -114,7 +137,16 @@
       </div>
 
       <!-- Right: Character stage -->
-      <div class="char-stage">
+      <div class="char-stage" id="charStage">
+        <!-- Multi-layer halo rings -->
+        <span class="char-pulse"></span>
+        <span class="char-orbit"></span>
+
+        <!-- 3 orbiting mini-badges (TON / $1 / ✓) -->
+        <div class="char-orbiter o1"><div class="badge-icon" style="background:radial-gradient(circle at 30% 30%, #80F2BA, #26D07C); color:#fff;">$</div></div>
+        <div class="char-orbiter o2"><div class="badge-icon" style="background:radial-gradient(circle at 30% 30%, #6FD3FF, #22B8FF); color:#fff;">⛓</div></div>
+        <div class="char-orbiter o3"><div class="badge-icon" style="background:radial-gradient(circle at 30% 30%, #B7A4FF, #7C5CFF); color:#fff;">✓</div></div>
+
         <img class="char-img"
              src="./assets/character-mascot.png"
              alt="DallyTrip $1 Token character"
@@ -381,6 +413,50 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
     }
   });
 });
+
+// Hero particle field — 24 drifting sparkles
+(function initParticles() {
+  const layer = document.getElementById('heroParticles');
+  if (!layer) return;
+  const N = 24;
+  const frag = document.createDocumentFragment();
+  for (let i = 0; i < N; i++) {
+    const s = document.createElement('span');
+    const sz = 2 + Math.random() * 4;
+    s.style.left = Math.random() * 100 + '%';
+    s.style.width = s.style.height = sz + 'px';
+    s.style.animationDuration = (12 + Math.random() * 14) + 's';
+    s.style.animationDelay = (-Math.random() * 20) + 's';
+    s.style.opacity = 0.3 + Math.random() * 0.6;
+    frag.appendChild(s);
+  }
+  layer.appendChild(frag);
+})();
+
+// Mouse parallax on character stage — subtle 3D tilt + character offset
+(function initParallax() {
+  const stage = document.getElementById('charStage');
+  if (!stage) return;
+  const img = stage.querySelector('.char-img');
+  const hero = document.querySelector('.hero');
+  if (!hero) return;
+
+  let rect = hero.getBoundingClientRect();
+  window.addEventListener('resize', () => { rect = hero.getBoundingClientRect(); });
+
+  hero.addEventListener('mousemove', (e) => {
+    const x = (e.clientX - rect.left) / rect.width  - 0.5;  // -0.5 .. 0.5
+    const y = (e.clientY - rect.top)  / rect.height - 0.5;
+    const tiltX = -y * 8; // up/down → rotateX
+    const tiltY =  x * 12; // left/right → rotateY
+    stage.style.transform  = `perspective(900px) rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
+    if (img) img.style.transform = `translate(${x * 14}px, ${y * 10}px)`;
+  });
+  hero.addEventListener('mouseleave', () => {
+    stage.style.transform = '';
+    if (img) img.style.transform = '';
+  });
+})();
 </script>
 </body>
 </html>
