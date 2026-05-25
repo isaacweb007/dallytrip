@@ -184,6 +184,51 @@ function disconnectWallet() {
 // ================= Utilities =================
 const $ = (s, el=document) => el.querySelector(s);
 const fmt = n => n.toLocaleString('en-US');
+
+// ================= Travelpayouts deeplink helpers =================
+// All affiliate redirects flow through here so commission is always tracked.
+// Marker is appended server-side too (functions/api/_lib.js), this is a safety net
+// for hard-coded links built on the client.
+const TP_MARKER = '732326';                    // API marker
+const TP_TRS    = '532633';                    // tracking script marker
+const tpAttachMarker = (urlStr, subId) => {
+  try {
+    const u = new URL(urlStr);
+    if (!u.searchParams.has('marker')) u.searchParams.set('marker', TP_MARKER);
+    if (subId) u.searchParams.set('sub_id', subId);
+    return u.toString();
+  } catch { return urlStr; }
+};
+const tpDeeplink = (kind, params = {}) => {
+  switch (kind) {
+    case 'flight': {
+      const { from='ICN', to='DAD', date='', adults=1, subId='' } = params;
+      let dc = '';
+      if (/^\d{4}-\d{2}-\d{2}$/.test(date)) { const [, m, d] = date.split('-'); dc = d + m; }
+      return tpAttachMarker(`https://www.aviasales.com/search/${from}${dc}${to}${adults}`, subId);
+    }
+    case 'hotel': {
+      const { city='Da Nang', checkin='', checkout='', adults=2, subId='' } = params;
+      const q = `https://search.hotellook.com/hotels?destination=${encodeURIComponent(city)}` +
+        (checkin?`&checkIn=${checkin}`:'') + (checkout?`&checkOut=${checkout}`:'') + `&adults=${adults}`;
+      return tpAttachMarker(q, subId);
+    }
+    case 'car': {
+      const { city='Da Nang', pickup='', dropoff='', subId='' } = params;
+      const u = `https://www.discovercars.com/?a_aid=${TP_MARKER}&country=any&location=${encodeURIComponent(city)}` +
+        (pickup?`&pickupdate=${pickup}`:'') + (dropoff?`&dropoffdate=${dropoff}`:'');
+      return u + (subId?`&sub_id=${encodeURIComponent(subId)}`:'');
+    }
+    case 'activity': {
+      const { city='Da Nang', q='', subId='' } = params;
+      const slug = (q || city).replace(/\s+/g,'-').toLowerCase();
+      return `https://www.getyourguide.com/s/?q=${encodeURIComponent(q || city)}&partner_id=${TP_MARKER}&sub_id=${encodeURIComponent(subId || slug)}`;
+    }
+    default:
+      return tpAttachMarker(`https://www.aviasales.com/?sub_id=${subId||''}`);
+  }
+};
+window.tpDeeplink = tpDeeplink;
 const price = (n) => `<span class="price">${fmt(n)}<span class="sym">$1</span></span>`;
 const escapeHtml = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 
@@ -592,6 +637,23 @@ function pageProduct(id) {
 
         <button class="btn btn-primary btn-block btn-lg mt-16" onclick="proceedCheckout('${p.id}')">${t('btn.payWithDollar')}</button>
         <p class="t-small t-muted text-center mt-8">${t('app.product.networkNote')}</p>
+
+        ${(() => {
+          // Secondary affiliate booking link (commission tracked via Travelpayouts)
+          const kind = isFlight ? 'flight' : (p.cat==='Hotel' ? 'hotel' : (isTransport ? 'car' : 'activity'));
+          const sub = `dt_${p.id}`;
+          let href = '';
+          if (isFlight) href = tpDeeplink('flight', { from:p.fromCode, to:p.toCode, date:'2026-06-12', adults:2, subId:sub });
+          else if (p.cat==='Hotel') href = tpDeeplink('hotel', { city:p.city, checkin:'2026-06-12', checkout:'2026-06-14', adults:2, subId:sub });
+          else if (isTransport) href = tpDeeplink('car', { city:p.city, pickup:'2026-06-12', dropoff:'2026-06-13', subId:sub });
+          else href = tpDeeplink('activity', { city:p.city, q:p.name, subId:sub });
+          return `
+            <a class="btn btn-secondary btn-block mt-8" href="${href}" target="_blank" rel="nofollow sponsored noopener">
+              🌐 ${({en:'Book via partner',ko:'외부 제휴 예약',ja:'パートナーで予約',zh:'通过合作伙伴预订'})[window.__DT_LANG||'ko'] || '외부 제휴 예약'}
+            </a>
+            <p class="t-small t-muted text-center mt-8" style="opacity:0.75;">commission via Travelpayouts</p>
+          `;
+        })()}
       </aside>
     </div>
   </div>
