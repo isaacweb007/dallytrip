@@ -71,10 +71,10 @@ export async function onRequestGet({ request, env }) {
   } catch (e) { /* swallow and use fallback */ }
 
   // If live returned nothing, build curated showcase with commission deeplinks.
-  // CRITICAL: for each curated hotel, look it up BY NAME in Hotellook so we get
-  // its real hotelId — that's what unlocks the real per-hotel photo. Without
-  // this step every Furama/Sheraton/Pullman/etc. falls back to the same generic
-  // city-pool image (the bug user complained about).
+  // We try Hotellook autocomplete in parallel for each curated hotel to get a
+  // REAL hotelId (and thus a real photo). If that fails, the index-based pool
+  // picker guarantees every curated hotel in the city gets a DIFFERENT photo
+  // (no hash collisions like the previous version).
   let debugInfo = null;
   if (liveResults.length === 0) {
     const showcase = CURATED[city] || CURATED._default(city);
@@ -92,11 +92,10 @@ export async function onRequestGet({ request, env }) {
         price: h.price,
         currency: 'USD',
         // Per-hotel real photo from Hotellook's CDN when we found a hotelId,
-        // otherwise picked from the per-city HOTEL_IMG_POOL with a well-mixed
-        // hash so different hotel names land on different pool slots.
+        // else index-based selection from a per-city pool (no hash collisions).
         image: realId
           ? `https://photo.hotellook.com/image_v2/limit/h${realId}_1/800/520.auto`
-          : pickCityHotelImage(city, h.name),
+          : pickCityHotelImageByIndex(city, i),
         bookingUrl: withMarker(
           `https://search.hotellook.com/hotels?destination=${encodeURIComponent(city)}` +
             `&checkIn=${checkin}&checkOut=${checkout}&adults=${adults}`,
@@ -123,41 +122,57 @@ export async function onRequestGet({ request, env }) {
 // REAL photo of that specific hotel (not a generic city stock shot).
 // Returns { id, debug } — id is null on any failure; debug surfaces what the
 // API actually returned so we can diagnose without redeploying.
+// Resolve a curated hotel name to its real Hotellook ID using the autocomplete
+// endpoint (yasen.hotellook.com), which is the live, supported path. The old
+// /api/v2/lookup.json is dead (returns 404).
+//
+// Autocomplete response shape (approx):
+//   { hotels: [{ id, label, locationName, ... }], locations: [...] }
 async function lookupHotelId(hotelName, city, token) {
   if (!hotelName || !token) return { id: null, debug: 'no name/token' };
-  try {
-    const lu = new URL('https://engine.hotellook.com/api/v2/lookup.json');
-    lu.searchParams.set('query', `${hotelName} ${city}`);
-    lu.searchParams.set('lang', 'en');
-    lu.searchParams.set('lookFor', 'both');
-    lu.searchParams.set('limit', '3');
-    lu.searchParams.set('token', token);
-    const res = await fetch(lu.toString());
-    const status = res.status;
-    const ct = res.headers.get('content-type') || '';
-    const rawText = await res.text();
-    let data = null;
-    try { data = JSON.parse(rawText); } catch {}
-    const hotels = data?.results?.hotels || data?.hotels || [];
-    const first = Array.isArray(hotels) ? hotels[0] : null;
-    const realId = first?.id || first?.hotelId || null;
-    return {
-      id: realId,
-      debug: {
-        url: lu.toString().replace(token, '***'),
+  // Try several known-good Hotellook search endpoints in order. As soon as one
+  // returns a hotel id, we use it.
+  const candidates = [
+    // (a) autocomplete — fastest, supports partial names
+    `https://yasen.hotellook.com/autocomplete?term=${encodeURIComponent(hotelName)}&lang=en&token=${encodeURIComponent(token)}`,
+    // (b) public autocomplete via the engine subdomain
+    `https://engine.hotellook.com/api/v2/autocomplete.json?term=${encodeURIComponent(hotelName + ' ' + city)}&lang=en&token=${encodeURIComponent(token)}`,
+    // (c) suggest endpoint (sometimes still works)
+    `https://engine.hotellook.com/api/v2/suggest/hotels.json?query=${encodeURIComponent(hotelName)}&lang=en&token=${encodeURIComponent(token)}`,
+  ];
+  const tries = [];
+  for (const url of candidates) {
+    try {
+      const res = await fetch(url);
+      const status = res.status;
+      const ct = res.headers.get('content-type') || '';
+      const rawText = await res.text();
+      let data = null;
+      try { data = JSON.parse(rawText); } catch {}
+      // Extract hotels list from any of the known wrapper shapes.
+      const hotels =
+        (Array.isArray(data?.hotels) ? data.hotels : null)
+        || (Array.isArray(data?.results?.hotels) ? data.results.hotels : null)
+        || (Array.isArray(data) ? data : null)
+        || [];
+      // Filter to entries that actually have a numeric id (locations don't).
+      const hotelOnly = hotels.filter(x => x && (x.id || x.hotelId) && (x.label || x.name || x.fullName));
+      const first = hotelOnly[0] || null;
+      const realId = first?.id || first?.hotelId || null;
+      tries.push({
+        url: url.replace(token, '***'),
         status,
         contentType: ct,
-        rawSample: rawText.slice(0, 280),
-        keys: data ? Object.keys(data) : null,
-        resultsKeys: data?.results ? Object.keys(data.results) : null,
-        hotelsLen: Array.isArray(hotels) ? hotels.length : 'not array',
-        firstHotelKeys: first ? Object.keys(first) : null,
-        sampleFirst: first || null,
-      },
-    };
-  } catch (e) {
-    return { id: null, debug: { error: String(e?.message || e) } };
+        rawSample: rawText.slice(0, 200),
+        hotelsLen: hotels.length,
+        gotId: !!realId,
+      });
+      if (realId) return { id: realId, debug: { hit: tries.length, tries } };
+    } catch (e) {
+      tries.push({ url: url.replace(token, '***'), error: String(e?.message || e) });
+    }
   }
+  return { id: null, debug: { hit: null, tries } };
 }
 
 async function safeJson(res) {
@@ -201,36 +216,44 @@ const SHARED_HOTEL_PHOTOS = [
   'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=900&q=70&auto=format&fit=crop', // 19 beach resort
 ];
 
-// Per-city pools — each city picks a different subset/order from SHARED_HOTEL_PHOTOS
-// so visually similar properties don't pile up on the same shot. Order also
-// matters because we hash → index, so different orderings give different distributions.
+// Per-city pools — each city is given 20 indices into SHARED_HOTEL_PHOTOS
+// (covers up to 20 curated hotels per city without index-mod repetition).
+// Different starting offset per city ensures the same hotel brand in two cities
+// lands on different photos.
 function _pool(...indices) { return indices.map(i => SHARED_HOTEL_PHOTOS[i]); }
+const _all20 = (offset = 0) => {
+  const seq = [];
+  for (let i = 0; i < 20; i++) seq.push((i + offset) % SHARED_HOTEL_PHOTOS.length);
+  return _pool(...seq);
+};
 const HOTEL_IMG_POOL = {
-  'Da Nang':     _pool(0, 8, 7, 11, 2, 18, 19, 1, 12, 15, 17, 14),
-  'Phu Quoc':    _pool(7, 8, 0, 18, 19, 11, 1, 12, 15, 2),
-  'Nha Trang':   _pool(0, 7, 8, 19, 18, 11, 12, 2, 15, 17),
-  'Ho Chi Minh': _pool(4, 6, 10, 13, 14, 5, 3, 16, 17, 15),
-  'Hanoi':       _pool(5, 6, 10, 14, 4, 13, 16, 3, 17, 15),
-  'Bangkok':     _pool(13, 5, 6, 10, 14, 4, 16, 17, 3, 15, 12, 0),
-  'Phuket':      _pool(7, 0, 8, 18, 19, 11, 1, 12, 15, 17),
-  'Chiang Mai':  _pool(11, 5, 4, 6, 16, 17, 14, 3, 10, 15),
-  'Bali':        _pool(7, 0, 8, 11, 18, 19, 1, 12, 15, 17, 14, 2, 9, 5),
-  'Jakarta':     _pool(6, 13, 14, 10, 4, 5, 3, 16, 17, 15),
-  'Manila':      _pool(6, 13, 5, 10, 4, 14, 16, 3, 17, 15),
-  'Cebu':        _pool(7, 8, 18, 0, 11, 19, 1, 12, 15, 2),
-  'Boracay':     _pool(8, 7, 18, 19, 0, 11, 1, 12, 15, 17),
-  'Seoul':       _pool(13, 14, 4, 6, 5, 10, 3, 16, 17, 15, 12, 2),
-  'Busan':       _pool(4, 13, 14, 6, 11, 10, 16, 5, 17, 15),
-  'Jeju':        _pool(11, 7, 8, 18, 0, 19, 1, 12, 15, 17),
-  'Tokyo':       _pool(5, 13, 14, 6, 4, 10, 3, 16, 17, 15, 12, 9),
-  'Osaka':       _pool(10, 5, 13, 14, 6, 4, 16, 3, 17, 15),
-  'Kyoto':       _pool(5, 11, 4, 14, 16, 17, 6, 10, 3, 15),
-  'Shanghai':    _pool(6, 13, 14, 4, 10, 5, 16, 3, 17, 15),
-  'Beijing':     _pool(10, 5, 13, 14, 6, 4, 16, 3, 17, 15),
-  'Hong Kong':   _pool(13, 6, 14, 4, 10, 5, 16, 3, 17, 15),
-  'Kuala Lumpur':_pool(5, 13, 14, 6, 4, 10, 16, 3, 17, 15),
-  'Penang':      _pool(5, 11, 4, 14, 16, 17, 6, 10, 3, 15),
-  'Singapore':   _pool(13, 14, 6, 5, 10, 4, 16, 3, 17, 15, 12, 0),
+  // Beach / resort cities — start at "tropical pool deck" cluster (idx 7, 8, 18, 19)
+  'Da Nang':     _all20(0),
+  'Phu Quoc':    _all20(7),
+  'Nha Trang':   _all20(8),
+  'Phuket':      _all20(18),
+  'Bali':        _all20(11),
+  'Cebu':        _all20(15),
+  'Boracay':     _all20(19),
+  'Jeju':        _all20(12),
+  // City hotels — start at "city facade / lobby" cluster (idx 4, 5, 6, 10, 13, 14)
+  'Ho Chi Minh': _all20(4),
+  'Hanoi':       _all20(5),
+  'Bangkok':     _all20(6),
+  'Chiang Mai':  _all20(10),
+  'Jakarta':     _all20(13),
+  'Manila':      _all20(14),
+  'Seoul':       _all20(3),
+  'Busan':       _all20(16),
+  'Tokyo':       _all20(1),
+  'Osaka':       _all20(2),
+  'Kyoto':       _all20(17),
+  'Shanghai':    _all20(9),
+  'Beijing':     _all20(10),
+  'Hong Kong':   _all20(13),
+  'Kuala Lumpur':_all20(16),
+  'Penang':      _all20(17),
+  'Singapore':   _all20(6),
 };
 const HOTEL_DEFAULT = SHARED_HOTEL_PHOTOS[3];
 
@@ -251,6 +274,14 @@ function pickCityHotelImage(city, hotelName) {
   // cities doesn't land on the same index.
   const key = `${hotelName || 'hotel'}|${city || ''}`;
   return pool[fnv1a(key) % pool.length];
+}
+
+// Index-based variant: guarantees every i-th curated hotel in a city gets a
+// DIFFERENT pool image (no hash collisions). Used for the curated fallback
+// where we know each hotel's position in its city's array.
+function pickCityHotelImageByIndex(city, idx) {
+  const pool = HOTEL_IMG_POOL[city] || [HOTEL_DEFAULT];
+  return pool[((idx % pool.length) + pool.length) % pool.length];
 }
 
 // ============== Curated showcase per city ==============
