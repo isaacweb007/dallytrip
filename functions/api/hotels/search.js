@@ -70,24 +70,36 @@ export async function onRequestGet({ request, env }) {
     }));
   } catch (e) { /* swallow and use fallback */ }
 
-  // If live returned nothing, build curated showcase with commission deeplinks
+  // If live returned nothing, build curated showcase with commission deeplinks.
+  // CRITICAL: for each curated hotel, look it up BY NAME in Hotellook so we get
+  // its real hotelId — that's what unlocks the real per-hotel photo. Without
+  // this step every Furama/Sheraton/Pullman/etc. falls back to the same generic
+  // city-pool image (the bug user complained about).
   if (liveResults.length === 0) {
     const showcase = CURATED[city] || CURATED._default(city);
-    liveResults = showcase.map((h, i) => ({
-      id: `tph_curated_${city.toLowerCase().replace(/\s+/g,'_')}_${i}`,
-      hotelId: null,
-      name: h.name,
-      stars: h.stars,
-      location: city,
-      country: COUNTRY_OF[city] || '',
-      price: h.price,
-      currency: 'USD',
-      image: pickCityHotelImage(city, h.name),
-      bookingUrl: withMarker(
-        `https://search.hotellook.com/hotels?destination=${encodeURIComponent(city)}` +
-          `&checkIn=${checkin}&checkOut=${checkout}&adults=${adults}`,
-        MARKER
-      ),
+    liveResults = await Promise.all(showcase.map(async (h, i) => {
+      const realId = await lookupHotelId(h.name, city, TOKEN);
+      return {
+        id: `tph_curated_${city.toLowerCase().replace(/\s+/g,'_')}_${i}`,
+        hotelId: realId || null,
+        name: h.name,
+        stars: h.stars,
+        location: city,
+        country: COUNTRY_OF[city] || '',
+        price: h.price,
+        currency: 'USD',
+        // Per-hotel real photo from Hotellook's CDN when we found a hotelId,
+        // otherwise picked from the per-city HOTEL_IMG_POOL with a well-mixed
+        // hash so different hotel names land on different pool slots.
+        image: realId
+          ? `https://photo.hotellook.com/image_v2/limit/h${realId}_1/800/520.auto`
+          : pickCityHotelImage(city, h.name),
+        bookingUrl: withMarker(
+          `https://search.hotellook.com/hotels?destination=${encodeURIComponent(city)}` +
+            `&checkIn=${checkin}&checkOut=${checkout}&adults=${adults}`,
+          MARKER
+        ),
+      };
     }));
   }
 
@@ -97,6 +109,27 @@ export async function onRequestGet({ request, env }) {
     count: liveResults.length,
     results: liveResults,
   });
+}
+
+// Resolve a curated hotel name to its real Hotellook ID so we can pull the
+// REAL photo of that specific hotel (not a generic city stock shot).
+// Returns null on any failure; caller falls back to the pool image.
+async function lookupHotelId(hotelName, city, token) {
+  if (!hotelName || !token) return null;
+  try {
+    const lu = new URL('https://engine.hotellook.com/api/v2/lookup.json');
+    // Including the city in the query disambiguates same-name properties (e.g.
+    // there are many "Marriott"s). lookFor=hotel skips location/airport noise.
+    lu.searchParams.set('query', `${hotelName} ${city}`);
+    lu.searchParams.set('lang', 'en');
+    lu.searchParams.set('lookFor', 'hotel');
+    lu.searchParams.set('limit', '1');
+    lu.searchParams.set('token', token);
+    const data = await fetch(lu.toString()).then(safeJson);
+    return data?.results?.hotels?.[0]?.id || null;
+  } catch {
+    return null;
+  }
 }
 
 async function safeJson(res) {
@@ -109,133 +142,87 @@ function defaultDate(addDays) {
   return d.toISOString().slice(0, 10);
 }
 
-// ============== Per-city HOTEL image pools ==============
-// Each pool only contains hotel/resort/villa shots (not generic city landscapes),
-// so even when Hotellook doesn't return a hotelId, the showcase card looks like
-// an actual hotel for that destination. Stable hash of hotelName picks one.
+// ============== HOTEL image pools (fallback only) ==============
+// Used ONLY when Hotellook lookup-by-name fails to find a real hotelId. Each
+// city has 12+ distinct resort/villa/hotel photos so the FNV-1a hash spreads
+// neighboring hotel names across visibly different images even when the lookup
+// path can't be used.
+//
+// Shared photo bucket — varied resort/villa/hotel/lobby shots. Per-city pools
+// reference these by index so we don't repeat URL strings 25 times.
+const SHARED_HOTEL_PHOTOS = [
+  'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=900&q=70&auto=format&fit=crop', //  0 villa pool palms
+  'https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=900&q=70&auto=format&fit=crop', //  1 wood deck sunset
+  'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=900&q=70&auto=format&fit=crop', //  2 modern hotel room
+  'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=900&q=70&auto=format&fit=crop', //  3 hotel hallway
+  'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=900&q=70&auto=format&fit=crop', //  4 hotel exterior dusk
+  'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=900&q=70&auto=format&fit=crop', //  5 boutique lobby
+  'https://images.unsplash.com/photo-1551918120-9739cb430c6d?w=900&q=70&auto=format&fit=crop', //  6 city hotel facade
+  'https://images.unsplash.com/photo-1540541338287-41700207dee6?w=900&q=70&auto=format&fit=crop', //  7 overwater villa
+  'https://images.unsplash.com/photo-1602002418816-5c0aeef426aa?w=900&q=70&auto=format&fit=crop', //  8 tropical pool deck
+  'https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?w=900&q=70&auto=format&fit=crop', //  9 boutique room
+  'https://images.unsplash.com/photo-1606402179428-a57976d71fa4?w=900&q=70&auto=format&fit=crop', // 10 atrium lobby
+  'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=900&q=70&auto=format&fit=crop', // 11 mountain resort
+  'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=900&q=70&auto=format&fit=crop', // 12 luxury bedroom
+  'https://images.unsplash.com/photo-1455587734955-081b22074882?w=900&q=70&auto=format&fit=crop', // 13 city skyline hotel
+  'https://images.unsplash.com/photo-1445019980597-93fa8acb246c?w=900&q=70&auto=format&fit=crop', // 14 grand entrance
+  'https://images.unsplash.com/photo-1559599101-f09722fb4948?w=900&q=70&auto=format&fit=crop', // 15 modern suite
+  'https://images.unsplash.com/photo-1444201983204-c43cbd584d93?w=900&q=70&auto=format&fit=crop', // 16 boutique facade
+  'https://images.unsplash.com/photo-1551776235-dde6d4829808?w=900&q=70&auto=format&fit=crop', // 17 design hotel
+  'https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=900&q=70&auto=format&fit=crop', // 18 infinity pool
+  'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=900&q=70&auto=format&fit=crop', // 19 beach resort
+];
+
+// Per-city pools — each city picks a different subset/order from SHARED_HOTEL_PHOTOS
+// so visually similar properties don't pile up on the same shot. Order also
+// matters because we hash → index, so different orderings give different distributions.
+function _pool(...indices) { return indices.map(i => SHARED_HOTEL_PHOTOS[i]); }
 const HOTEL_IMG_POOL = {
-  'Da Nang':[
-    'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=900&q=70&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=900&q=70&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=900&q=70&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=900&q=70&auto=format&fit=crop',
-  ],
-  'Phu Quoc':[
-    'https://images.unsplash.com/photo-1540541338287-41700207dee6?w=900&q=70&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1602002418816-5c0aeef426aa?w=900&q=70&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?w=900&q=70&auto=format&fit=crop',
-  ],
-  'Nha Trang':[
-    'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=900&q=70&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=900&q=70&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=900&q=70&auto=format&fit=crop',
-  ],
-  'Ho Chi Minh':[
-    'https://images.unsplash.com/photo-1606402179428-a57976d71fa4?w=900&q=70&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1551918120-9739cb430c6d?w=900&q=70&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=900&q=70&auto=format&fit=crop',
-  ],
-  'Hanoi':[
-    'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=900&q=70&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1551918120-9739cb430c6d?w=900&q=70&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1606402179428-a57976d71fa4?w=900&q=70&auto=format&fit=crop',
-  ],
-  'Bangkok':[
-    'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=900&q=70&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=900&q=70&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1551918120-9739cb430c6d?w=900&q=70&auto=format&fit=crop',
-  ],
-  'Phuket':[
-    'https://images.unsplash.com/photo-1540541338287-41700207dee6?w=900&q=70&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=900&q=70&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1602002418816-5c0aeef426aa?w=900&q=70&auto=format&fit=crop',
-  ],
-  'Chiang Mai':[
-    'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=900&q=70&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=900&q=70&auto=format&fit=crop',
-  ],
-  'Bali':[
-    'https://images.unsplash.com/photo-1540541338287-41700207dee6?w=900&q=70&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=900&q=70&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=900&q=70&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1602002418816-5c0aeef426aa?w=900&q=70&auto=format&fit=crop',
-  ],
-  'Jakarta':[
-    'https://images.unsplash.com/photo-1551918120-9739cb430c6d?w=900&q=70&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=900&q=70&auto=format&fit=crop',
-  ],
-  'Manila':[
-    'https://images.unsplash.com/photo-1551918120-9739cb430c6d?w=900&q=70&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=900&q=70&auto=format&fit=crop',
-  ],
-  'Cebu':[
-    'https://images.unsplash.com/photo-1540541338287-41700207dee6?w=900&q=70&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=900&q=70&auto=format&fit=crop',
-  ],
-  'Boracay':[
-    'https://images.unsplash.com/photo-1602002418816-5c0aeef426aa?w=900&q=70&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1540541338287-41700207dee6?w=900&q=70&auto=format&fit=crop',
-  ],
-  'Seoul':[
-    'https://images.unsplash.com/photo-1551918120-9739cb430c6d?w=900&q=70&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=900&q=70&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=900&q=70&auto=format&fit=crop',
-  ],
-  'Busan':[
-    'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=900&q=70&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=900&q=70&auto=format&fit=crop',
-  ],
-  'Jeju':[
-    'https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=900&q=70&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1540541338287-41700207dee6?w=900&q=70&auto=format&fit=crop',
-  ],
-  'Tokyo':[
-    'https://images.unsplash.com/photo-1551918120-9739cb430c6d?w=900&q=70&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=900&q=70&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=900&q=70&auto=format&fit=crop',
-  ],
-  'Osaka':[
-    'https://images.unsplash.com/photo-1606402179428-a57976d71fa4?w=900&q=70&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=900&q=70&auto=format&fit=crop',
-  ],
-  'Kyoto':[
-    'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=900&q=70&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=900&q=70&auto=format&fit=crop',
-  ],
-  'Shanghai':[
-    'https://images.unsplash.com/photo-1551918120-9739cb430c6d?w=900&q=70&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=900&q=70&auto=format&fit=crop',
-  ],
-  'Beijing':[
-    'https://images.unsplash.com/photo-1606402179428-a57976d71fa4?w=900&q=70&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=900&q=70&auto=format&fit=crop',
-  ],
-  'Hong Kong':[
-    'https://images.unsplash.com/photo-1551918120-9739cb430c6d?w=900&q=70&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=900&q=70&auto=format&fit=crop',
-  ],
-  'Kuala Lumpur':[
-    'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=900&q=70&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=900&q=70&auto=format&fit=crop',
-  ],
-  'Penang':[
-    'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=900&q=70&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=900&q=70&auto=format&fit=crop',
-  ],
-  'Singapore':[
-    'https://images.unsplash.com/photo-1551918120-9739cb430c6d?w=900&q=70&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=900&q=70&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=900&q=70&auto=format&fit=crop',
-  ],
+  'Da Nang':     _pool(0, 8, 7, 11, 2, 18, 19, 1, 12, 15, 17, 14),
+  'Phu Quoc':    _pool(7, 8, 0, 18, 19, 11, 1, 12, 15, 2),
+  'Nha Trang':   _pool(0, 7, 8, 19, 18, 11, 12, 2, 15, 17),
+  'Ho Chi Minh': _pool(4, 6, 10, 13, 14, 5, 3, 16, 17, 15),
+  'Hanoi':       _pool(5, 6, 10, 14, 4, 13, 16, 3, 17, 15),
+  'Bangkok':     _pool(13, 5, 6, 10, 14, 4, 16, 17, 3, 15, 12, 0),
+  'Phuket':      _pool(7, 0, 8, 18, 19, 11, 1, 12, 15, 17),
+  'Chiang Mai':  _pool(11, 5, 4, 6, 16, 17, 14, 3, 10, 15),
+  'Bali':        _pool(7, 0, 8, 11, 18, 19, 1, 12, 15, 17, 14, 2, 9, 5),
+  'Jakarta':     _pool(6, 13, 14, 10, 4, 5, 3, 16, 17, 15),
+  'Manila':      _pool(6, 13, 5, 10, 4, 14, 16, 3, 17, 15),
+  'Cebu':        _pool(7, 8, 18, 0, 11, 19, 1, 12, 15, 2),
+  'Boracay':     _pool(8, 7, 18, 19, 0, 11, 1, 12, 15, 17),
+  'Seoul':       _pool(13, 14, 4, 6, 5, 10, 3, 16, 17, 15, 12, 2),
+  'Busan':       _pool(4, 13, 14, 6, 11, 10, 16, 5, 17, 15),
+  'Jeju':        _pool(11, 7, 8, 18, 0, 19, 1, 12, 15, 17),
+  'Tokyo':       _pool(5, 13, 14, 6, 4, 10, 3, 16, 17, 15, 12, 9),
+  'Osaka':       _pool(10, 5, 13, 14, 6, 4, 16, 3, 17, 15),
+  'Kyoto':       _pool(5, 11, 4, 14, 16, 17, 6, 10, 3, 15),
+  'Shanghai':    _pool(6, 13, 14, 4, 10, 5, 16, 3, 17, 15),
+  'Beijing':     _pool(10, 5, 13, 14, 6, 4, 16, 3, 17, 15),
+  'Hong Kong':   _pool(13, 6, 14, 4, 10, 5, 16, 3, 17, 15),
+  'Kuala Lumpur':_pool(5, 13, 14, 6, 4, 10, 16, 3, 17, 15),
+  'Penang':      _pool(5, 11, 4, 14, 16, 17, 6, 10, 3, 15),
+  'Singapore':   _pool(13, 14, 6, 5, 10, 4, 16, 3, 17, 15, 12, 0),
 };
-const HOTEL_DEFAULT = 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=900&q=70&auto=format&fit=crop';
+const HOTEL_DEFAULT = SHARED_HOTEL_PHOTOS[3];
+
+// FNV-1a 32-bit — much better avalanche than the old "h*31+c" so similar
+// hotel names ("Da Nang Marriott" / "Da Nang Hyatt") land far apart in the pool.
+function fnv1a(str) {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  return h >>> 0;
+}
 
 function pickCityHotelImage(city, hotelName) {
   const pool = HOTEL_IMG_POOL[city] || [HOTEL_DEFAULT];
-  const name = hotelName || city || 'hotel';
-  let h = 0;
-  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) | 0;
-  return pool[Math.abs(h) % pool.length];
+  // Mix hotel name AND city into the hash so the same brand name in different
+  // cities doesn't land on the same index.
+  const key = `${hotelName || 'hotel'}|${city || ''}`;
+  return pool[fnv1a(key) % pool.length];
 }
 
 // ============== Curated showcase per city ==============
