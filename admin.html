@@ -105,7 +105,10 @@ function loginPage() {
     <div class="glass-panel" style="width:100%; max-width:420px; padding:36px;">
       <div class="row space-between items-center">
         <a class="brand" href="./index.html">
-          <span class="brand-logo">D</span>
+          <span class="brand-logo">
+            <img src="./assets/character.png" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='grid';" />
+            <span class="char-fallback" style="display:none;">💵</span>
+          </span>
           <span>${t('admin.brand')}</span>
         </a>
         <span data-dt-lang-mount></span>
@@ -141,7 +144,10 @@ function shell(path, content) {
   <div class="admin-shell">
     <aside class="admin-side">
       <a class="brand" href="#/dashboard">
-        <span class="brand-logo">D</span>
+        <span class="brand-logo">
+          <img src="./assets/character.png" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='grid';" />
+          <span class="char-fallback" style="display:none;">💵</span>
+        </span>
         <span>DallyTrip</span>
       </a>
       <nav class="mt-16">
