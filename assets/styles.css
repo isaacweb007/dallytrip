@@ -1206,6 +1206,45 @@ select.glass-input { appearance: none; padding-right: 40px; background-image: ur
   .bottom-nav a { font-size: 9px; }
 }
 
+/* ========== Modal (Coming Soon, etc.) ========== */
+.dt-modal-backdrop {
+  position: fixed; inset: 0;
+  z-index: 1100;
+  background: rgba(15, 32, 48, 0.55);
+  backdrop-filter: blur(8px);
+  display: grid; place-items: center;
+  padding: 20px;
+  animation: pageIn 220ms ease-out;
+}
+.dt-modal {
+  width: 100%; max-width: 440px;
+  padding: 28px 24px 20px;
+  position: relative;
+  background: rgba(255,255,255,0.95) !important;
+  border-radius: 28px;
+  box-shadow: 0 40px 80px rgba(15,32,48,0.40);
+}
+.dt-modal-close {
+  position: absolute; top: 12px; right: 12px;
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(0,0,0,0.05); border: 0;
+  font-size: 22px; line-height: 1; cursor: pointer;
+  display: grid; place-items: center;
+}
+.dt-modal-close:hover { background: rgba(0,0,0,0.10); }
+
+/* "Coming Soon" pill used on price-rows and CTAs */
+.coming-soon-pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  height: 22px; padding: 0 10px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(255,138,61,0.18), rgba(255,203,87,0.18));
+  border: 1px solid rgba(255,138,61,0.35);
+  color: var(--travel-orange);
+  font-size: 10px; font-weight: 800; letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
 /* ========== Skeleton shimmer ========== */
 .shimmer { background: linear-gradient(90deg, rgba(255,255,255,0.4), rgba(255,255,255,0.8), rgba(255,255,255,0.4)); background-size: 200% 100%; animation: shimmer 1.4s linear infinite; }
 @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }

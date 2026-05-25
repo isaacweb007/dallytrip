@@ -260,6 +260,137 @@ const LIVE_IMG = {
   car:       'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=900&auto=format&fit=crop&q=70',
   activity:  'https://images.unsplash.com/photo-1580974511812-2c4c8ddf2456?w=900&auto=format&fit=crop&q=70',
 };
+// City → POOL of hero images (Unsplash). Each card cycles through this pool
+// so the same city gets visually different cards.
+const CITY_IMG_POOL = {
+  'Da Nang': [
+    'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1528127269322-539801943592?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1602002418816-5c0aeef426aa?w=900&q=70&auto=format&fit=crop',
+  ],
+  'Nha Trang': [
+    'https://images.unsplash.com/photo-1571175443880-49e1d25b2bc5?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1559668533-1727b9d8d2dc?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1559625481-3c4fcc0e1b14?w=900&q=70&auto=format&fit=crop',
+  ],
+  'Phu Quoc': [
+    'https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1539020140153-e479b8c22e70?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=900&q=70&auto=format&fit=crop',
+  ],
+  'Ho Chi Minh': [
+    'https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1583417267826-aebc4d1542e1?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1572727937094-fdab063aaf7c?w=900&q=70&auto=format&fit=crop',
+  ],
+  'Hanoi': [
+    'https://images.unsplash.com/photo-1528127269322-539801943592?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1509030450996-dd1a26dda07a?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1583417267826-aebc4d1542e1?w=900&q=70&auto=format&fit=crop',
+  ],
+  'Bangkok': [
+    'https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1563492065599-3520f775eeed?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1552465011-b4e21bf6e79a?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1528181304800-259b08848526?w=900&q=70&auto=format&fit=crop',
+  ],
+  'Phuket': [
+    'https://images.unsplash.com/photo-1589394815804-964ed0be2eb5?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1601661369557-25a0aec78c69?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1554310603-d39d43033735?w=900&q=70&auto=format&fit=crop',
+  ],
+  'Chiang Mai': [
+    'https://images.unsplash.com/photo-1598935898639-81586f7d2129?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1583309217394-d28e62e3ed24?w=900&q=70&auto=format&fit=crop',
+  ],
+  'Bali': [
+    'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1518548419970-58e3b4079ab2?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1573790387438-4da905039392?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1604999333679-b86d54738315?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1554995207-c18c203602cb?w=900&q=70&auto=format&fit=crop',
+  ],
+  'Jakarta': [
+    'https://images.unsplash.com/photo-1555899434-94d1368aa7af?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1582719188393-bb71ca45dbb9?w=900&q=70&auto=format&fit=crop',
+  ],
+  'Manila': [
+    'https://images.unsplash.com/photo-1518509562904-e7ef99cddc85?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1597009535878-1de7c5e2c69d?w=900&q=70&auto=format&fit=crop',
+  ],
+  'Cebu': [
+    'https://images.unsplash.com/photo-1518002054494-3a6f94352e9d?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1518509562904-e7ef99cddc85?w=900&q=70&auto=format&fit=crop',
+  ],
+  'Boracay': [
+    'https://images.unsplash.com/photo-1518509562904-e7ef99cddc85?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1518002054494-3a6f94352e9d?w=900&q=70&auto=format&fit=crop',
+  ],
+  'Seoul': [
+    'https://images.unsplash.com/photo-1538485399081-7c8970f1d0c1?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1517154421773-0529f29ea451?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1546874177-9e664107314e?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1601850494422-3cf14624b0b3?w=900&q=70&auto=format&fit=crop',
+  ],
+  'Busan': [
+    'https://images.unsplash.com/photo-1583266219671-2c1bb0bba4c0?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1567416661576-d8a7c2cb1845?w=900&q=70&auto=format&fit=crop',
+  ],
+  'Jeju': [
+    'https://images.unsplash.com/photo-1605457867610-e990b283f7e6?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1538485399081-7c8970f1d0c1?w=900&q=70&auto=format&fit=crop',
+  ],
+  'Tokyo': [
+    'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1503899036084-c55cdd92da26?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1542931287-023b922fa89b?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1554797589-7241bb691973?w=900&q=70&auto=format&fit=crop',
+  ],
+  'Osaka': [
+    'https://images.unsplash.com/photo-1590559899731-a382839e5549?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1531259736207-4dde2bfc9e83?w=900&q=70&auto=format&fit=crop',
+  ],
+  'Kyoto': [
+    'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=900&q=70&auto=format&fit=crop',
+  ],
+  'Shanghai': [
+    'https://images.unsplash.com/photo-1474181487882-5abf3f0ba6c2?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1538428494232-9c0d8a3ab1ad?w=900&q=70&auto=format&fit=crop',
+  ],
+  'Beijing': [
+    'https://images.unsplash.com/photo-1547981609-4b6bfe67ca0b?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1505765050516-f72dcac9c60e?w=900&q=70&auto=format&fit=crop',
+  ],
+  'Hong Kong': [
+    'https://images.unsplash.com/photo-1536599018102-9f803c140fc1?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1576675784201-0e142b423952?w=900&q=70&auto=format&fit=crop',
+  ],
+  'Kuala Lumpur': [
+    'https://images.unsplash.com/photo-1596422846543-75c6fc197f07?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1518509562904-e7ef99cddc85?w=900&q=70&auto=format&fit=crop',
+  ],
+  'Penang': [
+    'https://images.unsplash.com/photo-1594388572748-ce4d2d59b91b?w=900&q=70&auto=format&fit=crop',
+  ],
+  'Singapore': [
+    'https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1565967511849-76a60a516170?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1567360425618-1594206637d2?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1542114740389-9b46fb1e5be7?w=900&q=70&auto=format&fit=crop',
+  ],
+};
+// Pick city image by stable index (hash of name) → same name always same photo
+function cityImg(city, name) {
+  const pool = CITY_IMG_POOL[city] || [LIVE_IMG.hotel];
+  if (pool.length === 1 || !name) return pool[0];
+  let h = 0; for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) | 0;
+  return pool[Math.abs(h) % pool.length];
+}
+
 // City → hero image map (Unsplash) + country lookup
 const LIVE_CITY_IMG = {
   // Vietnam
@@ -322,18 +453,27 @@ async function fetchJsonSafe(url) {
 
 function normalizeHotel(h, city) {
   const cityName = h.location || city || 'Da Nang';
+  const hotelName = h.name || `${cityName} Hotel`;
+  // If Hotellook gave us a hotelId, use its real photo CDN; else cycle the city pool
+  let img;
+  if (h.hotelId) {
+    img = `https://photo.hotellook.com/image_v2/limit/h${h.hotelId}_1/800/520.auto`;
+  } else {
+    img = cityImg(cityName, hotelName);
+  }
   return {
-    id: `live_h_${h.hotelId || h.id || Math.random().toString(36).slice(2,8)}`,
+    id: `live_h_${h.hotelId || hotelName.replace(/\s+/g,'_').toLowerCase().slice(0,40)}`,
     source: 'live',
     cat: 'Hotel',
     country: h.country || COUNTRY_OF_CITY[cityName] || 'Vietnam',
     city: cityName,
-    name: h.name || `${cityName} Hotel`,
+    name: hotelName,
     priceUSD: Number(h.price || 0),
     price: usdToToken(h.price || 0),                       // $1 token price (USD ÷ 3)
     rating: h.stars || 4.5,
     reviews: Math.floor(50 + Math.random() * 800),
-    img: LIVE_CITY_IMG[cityName] || LIVE_IMG.hotel,
+    img,
+    imgFallback: cityImg(cityName, hotelName),
     desc: `Curated stay in ${cityName}. Booked via Travelpayouts partners.`,
     included: ['Standard amenities', 'Free cancellation per partner policy'],
     excluded: ['City tax', 'Tips'],
@@ -387,7 +527,7 @@ function normalizeCar(c, city) {
     priceUSD: Number(c.price || 0),
     price: usdToToken(c.price || 0),
     rating: 4.7, reviews: Math.floor(60 + Math.random() * 400),
-    img: LIVE_IMG.car,
+    img: cityImg(city, c.model || c.type) || LIVE_IMG.car,
     desc: `${c.type} rental from ${c.supplier}. ${c.transmission} transmission, seats ${c.seats}.`,
     included: ['Rental car', 'Insurance options at checkout'],
     excluded: ['Fuel', 'Extras'],
@@ -409,7 +549,7 @@ function normalizeActivity(a) {
     price: usdToToken(a.price || 0),
     rating: a.rating || 4.7,
     reviews: a.reviews || 0,
-    img: LIVE_CITY_IMG[a.city] || LIVE_IMG.activity,
+    img: cityImg(cityName, a.name) || LIVE_IMG.activity,
     desc: a.name,
     included: ['Entry / ticket', 'Skip-the-line (where applicable)'],
     excluded: ['Transport', 'Meals'],
@@ -660,9 +800,10 @@ function productCard(p) {
   }
 
   const priceUnitLabel = isLive ? 'USD' : '$1';
+  const fallback = p.imgFallback || cityImg(p.city, p.name) || p.img;
   return `
   <a class="product-card" href="#/product/${p.id}">
-    <div class="img" style="background-image:url('${p.img}')">
+    <div class="img" style="background-image:url('${p.img}'),url('${fallback}')">
       <span class="badge badge-on-image">${t('cat.'+p.cat)}</span>
       <button class="like" onclick="event.preventDefault();event.stopPropagation();toast(t('toast.favorite'))">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FF8A3D" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
@@ -1088,8 +1229,13 @@ function pageProduct(id) {
           ? `<a class="btn btn-warning btn-block btn-lg mt-16" href="${escapeHtml(p.bookingUrl || '#')}" target="_blank" rel="nofollow sponsored noopener">
                🌐 ${({en:'Book on partner',ko:'외부에서 예약하기',ja:'パートナーで予約',zh:'去合作伙伴预订'})[window.__DT_LANG||'ko'] || '외부에서 예약하기'} →
              </a>
-             <p class="t-small t-muted text-center mt-8">via Travelpayouts · commission tracked</p>`
-          : `<button class="btn btn-primary btn-block btn-lg mt-16" onclick="proceedCheckout('${p.id}')">${t('btn.payWithDollar')}</button>
+             <p class="t-small t-muted text-center mt-8">via Travelpayouts · commission tracked</p>
+             <button class="btn btn-secondary btn-block mt-12" onclick="showPaymentSoonModal(getCatalog().find(x=>x.id==='${p.id}'))">
+               🪙 ${t('btn.payWithDollar')} <span class="coming-soon-pill" style="margin-left:6px;">Coming Soon</span>
+             </button>`
+          : `<button class="btn btn-primary btn-block btn-lg mt-16" onclick="proceedCheckout('${p.id}')">
+               ${t('btn.payWithDollar')} <span class="coming-soon-pill" style="margin-left:8px;background:rgba(255,255,255,0.30);color:#fff;border-color:rgba(255,255,255,0.4);">Coming Soon</span>
+             </button>
              <p class="t-small t-muted text-center mt-8">${t('app.product.networkNote')}</p>`
         }
 
@@ -1347,15 +1493,74 @@ function pageProfile() {
 }
 
 // ================= Actions =================
+// $1 token payment is COMING SOON. For now we surface a Coming-Soon modal +
+// the affiliate booking link (partner site, real bookings + commission tracking).
 function proceedCheckout(productId) {
-  const p = PRODUCTS.find(x => x.id === productId);
-  const units = parseInt(document.getElementById('b_adults')?.value || '2');
-  const date = document.getElementById('b_date')?.value || '2026-06-12';
-  const total = p.price * units;
-  state.cart = { product: p, total, units, date };
-  saveState();
-  location.hash = '#/checkout';
+  const p = (typeof getCatalog === 'function' ? getCatalog() : PRODUCTS).find(x => x.id === productId);
+  if (!p) return;
+  showPaymentSoonModal(p);
 }
+
+function showPaymentSoonModal(p) {
+  const isFlight = p.cat === 'Flight';
+  const isTransport = p.cat === 'Transport' || p.cat === 'Pickup';
+  const isHotel = p.cat === 'Hotel';
+  const sub = `dt_${p.id}`;
+  let partnerUrl = p.bookingUrl;
+  if (!partnerUrl) {
+    if (isFlight)         partnerUrl = tpDeeplink('flight',   { from:p.fromCode, to:p.toCode, date:'2026-06-12', adults:2, subId:sub });
+    else if (isHotel)     partnerUrl = tpDeeplink('hotel',    { city:p.city, checkin:'2026-06-12', checkout:'2026-06-14', adults:2, subId:sub });
+    else if (isTransport) partnerUrl = tpDeeplink('car',      { city:p.city, pickup:'2026-06-12', dropoff:'2026-06-13', subId:sub });
+    else                  partnerUrl = tpDeeplink('activity', { city:p.city, q:p.name, subId:sub });
+  }
+  const lang = (window.__DT_LANG || 'ko');
+  const L = {
+    title:   { ko:'$1 토큰 결제는 곧 오픈됩니다', en:'$1 Token payment is coming soon', ja:'$1トークン決済は近日公開', zh:'$1 代币支付即将上线' },
+    desc:    { ko:'지금은 외부 파트너에서 예약하실 수 있어요. 결제·예약 흐름이 완성되는 대로 알림드릴게요.', en:'For now you can book on a partner site. We\'ll notify you once $1 checkout opens.', ja:'現在は提携先で予約可能。$1決済が公開され次第お知らせします。', zh:'目前可在合作伙伴网站预订。$1 结账上线后会通知您。' },
+    partner: { ko:'외부 파트너에서 예약하기', en:'Book on partner site', ja:'パートナーで予約', zh:'前往合作伙伴预订' },
+    close:   { ko:'닫기', en:'Close', ja:'閉じる', zh:'关闭' },
+    notify:  { ko:'오픈 시 알림 받기', en:'Notify me on launch', ja:'公開時に通知', zh:'上线时通知我' },
+  };
+  const modal = document.createElement('div');
+  modal.className = 'dt-modal-backdrop';
+  modal.innerHTML = `
+    <div class="dt-modal glass-card" role="dialog" aria-modal="true">
+      <button class="dt-modal-close" onclick="this.closest('.dt-modal-backdrop').remove()" aria-label="Close">×</button>
+      <div style="font-size:48px;text-align:center;line-height:1;">🪙</div>
+      <h3 class="h3 mt-16 text-center">${L.title[lang] || L.title.en}</h3>
+      <p class="t-muted mt-8 text-center">${L.desc[lang] || L.desc.en}</p>
+      <div class="glass-card tight mt-16" style="padding:14px;">
+        <div class="row gap-12 items-center">
+          <div style="width:56px;height:56px;border-radius:14px;background:url('${p.img}') center/cover; flex-shrink:0;"></div>
+          <div style="flex:1; min-width:0;">
+            <div class="t-small t-muted" style="font-weight:700;">${trCountry(p.country)} · ${trCity(p.city)}</div>
+            <div style="font-weight:800; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">${escapeHtml(p.name)}</div>
+            <div style="font-weight:800; color:var(--token-green);">${fmtToken(p.price)} <span style="font-size:11px;">$1</span></div>
+          </div>
+        </div>
+      </div>
+      <a class="btn btn-primary btn-block btn-lg mt-16" href="${escapeHtml(partnerUrl)}" target="_blank" rel="nofollow sponsored noopener" onclick="setTimeout(()=>this.closest('.dt-modal-backdrop').remove(), 400)">
+        🌐 ${L.partner[lang] || L.partner.en} →
+      </a>
+      <button class="btn btn-ghost btn-block mt-8" onclick="dtNotifyMe('${p.id}')">${L.notify[lang] || L.notify.en}</button>
+      <button class="btn btn-ghost btn-block mt-8" onclick="this.closest('.dt-modal-backdrop').remove()">${L.close[lang] || L.close.en}</button>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+}
+window.showPaymentSoonModal = showPaymentSoonModal;
+
+function dtNotifyMe(productId) {
+  const subs = JSON.parse(localStorage.getItem('dt_notify') || '[]');
+  if (!subs.includes(productId)) {
+    subs.push(productId);
+    localStorage.setItem('dt_notify', JSON.stringify(subs));
+  }
+  toast(({ ko:'$1 결제 오픈 시 알려드릴게요', en:'We\'ll notify you on launch', ja:'公開時に通知します', zh:'上线时会通知您' })[window.__DT_LANG||'ko'] || 'Notify saved');
+  document.querySelector('.dt-modal-backdrop')?.remove();
+}
+window.dtNotifyMe = dtNotifyMe;
 window.proceedCheckout = proceedCheckout;
 window.connectWallet = connectWallet;
 window.disconnectWallet = disconnectWallet;
