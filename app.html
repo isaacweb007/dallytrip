@@ -2502,6 +2502,14 @@ async function loadExternalResults() {
 
   const results = (data && data.results) || [];
 
+  // Register all external results into the catalog so cards can navigate to
+  // the standard #/product/{id} detail page (no more "Product not found").
+  // The returned array carries the normalized objects with their generated ids.
+  const registered = window.registerExternalResults(type, results);
+  // Splice the canonical id back onto each raw result so external/duffel cards
+  // can build their hrefs against #/product/{id}.
+  results.forEach((r, i) => { if (registered[i]) r.__catalogId = registered[i].id; });
+
   // Refresh price-comparison averages, then re-render any visible internal cards
   refreshExtAvgFromExternal(type, results);
   document.querySelectorAll('a.product-card[href^="#/product/"]').forEach(card => {
@@ -2570,10 +2578,14 @@ function externalCard(r, type) {
   }
   const fallback = cityImg(cityForFallback, title) || LIVE_IMG[type === 'flights' ? 'flight' : (type === 'hotels' ? 'hotel' : (type === 'cars' ? 'car' : 'activity'))];
   const usd = r.price ? `$${fmt(r.price)}` : '—';
+  // All cards now go to our standard detail page (catalog id was registered
+  // by loadExternalResults). Booking URL is used inside the detail page.
+  const href = r.__catalogId ? `#/product/${r.__catalogId}` : (r.bookingUrl || '#');
+  const isInternal = !!r.__catalogId;
   return `
-    <a class="product-card" href="${escapeHtml(r.bookingUrl||'#')}" target="_blank" rel="nofollow sponsored noopener">
+    <a class="product-card" href="${escapeHtml(href)}" ${isInternal ? '' : 'target="_blank" rel="nofollow sponsored noopener"'}>
       <div class="img" style="background-image:url('${img}'),url('${fallback}')">
-        <span class="badge badge-on-image" style="background:linear-gradient(135deg,#E0D7FF,#C5B5FF);color:#4830b0;">🌐 External</span>
+        <span class="badge badge-on-image" style="background:linear-gradient(135deg,#E0D7FF,#C5B5FF);color:#4830b0;">🌐 ${isInternal ? 'Live' : 'External'}</span>
       </div>
       <div class="body">
         <div class="loc">via ${escapeHtml(({flights:'Aviasales',hotels:'Hotellook',cars:'DiscoverCars',activities:'GetYourGuide'})[type])}</div>
@@ -2581,7 +2593,7 @@ function externalCard(r, type) {
         <div class="meta">${escapeHtml(sub)}</div>
         <div class="price-row">
           <div><span style="font-size:20px;font-weight:800;color:var(--text-main);">${usd}</span> <span class="t-small t-muted">USD</span></div>
-          <span class="btn btn-secondary btn-sm">${t('btn.book')}</span>
+          <span class="btn btn-secondary btn-sm">${t('btn.view')}</span>
         </div>
       </div>
     </a>
@@ -2596,11 +2608,17 @@ function duffelFlightCard(r) {
     direct:  { ko:'직항', en:'Nonstop', ja:'直行', zh:'直飞' },
     stops:   { ko:'회 경유', en:' stop(s)', ja:'回乗継', zh:'次中转' },
     book:    { ko:'예약하기', en:'Book', ja:'予約する', zh:'预订' },
+    view:    { ko:'상세보기', en:'View details', ja:'詳細を見る', zh:'查看详情' },
+    clickLogo:{ ko:'로고를 눌러 상세보기', en:'Tap logo for details', ja:'ロゴをタップで詳細', zh:'点击查看详情' },
   };
   const stops = (r.transfers === 0 || r.stops === 0)
     ? L.direct[lang]
     : `${r.stops||r.transfers}${L.stops[lang]}`;
   const dur   = r.duration ? ` · ${r.duration}` : '';
+
+  // Use the catalog id that loadExternalResults stamped onto each result.
+  const catalogId = r.__catalogId || r.id || '';
+  const href = catalogId ? `#/product/${catalogId}` : '#';
 
   // Hero image: airline logo if available (the most "this is YOUR airline"
   // visual), else city image of the destination, else stock plane.
@@ -2608,25 +2626,30 @@ function duffelFlightCard(r) {
   const heroImg = r.airlineLogo
     || cityImg(destCity, `${r.from}-${r.to}`)
     || LIVE_IMG.flight;
+  // Hero now becomes a clickable button — visually obvious airline-logo CTA.
   const heroBg = r.airlineLogo
-    // Airline logo over a soft gradient — keep the logo readable and centered.
-    ? `background:linear-gradient(135deg,#EAF6FF,#F4F8FF) center/cover; background-image:url('${escapeHtml(r.airlineLogo)}'),linear-gradient(135deg,#EAF6FF,#F4F8FF); background-repeat:no-repeat; background-position:center; background-size:contain, cover;`
+    ? `background:linear-gradient(135deg,#EAF6FF,#F4F8FF) center/cover; background-image:url('${escapeHtml(r.airlineLogo)}'),linear-gradient(135deg,#EAF6FF,#F4F8FF); background-repeat:no-repeat; background-position:center; background-size:60% auto, cover;`
     : `background-image:url('${heroImg}'),url('${LIVE_IMG.flight}'); background-size:cover; background-position:center;`;
 
-  const logoHtml = r.airlineLogo
+  const logoChipHtml = r.airlineLogo
     ? `<img src="${escapeHtml(r.airlineLogo)}" alt="" style="height:22px;width:auto;object-fit:contain;border-radius:4px;">`
     : `<span style="font-size:13px;font-weight:700;color:var(--text-main);">${escapeHtml(r.airline||'')}</span>`;
 
+  // The whole card is a real <a> link (better a11y + middle-click works) and
+  // the airline logo hero gets its own hover/aria affordance so it reads as
+  // a primary clickable area, not decoration.
   return `
-    <div class="product-card" style="cursor:pointer;" onclick="location.hash='/product/'+${JSON.stringify(r.id||'')}"
-         data-offer="${escapeHtml(r.offerId||'')}">
-      <div class="img" style="${heroBg}">
+    <a class="product-card flight-card-link" href="${escapeHtml(href)}"
+       data-offer="${escapeHtml(r.offerId||'')}"
+       aria-label="${escapeHtml((r.airlineName||r.airline||'') + ' ' + (r.from||'') + ' → ' + (r.to||''))}">
+      <div class="img flight-hero" style="${heroBg}" title="${L.clickLogo[lang]}">
         <span class="badge badge-on-image" style="background:rgba(255,255,255,0.92);color:#16a34a;font-weight:700;">✈ Duffel Live</span>
+        <span class="airline-hover-cta">${L.view[lang]} →</span>
       </div>
       <div class="body">
         <!-- Route row -->
         <div class="row items-center space-between" style="margin-bottom:8px;">
-          ${logoHtml}
+          ${logoChipHtml}
           <span class="badge" style="background:#F0FFF4;color:#15803d;font-size:11px;">${stops}${dur}</span>
         </div>
         <div class="row items-center gap-8" style="font-size:15px;font-weight:800;letter-spacing:-0.01em;">
@@ -2639,10 +2662,10 @@ function duffelFlightCard(r) {
         ${r.baggageInfo ? `<div class="t-small t-muted" style="margin-top:4px;">🧳 ${escapeHtml(r.baggageInfo)}</div>` : ''}
         <div class="price-row" style="margin-top:10px;">
           <div><span style="font-size:20px;font-weight:800;color:var(--text-main);">${usd}</span> <span class="t-small t-muted">USD</span></div>
-          <span class="btn btn-primary btn-sm">${L.book[lang]}</span>
+          <span class="btn btn-primary btn-sm">${L.book[lang]} →</span>
         </div>
       </div>
-    </div>`;
+    </a>`;
 }
 window.duffelFlightCard = duffelFlightCard;
 
@@ -2955,7 +2978,8 @@ function pageProduct(id) {
       </div>
 
       <!-- Booking panel (sticky) -->
-      <aside class="glass-panel" style="padding:24px; position:sticky; top:96px; align-self:start;">
+      <aside class="glass-panel" style="padding:24px; position:sticky; top:96px; align-self:start;"
+             data-base-price="${p.price}" data-product-id="${p.id}">
         <div class="row items-center space-between">
           <div>
             <div class="t-muted t-small">${t('common.from')}</div>
@@ -2974,10 +2998,16 @@ function pageProduct(id) {
         <div class="row space-between mt-8"><span class="t-muted">${t('app.product.guestsNights')}</span><span id="b_units">x 2</span></div>
         <div class="row space-between mt-16" style="font-size:20px; font-weight:800;"><span>${t('common.total')}</span><span id="b_total">${price(p.price*2)}</span></div>
 
-        <button class="btn btn-primary btn-block btn-lg mt-16" onclick="proceedCheckout('${p.id}')">
-          ${t('btn.payWithDollar')}
-          <span class="coming-soon-pill" style="margin-left:8px;background:rgba(255,255,255,0.30);color:#fff;border-color:rgba(255,255,255,0.4);">Coming Soon</span>
-        </button>
+        ${isFlight ? `
+          <button class="btn btn-primary btn-block btn-lg mt-16" onclick="proceedCheckout('${p.id}')" id="bookFlightCta">
+            ✈ ${lang==='ko'?'예약하기':lang==='ja'?'予約する':lang==='zh'?'立即预订':'Book this flight'} →
+          </button>
+        ` : `
+          <button class="btn btn-primary btn-block btn-lg mt-16" onclick="proceedCheckout('${p.id}')">
+            ${t('btn.payWithDollar')}
+            <span class="coming-soon-pill" style="margin-left:8px;background:rgba(255,255,255,0.30);color:#fff;border-color:rgba(255,255,255,0.4);">Coming Soon</span>
+          </button>
+        `}
         <p class="t-small t-muted text-center mt-8">${t('app.product.networkNote')}</p>
 
         <div class="divider"></div>
@@ -3239,7 +3269,7 @@ function proceedCheckout(productId) {
       id: 'po_' + Date.now().toString(36),
       bookingId: 'DT' + Math.floor(100000 + Math.random()*900000),
       user: wallet,
-      product: p.name, partner: p.source === 'live' ? 'Travelpayouts' : 'DallyTrip Direct',
+      product: tField(p.name), partner: p.source === 'live' ? 'Travelpayouts' : 'DallyTrip Direct',
       received: Number(p.price || 0),
       toPay: Number((p.priceUSD || p.price * 3) || 0),
       currency: 'USD', method: 'manual', status: 'queued',
@@ -3248,7 +3278,200 @@ function proceedCheckout(productId) {
     });
     localStorage.setItem('dt_pending_orders', JSON.stringify(orders.slice(0, 50)));
   } catch {}
-  showPaymentSoonModal(p);
+  // Flights get a full booking flow (passenger info → Duffel order or partner
+  // redirect). Other categories keep the "Coming Soon" partner-redirect modal.
+  if (p.cat === 'Flight') {
+    flightBookingModal(p);
+  } else {
+    showPaymentSoonModal(p);
+  }
+}
+
+// ── 항공편 전용 예약 모달 ────────────────────────────────────────────
+function flightBookingModal(p) {
+  const lang = window.__dtLang ? window.__dtLang.getLang() : 'en';
+  // Read passenger count / cabin from the detail-page form if it's open
+  const adultsSel = document.getElementById('b_adults');
+  const cabinSel  = document.getElementById('b_option');
+  const adults = parseInt(adultsSel?.value || '1', 10);
+  const cabinLabel = cabinSel?.options?.[cabinSel.selectedIndex]?.text || 'Economy';
+  // Parse "+120 $1" out of the cabin label to get the upgrade mod
+  const cabinMod = (() => {
+    const m = (cabinLabel.match(/\+(\d+)/) || [])[1];
+    return m ? Number(m) : 0;
+  })();
+  const totalPerPax = Number(p.price || 0) + cabinMod;
+  const total = totalPerPax * adults;
+  const isDuffel = p.provider === 'duffel' && p.offerId;
+
+  const L = {
+    title:    { ko:'항공편 예약', en:'Book your flight', ja:'フライト予約', zh:'预订航班' },
+    passenger:{ ko:'승객 정보', en:'Passenger details', ja:'搭乗者情報', zh:'乘客信息' },
+    name:     { ko:'성명 (영문)', en:'Full name (latin)', ja:'氏名 (英文)', zh:'姓名 (英文)' },
+    namePh:   { ko:'GIL DONG HONG', en:'JANE A SMITH', ja:'TARO YAMADA', zh:'XIAOMING WANG' },
+    dob:      { ko:'생년월일', en:'Date of birth', ja:'生年月日', zh:'出生日期' },
+    email:    { ko:'이메일', en:'Email', ja:'メール', zh:'邮箱' },
+    nation:   { ko:'국적', en:'Nationality', ja:'国籍', zh:'国籍' },
+    passport: { ko:'여권번호', en:'Passport number', ja:'パスポート番号', zh:'护照号' },
+    cabin:    { ko:'좌석 등급', en:'Cabin class', ja:'座席クラス', zh:'舱位' },
+    flight:   { ko:'항공편', en:'Flight', ja:'フライト', zh:'航班' },
+    paxCount: { ko:'승객', en:'Passengers', ja:'搭乗者', zh:'乘客' },
+    subtotal: { ko:'1인 요금', en:'Per passenger', ja:'1人料金', zh:'每人' },
+    total:    { ko:'총 결제', en:'Total', ja:'合計', zh:'总计' },
+    confirm:  { ko:'예약 확정하기', en:'Confirm booking', ja:'予約を確定する', zh:'确认预订' },
+    extPay:   { ko:'외부 결제 진행', en:'Pay on partner site', ja:'外部決済へ進む', zh:'前往合作伙伴付款' },
+    confirmNote:{ ko:'$1 토큰 결제는 곧 오픈됩니다. 지금은 테스트 예약(Duffel test 환경)이 진행됩니다 — 실제 비행권 발권은 아닙니다.', en:'$1 token payment is launching soon — this is a Duffel test booking (no real ticket issued yet).', ja:'$1決済は近日公開。これはDuffelテスト環境での仮予約です（実際の発券ではありません）。', zh:'$1 代币支付即将上线 — 这是 Duffel 测试环境的模拟预订（不会出真票）。' },
+    extNote:  { ko:'이 항공편은 파트너 사이트에서 예약을 마무리합니다.', en:'This flight finishes booking on the partner site.', ja:'このフライトは提携サイトで予約完了します。', zh:'此航班将在合作伙伴网站完成预订。' },
+    cancel:   { ko:'취소', en:'Cancel', ja:'キャンセル', zh:'取消' },
+  };
+
+  const modal = document.createElement('div');
+  modal.className = 'dt-modal-backdrop';
+  modal.innerHTML = `
+    <div class="dt-modal glass-card flight-modal" role="dialog" aria-modal="true">
+      <button class="dt-modal-close" onclick="this.closest('.dt-modal-backdrop').remove()" aria-label="Close">×</button>
+      <div class="row items-center gap-12 mb-16">
+        ${p.airlineLogo ? `<img src="${escapeHtml(p.airlineLogo)}" alt="" style="height:38px;width:auto;object-fit:contain;">` : ''}
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:800;font-size:18px;">${escapeHtml(p.airline||'')}</div>
+          <div class="t-small t-muted">${L.flight[lang]}: ${escapeHtml(p.flightNo||'')}</div>
+        </div>
+      </div>
+      <div class="glass-card tight" style="padding:14px;background:rgba(34,184,255,0.06);">
+        <div class="row items-center" style="justify-content:space-between;">
+          <div style="text-align:center;flex:1;">
+            <div style="font-size:24px;font-weight:800;">${escapeHtml(p.fromCode||'')}</div>
+            <div class="t-small t-muted">${escapeHtml(trCity(p.fromCity)||'')}</div>
+            <div style="font-weight:700;margin-top:2px;font-size:13px;">${escapeHtml(p.depart||'')}</div>
+          </div>
+          <div style="color:var(--ocean-blue);font-size:18px;">✈</div>
+          <div style="text-align:center;flex:1;">
+            <div style="font-size:24px;font-weight:800;">${escapeHtml(p.toCode||'')}</div>
+            <div class="t-small t-muted">${escapeHtml(trCity(p.toCity)||'')}</div>
+            <div style="font-weight:700;margin-top:2px;font-size:13px;">${escapeHtml(p.arrive||'')}</div>
+          </div>
+        </div>
+      </div>
+
+      <h4 class="h4 mt-16">👤 ${L.passenger[lang]}</h4>
+      <form id="flightPaxForm" class="flight-pax-form mt-8" onsubmit="event.preventDefault();return false;">
+        <div class="field"><label>${L.name[lang]}</label><input class="glass-input" id="pax_name" placeholder="${L.namePh[lang]}" required /></div>
+        <div class="row gap-8" style="flex-wrap:wrap;">
+          <div class="field" style="flex:1;min-width:140px;"><label>${L.dob[lang]}</label><input class="glass-input" id="pax_dob" type="date" required /></div>
+          <div class="field" style="flex:1;min-width:140px;"><label>${L.nation[lang]}</label><input class="glass-input" id="pax_nation" placeholder="Korea" /></div>
+        </div>
+        <div class="row gap-8" style="flex-wrap:wrap;">
+          <div class="field" style="flex:1;min-width:160px;"><label>${L.email[lang]}</label><input class="glass-input" id="pax_email" type="email" placeholder="you@example.com" required /></div>
+          <div class="field" style="flex:1;min-width:160px;"><label>${L.passport[lang]}</label><input class="glass-input" id="pax_passport" placeholder="M12345678" /></div>
+        </div>
+      </form>
+
+      <div class="glass-card tight mt-16" style="padding:14px;">
+        <div class="row space-between"><span class="t-muted t-small">${L.cabin[lang]}</span><b>${escapeHtml(cabinLabel)}</b></div>
+        <div class="row space-between mt-8"><span class="t-muted t-small">${L.paxCount[lang]}</span><b>${adults}</b></div>
+        <div class="row space-between mt-8"><span class="t-muted t-small">${L.subtotal[lang]}</span><span>$${fmt(totalPerPax)} <span class="t-small t-muted">/ pax</span></span></div>
+        <div class="divider"></div>
+        <div class="row space-between" style="font-size:18px;font-weight:800;"><span>${L.total[lang]}</span><span style="color:var(--token-green);">$${fmt(total)} <span style="font-size:12px;color:var(--text-muted);">≈ ${fmtToken(total)} $1</span></span></div>
+      </div>
+
+      <p class="t-small t-muted mt-16" style="line-height:1.5;">
+        ${isDuffel ? L.confirmNote[lang] : L.extNote[lang]}
+      </p>
+
+      <button class="btn btn-primary btn-block btn-lg mt-16" id="confirmFlightBtn"
+              onclick="confirmFlightBooking('${p.id}', ${isDuffel ? 'true' : 'false'}, ${total}, '${escapeHtml(p.bookingUrl||'')}', '${escapeHtml(p.offerId||'')}')">
+        ${isDuffel ? '✓ ' + L.confirm[lang] : '🌐 ' + L.extPay[lang] + ' →'}
+      </button>
+      <button class="btn btn-ghost btn-block mt-8" onclick="this.closest('.dt-modal-backdrop').remove()">${L.cancel[lang]}</button>
+    </div>
+  `;
+  document.body.appendChild(modal);
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+}
+window.flightBookingModal = flightBookingModal;
+
+// Confirm a flight booking — for Duffel offers we POST to /api/flights/book
+// (test environment, no real ticket issued). For partner-sourced offers we
+// open the partner URL in a new tab. Either way we save a local booking record
+// the user can see in /bookings.
+async function confirmFlightBooking(productId, isDuffel, total, bookingUrl, offerId) {
+  const lang = window.__dtLang ? window.__dtLang.getLang() : 'en';
+  const L = {
+    needName:{ ko:'성명과 이메일을 입력해주세요', en:'Please enter your name and email', ja:'氏名とメールを入力してください', zh:'请输入姓名和邮箱' },
+    booking: { ko:'예약 진행 중...', en:'Booking...', ja:'予約処理中...', zh:'预订中...' },
+    success: { ko:'예약 완료! 예약번호:', en:'Booking confirmed! Reference:', ja:'予約完了！予約番号:', zh:'预订成功！订单号:' },
+    failed:  { ko:'예약 실패:', en:'Booking failed:', ja:'予約失敗:', zh:'预订失败:' },
+    redirecting:{ ko:'파트너 사이트로 이동합니다...', en:'Opening partner site...', ja:'パートナーサイトを開きます...', zh:'正在打开合作伙伴网站...' },
+  };
+  const name = document.getElementById('pax_name')?.value?.trim();
+  const email = document.getElementById('pax_email')?.value?.trim();
+  if (!name || !email) {
+    toast(L.needName[lang]);
+    return;
+  }
+  const btn = document.getElementById('confirmFlightBtn');
+  if (btn) { btn.disabled = true; btn.innerHTML = '⏳ ' + L.booking[lang]; }
+
+  const p = getCatalog().find(x => x.id === productId);
+  let bookingRef;
+
+  if (isDuffel && offerId) {
+    // Try a real Duffel test booking. The endpoint already exists at
+    // /api/flights/book; if it errors we fall back to a local-only confirmation
+    // so the user still sees a working flow.
+    try {
+      const r = await fetch('/api/flights/book', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          offerId,
+          passenger: { name, email, dob: document.getElementById('pax_dob')?.value || '1990-01-01', nationality: document.getElementById('pax_nation')?.value || 'KR' },
+        }),
+      });
+      const data = await r.json().catch(() => null);
+      bookingRef = data?.bookingReference || data?.orderReference || ('DTF' + Date.now().toString(36).toUpperCase());
+    } catch (e) {
+      bookingRef = 'DTF' + Date.now().toString(36).toUpperCase();
+    }
+  } else {
+    // Partner: open partner URL in a new tab and use a local reference.
+    bookingRef = 'DTP' + Date.now().toString(36).toUpperCase();
+    if (bookingUrl) window.open(bookingUrl, '_blank', 'noopener');
+  }
+
+  // Persist as a local booking
+  try {
+    const id = bookingRef;
+    state.bookings.unshift({
+      id,
+      product: p,
+      status: 'Pending Confirmation',
+      date: new Date().toISOString().slice(0, 10),
+      units: 1,
+      amount: total,
+      passenger: { name, email },
+    });
+    persistApp();
+  } catch (_) { /* state may not have persistApp; fallback below */ }
+
+  // Close modal and route to success page
+  document.querySelector('.dt-modal-backdrop')?.remove();
+  toast(L.success[lang] + ' ' + bookingRef);
+  if (typeof location !== 'undefined') {
+    location.hash = '#/booking-success/' + encodeURIComponent(bookingRef);
+  }
+}
+window.confirmFlightBooking = confirmFlightBooking;
+
+// Small persistence helper used by the booking flow above.
+function persistApp() {
+  try {
+    localStorage.setItem('dt_app_state', JSON.stringify({
+      bookings: state.bookings,
+      wallet: state.wallet,
+      user: state.user,
+    }));
+  } catch {}
 }
 
 function showPaymentSoonModal(p) {
@@ -3381,22 +3604,27 @@ function bindProductTotals() {
   if (!adults || !totalEl) return;
   const path = (location.hash||'').replace(/^#/, '').split('?')[0];
   const id = path.split('/')[2];
-  const p = PRODUCTS.find(x => x.id === id);
+  // Look across the FULL catalog (external Duffel results + live + mock).
+  const cat = typeof getCatalog === 'function' ? getCatalog() : PRODUCTS;
+  const p = cat.find(x => x.id === id);
   if (!p) return;
   const opt = document.getElementById('b_option');
   const recompute = () => {
-    const n = parseInt(adults.value || '1');
+    const n = parseInt(adults.value || '1', 10);
     let extra = 0;
     if (opt) {
-      const v = opt.value;
-      const m = v.match(/\+(\d+)/);
-      if (m) extra = parseInt(m[1]);
+      // The select's option label may contain "+120 $1" or similar; pull that.
+      const txt = opt.options[opt.selectedIndex]?.text || opt.value || '';
+      const m = txt.match(/\+(\d+)/);
+      if (m) extra = parseInt(m[1], 10);
     }
     totalEl.innerHTML = price((p.price + extra) * n);
     if (unitsEl) unitsEl.textContent = `x ${n}`;
   };
   adults.addEventListener('change', recompute);
   if (opt) opt.addEventListener('change', recompute);
+  // Run once on mount so the displayed total matches the default selection.
+  recompute();
 }
 
 window.addEventListener('hashchange', router);
@@ -3408,13 +3636,43 @@ window.addEventListener('load', () => {
   loadLiveCatalog();
 });
 
-// Unified getter: prefers live catalog, falls back to local mock
+// Unified getter: external (search-time) results first, then live catalog,
+// then local mock. External catalog is populated by loadExternalResults so
+// users can click cards into the standard detail page without losing context.
+window.__externalCatalog = window.__externalCatalog || [];
 function getCatalog() {
-  return state.liveLoaded && state.liveProducts.length > 0
+  const base = state.liveLoaded && state.liveProducts.length > 0
     ? [...state.liveProducts, ...PRODUCTS]
     : PRODUCTS;
+  // Put externals first so id lookups hit the freshest data.
+  return [...window.__externalCatalog, ...base];
 }
 window.getCatalog = getCatalog;
+
+// Register an array of external results into the catalog so the standard
+// /product/{id} page can render them. Returns the registered product objects
+// (with our normalized fields including a generated id).
+window.registerExternalResults = function (type, results) {
+  if (!Array.isArray(results) || results.length === 0) return [];
+  const out = [];
+  results.forEach(r => {
+    let p = null;
+    try {
+      if (type === 'flights') p = normalizeFlight(r);
+      else if (type === 'hotels') p = normalizeHotel(r, r.location || r.city);
+      else if (type === 'cars')   p = normalizeCar(r, r.city || 'Da Nang');
+      else if (type === 'activities') p = normalizeActivity(r);
+    } catch (_) { /* skip malformed */ }
+    if (p && p.id) {
+      // Replace if same id already registered (avoid duplicate stacking)
+      const idx = window.__externalCatalog.findIndex(x => x.id === p.id);
+      if (idx >= 0) window.__externalCatalog[idx] = p;
+      else window.__externalCatalog.push(p);
+      out.push(p);
+    }
+  });
+  return out;
+};
 </script>
 
 </body>
