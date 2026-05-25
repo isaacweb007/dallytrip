@@ -126,17 +126,18 @@ export async function onRequestGet({ request, env }) {
 async function lookupHotelId(hotelName, city, token) {
   if (!hotelName || !token) return { id: null, debug: 'no name/token' };
   try {
-    // Hotellook's lookup uses `lookFor=both` and returns both `locations` and
-    // `hotels` arrays. `hotel` (singular) is also accepted in some docs.
     const lu = new URL('https://engine.hotellook.com/api/v2/lookup.json');
     lu.searchParams.set('query', `${hotelName} ${city}`);
     lu.searchParams.set('lang', 'en');
     lu.searchParams.set('lookFor', 'both');
     lu.searchParams.set('limit', '3');
     lu.searchParams.set('token', token);
-    const data = await fetch(lu.toString()).then(safeJson);
-    // Some Hotellook responses wrap hotels under results.hotels; some under
-    // a flat `hotels` key. Probe both. The hotel record uses `id` or `hotelId`.
+    const res = await fetch(lu.toString());
+    const status = res.status;
+    const ct = res.headers.get('content-type') || '';
+    const rawText = await res.text();
+    let data = null;
+    try { data = JSON.parse(rawText); } catch {}
     const hotels = data?.results?.hotels || data?.hotels || [];
     const first = Array.isArray(hotels) ? hotels[0] : null;
     const realId = first?.id || first?.hotelId || null;
@@ -144,6 +145,9 @@ async function lookupHotelId(hotelName, city, token) {
       id: realId,
       debug: {
         url: lu.toString().replace(token, '***'),
+        status,
+        contentType: ct,
+        rawSample: rawText.slice(0, 280),
         keys: data ? Object.keys(data) : null,
         resultsKeys: data?.results ? Object.keys(data.results) : null,
         hotelsLen: Array.isArray(hotels) ? hotels.length : 'not array',
