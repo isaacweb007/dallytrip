@@ -1976,3 +1976,295 @@ select.glass-input { appearance: none; padding-right: 40px; background-image: ur
 .sc-name { font-weight: 700; font-size: 13px; line-height: 1.3; min-height: 34px; }
 .sc-meta { margin-top: 4px; font-size: 11px; }
 .sc-price { margin-top: 8px; font-weight: 800; font-size: 16px; color: var(--text-main); }
+
+/* ================================================================
+   Review system v2 — filters, photos, helpful count, host reply
+   ================================================================ */
+.review-filters {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.review-filter-label {
+  margin-right: 4px;
+  font-weight: 600;
+}
+.review-filter {
+  padding: 6px 12px;
+  background: transparent;
+  border: 1px solid var(--glass-border);
+  border-radius: 18px;
+  font-size: 12px;
+  cursor: pointer;
+  color: var(--text-muted);
+  font-weight: 600;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+.review-filter:hover {
+  background: var(--glass-white);
+  color: var(--text-main);
+}
+.review-filter.is-active {
+  background: var(--text-main);
+  color: #fff;
+  border-color: var(--text-main);
+}
+
+.review-trip {
+  background: rgba(34,184,255,0.12);
+  color: var(--ocean-blue);
+  padding: 1px 8px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.review-photos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+  gap: 6px;
+  margin-top: 10px;
+}
+.review-photo {
+  aspect-ratio: 1;
+  background-size: cover;
+  background-position: center;
+  border-radius: 10px;
+  cursor: zoom-in;
+  transition: transform 0.2s ease;
+}
+.review-photo:hover { transform: scale(1.04); }
+
+.review-helpful.is-pressed {
+  background: rgba(38,208,124,0.12);
+  border-color: var(--token-green);
+  color: var(--token-green);
+}
+.review-helpful-count {
+  margin-left: 4px;
+  font-weight: 700;
+}
+
+.review-reply {
+  margin-top: 12px;
+  padding: 12px 14px;
+  background: linear-gradient(135deg, rgba(124,92,255,0.06), rgba(34,184,255,0.06));
+  border-left: 3px solid var(--premium-purple);
+  border-radius: 10px;
+}
+.rr-head { display: flex; align-items: center; gap: 8px; }
+.rr-badge {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--premium-purple);
+  background: rgba(124,92,255,0.12);
+  padding: 2px 8px;
+  border-radius: 10px;
+}
+.rr-text {
+  margin-top: 8px;
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--text-main);
+}
+
+/* Lightbox caption bar */
+.lightbox .lb-caption {
+  position: absolute;
+  bottom: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 92%;
+  background: rgba(0,0,0,0.55);
+  color: #fff;
+  padding: 10px 18px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  backdrop-filter: blur(20px);
+  text-align: center;
+}
+
+/* ================================================================
+   Mobile optimization — single-column layout, sticky bottom CTA
+   ================================================================ */
+@media (max-width: 900px) {
+  /* Detail page grid → 1 column */
+  .page-enter > .grid[style*="grid-template-columns: 1.6fr 1fr"],
+  .page-enter > .grid {
+    grid-template-columns: 1fr !important;
+  }
+  /* Sidebar booking panel — turn into bottom sticky bar */
+  .page-enter > .grid aside.glass-panel[style*="position:sticky"],
+  .page-enter > .grid aside.glass-panel {
+    position: fixed !important;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: auto !important;
+    margin: 0 !important;
+    border-radius: 24px 24px 0 0 !important;
+    z-index: 100;
+    max-height: 75vh;
+    overflow-y: auto;
+    padding: 16px 16px 24px !important;
+    box-shadow: 0 -16px 40px rgba(0,0,0,0.18);
+    /* Collapsible: only price+button visible by default, expand on tap */
+  }
+  /* Add padding to detail page body so content isn't hidden behind sticky bar */
+  .page-enter > .grid {
+    padding-bottom: 220px;
+  }
+  /* Stick top header bar for the back button */
+  .page-enter > .row.items-center.space-between.mb-16 {
+    position: sticky;
+    top: 0;
+    background: rgba(255,255,255,0.85);
+    backdrop-filter: blur(20px);
+    z-index: 90;
+    padding: 10px 0;
+    margin-top: -10px;
+  }
+}
+
+@media (max-width: 720px) {
+  /* Cards: full width single column for grid grid-2 */
+  .grid-2 { grid-template-columns: 1fr !important; }
+  /* All h2 a bit smaller */
+  .h2 { font-size: 26px !important; }
+  /* Glass cards less padding on mobile */
+  .glass-card[style*="padding:28px"],
+  .glass-card[style*="padding:24px"] {
+    padding: 18px !important;
+  }
+  .glass-panel[style*="padding:24px"] {
+    padding: 18px !important;
+  }
+  /* Photo gallery height shrinks (already in earlier media query) — fine */
+  /* Rating block stack */
+  .rating-block { grid-template-columns: 1fr; }
+  .rating-big { display: flex; align-items: center; gap: 16px; text-align: left; }
+  .rb-num { font-size: 44px; }
+  /* Room cards full width */
+  .room-grid { grid-template-columns: 1fr; }
+  /* Amenity grid tighter */
+  .amenity-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+  .amenity-cell {
+    padding: 8px 10px;
+    font-size: 12px;
+  }
+  .amenity-icon { font-size: 16px; }
+  /* Similar products smaller */
+  .similar-card { flex: 0 0 180px; }
+  .sc-img { height: 110px; }
+  /* Review filters scroll horizontally */
+  .review-filters {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 8px;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 -4px;
+  }
+  .review-filters::-webkit-scrollbar { display: none; }
+  .review-filter-label { display: none; }
+  /* Review card padding */
+  .review-card { padding: 14px; }
+  .review-avatar { width: 38px; height: 38px; font-size: 15px; }
+  .review-name { font-size: 13px; }
+  .review-text { font-size: 13px; }
+  /* Hero info block in detail: stack */
+  .glass-card.neu .row.items-center {
+    flex-direction: column !important;
+    gap: 16px !important;
+  }
+  .glass-card.neu .row.items-center > div {
+    width: 100%;
+  }
+  /* Timeline more compact */
+  .tl-item { grid-template-columns: 50px 18px 1fr; gap: 8px; }
+  .timeline::before { left: 60px; }
+  .tl-time { font-size: 12px; }
+  .tl-title { font-size: 13px; }
+  /* Lightbox controls bigger touch targets */
+  .lightbox .lb-close, .lightbox .lb-prev, .lightbox .lb-next {
+    width: 44px; height: 44px;
+    font-size: 22px;
+  }
+  .lightbox .lb-close { top: 16px; right: 16px; }
+  .lightbox .lb-prev { left: 8px; }
+  .lightbox .lb-next { right: 8px; }
+  .lightbox .lb-caption {
+    bottom: 50px;
+    font-size: 12px;
+    padding: 8px 14px;
+  }
+  /* Map placeholder smaller */
+  .map-placeholder { height: 140px; }
+  .map-pin { font-size: 28px; }
+  /* FAQ touch-friendly */
+  .faq-q { font-size: 13px; }
+  .faq-a { font-size: 12px; }
+  /* Sidebar: collapse details, show only price + CTA prominently */
+  .page-enter aside.glass-panel .divider:nth-of-type(2),
+  .page-enter aside.glass-panel .row.space-between:nth-of-type(2),
+  .page-enter aside.glass-panel .row.space-between:nth-of-type(3) {
+    /* Keep visible but compact */
+  }
+  /* Booking panel CTA always reachable */
+  .page-enter aside.glass-panel .btn.btn-primary.btn-block {
+    margin-top: 12px !important;
+  }
+  /* Form grid tighter */
+  .form-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+  }
+  .form-grid .field[style*="grid-column:1/-1"] { grid-column: 1/-1 !important; }
+  /* Highlight chips smaller */
+  .hl-chip { font-size: 11px; padding: 4px 10px; }
+  /* Host reply tighter */
+  .review-reply { padding: 10px 12px; }
+  .rr-text { font-size: 12px; }
+}
+
+@media (max-width: 480px) {
+  /* Photo gallery even shorter on phones */
+  .photo-gallery { height: 280px; }
+  .pg-allbtn {
+    bottom: 10px; right: 10px;
+    padding: 8px 14px;
+    font-size: 11px;
+  }
+  /* Review photos: 4-per-row on small screens */
+  .review-photos {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+  }
+  .review-photo { border-radius: 8px; }
+  /* Similar cards even smaller */
+  .similar-card { flex: 0 0 160px; }
+  .sc-img { height: 100px; }
+  .sc-name { font-size: 12px; min-height: 30px; }
+  .sc-price { font-size: 14px; }
+  /* H2 smaller still */
+  .h2 { font-size: 22px !important; }
+  /* Reduce padding further on tiny phones */
+  .glass-card[style*="padding:28px"],
+  .glass-card[style*="padding:24px"] {
+    padding: 14px !important;
+  }
+}
+
+/* iOS safe area insets — make sure bottom sticky bar respects notch/home indicator */
+@supports (padding: max(0px)) {
+  @media (max-width: 900px) {
+    .page-enter > .grid aside.glass-panel {
+      padding-bottom: max(24px, env(safe-area-inset-bottom)) !important;
+    }
+  }
+}

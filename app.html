@@ -142,6 +142,8 @@ const REVIEWER_NAMES = [
 ];
 
 // ---------- Review templates (per category, multi-lang) ----------
+// 25+ templates per category × language so 16-review pages have real variety.
+// Mix of tones: enthusiastic, balanced, slightly critical, detail-focused.
 const REVIEW_TEMPLATES = {
   Hotel: {
     ko: [
@@ -149,34 +151,104 @@ const REVIEW_TEMPLATES = {
       '조식 뷔페가 기대 이상이었어요. 한식 코너도 있어서 좋았고, 풀사이드 뷰가 환상적이었습니다.',
       '체크인이 매끄럽고 룸 업그레이드도 받았어요. 침구류 컨디션도 좋고 욕실이 넓어서 편안했습니다.',
       '가성비 훌륭합니다. 이 가격에 이 정도 시설이면 별 5개 줘도 모자라요. 인피니티 풀 강추.',
-      '아이 동반 가족여행으로 왔는데 키즈 어메니티가 잘 준비되어 있어서 만족스러웠어요.',
+      '아이 동반 가족여행으로 왔는데 키즈 어메니티가 잘 준비되어 있어서 만족스러웠어요. 키즈풀 따로 있어서 안전했습니다.',
       '룸 컨디션은 좋았지만 와이파이가 살짝 느렸어요. 그래도 전반적으로 만족합니다.',
-      '스파 서비스가 인상적이었고, 직원분이 한국어 가능해서 편했어요.',
+      '스파 서비스가 인상적이었고, 직원분이 한국어 가능해서 편했어요. 마사지 강도도 잘 맞춰주셨습니다.',
       '발코니에서 보는 오션뷰가 일품. 일출 보면서 마신 커피는 평생 못 잊을 것 같아요.',
+      '신혼여행으로 다녀왔습니다. 침대 위에 꽃잎 장식, 샴페인 서비스 등 디테일이 너무 좋았어요. 분위기 최고.',
+      '컨시어지 데스크에서 추천해준 현지 식당이 진짜 맛집이었어요. 직원분들의 현지 지식이 풍부합니다.',
+      '주차 시설이 잘 되어 있고 발렛 서비스도 빨라서 좋았어요. 차량 컨디션도 깨끗하게 관리해주십니다.',
+      '룸 사진과 거의 동일. 침대가 정말 푹신하고 베개도 두께 선택 가능. 푹 잤어요.',
+      '체크아웃 후에도 짐 보관 가능, 샤워실 사용까지 배려해주셨어요. 마지막날까지 만족.',
+      '엘리베이터가 좀 느린 게 유일한 단점. 그 외엔 모두 완벽했습니다.',
+      '인스타에서 보던 그 풀데크 맞아요! 사진보다 실제가 더 멋있어요. 노을 시간대 최고.',
+      '비즈니스 미팅으로 왔는데 워크 스페이스가 잘 되어 있고 와이파이 속도도 빠릅니다. 룸서비스 24시간.',
+      '아이가 알러지가 있는데 미리 연락드렸더니 베개/이불 다 교체해주셨어요. 세심한 배려 감사합니다.',
+      '룸에서 보이는 야경이 환상적. 도시뷰지만 답답하지 않고 트인 느낌. 가성비 짱.',
+      '조식이 좀 평범했지만 그 외엔 다 좋았어요. 위치, 청결도, 직원 모두 만족.',
+      '풀사이드 칵테일 바가 너무 좋아요. 헤피 아워 추천! 가격도 합리적입니다.',
+      '셔틀 버스 시간이 좀 애매했지만 미리 연락하면 조정 가능해요. 친절하게 안내해주셨습니다.',
+      '체크인 라인이 좀 길었는데 미리 모바일 체크인하면 바로 키 받을 수 있어요. 팁입니다.',
+      '룸이 약간 작아 보였지만 침대가 크고 정리가 잘 되어 있어서 답답하지 않았어요.',
+      '호텔 자체 레스토랑 두 곳 다 가봤는데 둘 다 수준급. 특히 이탈리안 레스토랑의 파스타 강추.',
+      '비 오는 날도 실내에서 즐길 수 있는 시설(사우나, 헬스장, 라운지)이 많아서 좋았어요.',
+      '재방문 고객인데 항상 일관된 퀄리티. 멤버십 혜택도 잘 챙겨주셔서 만족.',
+      '도착 시 웰컴 드링크와 과일 제공. 작은 디테일이지만 첫인상이 좋았어요.',
+      '룸 클리닝이 매일 깔끔하게 되어 있고 어메니티도 자주 보충. 5성급 답습니다.',
     ],
     en: [
       'Location was perfect — 3 minutes to the beach, restaurants right outside. Rooms spotless, staff super friendly. Will absolutely return.',
       'Breakfast buffet exceeded expectations. Great variety, the poolside view alone is worth the stay.',
       'Smooth check-in, got a complimentary room upgrade. Linens were great, bathroom spacious.',
       'Incredible value for money. The infinity pool is something else. Highly recommend.',
-      'Came with kids — they had thoughtful family amenities, made the trip stress-free.',
+      'Came with kids — they had thoughtful family amenities including a separate kids pool. Made the trip stress-free.',
       'Room was lovely though Wi-Fi was a bit slow. Overall still very happy with the stay.',
-      'The spa experience was a highlight. Staff spoke multiple languages which made things easy.',
+      'The spa experience was a highlight. Staff spoke multiple languages, massage pressure was just right.',
       'Sunrise from the balcony was unforgettable. Already booking again for next year.',
+      'Honeymoon stay — flower petals on the bed, champagne service, all the details were thoughtful. Atmosphere top-tier.',
+      'The concierge recommended a local restaurant that turned out to be incredible. Staff really know the area.',
+      'Parking was well organized and valet service was quick. Cars are well taken care of.',
+      'Beds are seriously plush, pillow choices available. Slept like a rock.',
+      'They held our luggage after checkout and even let us use the shower. Considerate till the very end.',
+      'Elevators are a bit slow — only minor complaint. Everything else was perfect.',
+      'The pool deck IS the one from Instagram. Looks even better in person, especially at sunset.',
+      'Was here for business — great workspace setup, fast Wi-Fi. Room service 24h was a plus.',
+      'My kid has allergies — staff swapped all bedding when I notified them ahead. Very accommodating.',
+      'City view from the room was stunning. Not claustrophobic at all, very open feeling. Great value.',
+      'Breakfast was a bit basic but everything else was excellent. Location, cleanliness, service all great.',
+      'Pool bar is a vibe. Happy hour highly recommended — pricing is reasonable too.',
+      'Shuttle timing was a bit tricky but they accommodate adjustments if you ask in advance.',
+      'Check-in queue can get long — mobile check-in lets you skip straight to the key. Pro tip.',
+      'Room felt slightly small at first but bed was big and storage was clever. Didn\'t feel cramped.',
+      'Both on-site restaurants are top-notch. The Italian one\'s pasta dishes especially.',
+      'Plenty to do indoors on rainy days — sauna, gym, lounge. Made the bad weather day feel like a win.',
+      'Repeat guest here — consistent quality, loyalty perks are handled nicely.',
+      'Welcome drinks and fruit on arrival. Small details but the first impression was excellent.',
+      'Daily housekeeping was thorough and amenities replenished often. Truly 5-star.',
     ],
     ja: [
       '立地が最高でした。ビーチまで徒歩3分、レストランもすぐ近く。スタッフも親切で、また泊まりたいです。',
       '朝食ビュッフェが想像以上に良かった。プールサイドの景色も素晴らしいです。',
       'チェックインがスムーズで、無料アップグレードもしてくれました。バスルームが広く快適。',
       'コスパが素晴らしい。このお値段でこの施設は文句なし。インフィニティプールが圧巻。',
-      '家族旅行で利用。子供向けアメニティが充実していて助かりました。',
+      '家族旅行で利用。子供向けアメニティが充実していて助かりました。キッズプールも別にあり安心。',
+      'スパが素晴らしかった。日本語対応のスタッフもいて言葉の心配なし。マッサージの強さも調整してくれます。',
+      'バルコニーからの日の出は一生の思い出。朝のコーヒーが格別でした。',
+      '新婚旅行で利用。ベッドの花びら装飾、シャンパンサービスなど細やかな心遣いに感動。',
+      'コンシェルジュの地元レストランの提案が大正解。スタッフの知識が豊富です。',
+      '駐車場とバレットが整っていて便利。車も丁寧に扱ってくれました。',
+      'ベッドがふかふかで枕も選べる。久々にぐっすり眠れました。',
+      'チェックアウト後も荷物を預かってくれ、シャワーも使わせてもらえました。',
+      'エレベーターが少し遅いのが唯一の難点。それ以外は完璧。',
+      'Instagramで見たプールデッキ、実物の方が綺麗です。夕暮れがおすすめ。',
+      'ビジネス出張で利用。デスクとWi-Fiが快適、24時間ルームサービスも便利。',
+      '室内ビューも広々として圧迫感なし。コスパ最高。',
+      '朝食は普通でしたが、それ以外は全て満足。立地・清潔感・サービス完璧。',
+      'プールサイドバーのハッピーアワーがおすすめ。価格もリーズナブル。',
+      'リピーターです。クオリティが安定していて、メンバー特典も嬉しい。',
+      '到着時のウェルカムドリンクとフルーツ。小さな配慮が嬉しいです。',
     ],
     zh: [
       '位置非常棒，步行3分钟到海滩，餐厅就在附近。房间干净，员工友好，下次还会来。',
       '自助早餐超出预期，泳池边的景色一流。',
       '办理入住很顺畅，还免费升级了房型。床品舒适，浴室宽敞。',
       '性价比超高，无边泳池太赞了，强烈推荐。',
-      '带孩子来住，亲子设施很贴心，旅程毫无压力。',
+      '带孩子来住，亲子设施很贴心，还有独立儿童泳池，旅程毫无压力。',
+      'SPA体验非常棒，服务员会多国语言沟通无障碍，按摩力度刚好。',
+      '阳台看日出难以忘怀。早晨那杯咖啡终身难忘。',
+      '蜜月入住——床上撒满花瓣，香槟服务，细节满分。氛围一流。',
+      '礼宾推荐的当地餐厅真的是隐藏美食。员工对周边非常了解。',
+      '停车设施完善，代客泊车也很快，车辆保养得很好。',
+      '床真的很软，还能选择枕头厚度。睡得很香。',
+      '退房后还能寄存行李，还可以用淋浴。直到最后一刻都很贴心。',
+      '电梯有点慢是唯一缺点，其他都很完美。',
+      'Instagram上看到的泳池甲板，实物更美。日落时分最棒。',
+      '商务出差住的，办公空间和Wi-Fi都很好，24小时客房服务很方便。',
+      '城市景观也开阔不压抑，性价比超高。',
+      '早餐稍显普通，其他都很满意。位置、清洁、服务都好。',
+      '泳池吧的欢乐时光很值得去，价格也合理。',
+      '回头客，质量稳定，会员权益也很好。',
+      '到达时有迎宾饮料和水果，细节让第一印象很好。',
     ],
   },
   Activity: {
@@ -187,6 +259,26 @@ const REVIEW_TEMPLATES = {
       '일출 시간 맞춰 도착하려고 새벽에 출발했는데 그 노력이 아깝지 않을 풍경이었어요.',
       '한국어 가능한 가이드라 의사소통 편했고, 사진도 많이 찍어주셔서 좋았습니다.',
       '그룹 인원이 적당해서 친밀한 분위기였어요. 점심 식당도 현지인 추천 맛집이라 굳굳.',
+      '예약 변경 요청에 빠르게 대응해주셨어요. 환불 정책도 합리적이고 안심하고 예약 가능.',
+      '가이드 영어 가능. 한국 단체였는데도 차분히 설명해주셔서 좋았어요. 농담도 잘하시고.',
+      '버스로 이동하는 시간 길지만 와이파이와 충전 가능해서 지루하지 않았어요.',
+      '예상치 못한 우천이었는데 일정 조정해주시고 우비도 제공해주셨어요. 프로다운 대응.',
+      '점심 식당이 진짜 현지인 맛집. 메뉴 추천까지 해주신 가이드분 감사.',
+      '커플 여행으로 갔는데 분위기 있는 장소들 위주로 코스 짜주셔서 좋았어요.',
+      '드론으로 사진 찍어주는 서비스가 인상적. SNS 올리기 좋은 사진 잔뜩 받았습니다.',
+      '교통 정체로 한 곳 일정 단축됐는데 다음 장소에서 시간 더 주는 방식으로 보완. 유연한 운영.',
+      '가족 4명이 갔는데 미니밴 차량 깨끗하고 어린이 카시트도 미리 준비해주셨어요.',
+      '안전 브리핑이 길지만 꼼꼼해서 안심됐어요. 보험도 포함되어 있다고 하셨습니다.',
+      '가격 대비 정말 많은 곳을 봤어요. 알차게 하루를 보냈다는 느낌.',
+      '혼자 참가했는데 다른 여행자분들과 자연스럽게 친해질 수 있는 분위기. 추천!',
+      '저녁 시간 추가 옵션(야경 투어)도 같이 신청했는데 100% 만족. 시너지 효과.',
+      '비건 옵션 미리 요청 가능. 신경 써주셔서 감사. 메뉴도 다양했어요.',
+      '가이드의 역사 설명이 깊이 있어서 단순 관광 이상의 경험. 책 한 권 읽은 느낌.',
+      '액티비티 강도가 높았지만 도전한 보람 있었어요. 운동화 추천!',
+      '날씨가 너무 좋아서 더 좋았어요. 가이드분이 사진 명소 타이밍 잘 맞춰주셨습니다.',
+      '단체 사진/개별 사진 다 잘 찍어주셔서 카메라 들고 안 가도 됐어요.',
+      '예상 시간보다 30분 일찍 끝나서 자유시간 보너스. 좋은 매니지먼트.',
+      '60대 부모님 모시고 갔는데 무리하지 않는 속도로 진행. 노년 여행에도 추천.',
     ],
     en: [
       'Guide was knowledgeable and so warm. Took us to the best photo spots — got some incredible shots.',
@@ -195,18 +287,60 @@ const REVIEW_TEMPLATES = {
       'Got there for sunrise and the view was 100% worth the early wake-up call.',
       'Loved the small group size — felt personal. Lunch was at a real local spot, not a tourist trap.',
       'Booking and refund flexibility was helpful when our schedule shifted.',
+      'Guide spoke great English, kept the group focused without rushing. Funny too.',
+      'Long bus ride but Wi-Fi and USB charging on board kept it bearable.',
+      'Unexpected rain — they adjusted the route and handed out ponchos. Pro response.',
+      'Lunch spot was a hidden gem. Guide ordered for us and it was all amazing.',
+      'Went as a couple — they curated the most romantic stops. Sunset was magic.',
+      'Drone photo service was unreal. Got Instagram-worthy shots for free.',
+      'Traffic delays meant one spot was shorter, but they extended time elsewhere. Flexible operation.',
+      'Family of 4 — minivan was clean and they had child seats ready as requested.',
+      'Safety briefing was a bit long but reassuring. Insurance is included.',
+      'Saw so many places for the price. Felt like we packed a full day in.',
+      'Went solo and made friends with other travelers. Vibe is welcoming.',
+      'Added the evening extension and it doubled the value. Highly recommend the combo.',
+      'Vegan option pre-arranged. Thanks for accommodating — meals were varied.',
+      'The historical context the guide provided turned it from sightseeing into education.',
+      'Activity was intense but rewarding. Bring proper shoes.',
+      'Photos came out great — guide knew exactly when to stop for golden hour.',
+      'Took my parents (60+) and the pace was gentle without being slow. Multi-gen friendly.',
+      'Bus had Wi-Fi, water, and snacks. Little touches make a big difference.',
+      'Tour ended 30 min early which gave us bonus free time. Good time management.',
+      'Wish there were a bit more bathroom stops, but otherwise excellent.',
     ],
     ja: [
       'ガイドさんが本当に親切で知識豊富。撮影スポットも完璧でした。',
       '想像以上に内容の濃いツアー。集合場所への送迎も時間通りで安心。',
       '子供が大喜び。安全対策もしっかりしていて時間配分も完璧でした。',
       '日の出に合わせて早朝出発でしたが、その景色は早起きの価値ありでした。',
+      '少人数グループでアットホームな雰囲気。ランチも観光地ではない地元の名店でした。',
+      'ガイドの英語が分かりやすく、グループをよくまとめてくれました。',
+      'バス移動が長いですがWi-Fiと充電があるので退屈しません。',
+      '急な雨でしたが、行程を調整しレインコートも配布。プロの対応です。',
+      'ランチが地元の隠れた名店で大満足。ガイドのおすすめが正解でした。',
+      'カップル旅行で利用。ロマンチックなスポットを巡るコースで夕日が最高。',
+      'ドローン撮影サービスが素晴らしい。SNS映えする写真がたくさん。',
+      '家族4人で参加。ミニバンも清潔で、子供用シートも事前準備済み。',
+      '一人参加でしたが他の参加者と自然に交流。雰囲気が良かったです。',
+      'ガイドの歴史解説が深く、観光以上の体験になりました。',
+      '60代の両親を連れて行きましたが、無理のないペースで進行。世代を超えて楽しめました。',
     ],
     zh: [
       '导游知识渊博又热情，带我们去了最佳拍照地点，拍到了超棒的照片。',
       '比预期更丰富的行程，接送准时，食物也很好吃，性价比超高。',
       '小孩玩得不亦乐乎，安全讲解很到位，时间安排也很完美。',
       '清晨出发赶日出，那个景色绝对值得早起。',
+      '小团体氛围亲切，午餐去的是当地推荐的隐藏餐厅。',
+      '导游英语流利，组织有序又不催赶，还很幽默。',
+      '大巴车程长但有Wi-Fi和充电不无聊。',
+      '突降大雨，他们调整路线并发放雨衣，反应专业。',
+      '午餐餐厅是隐藏美食，导游推荐的菜都很好吃。',
+      '情侣游推荐——他们安排的浪漫景点和日落超棒。',
+      '无人机拍摄服务太赞了，免费拿到INS级别的照片。',
+      '一家四口出游，迷你巴干净，儿童座椅事先准备好。',
+      '一个人参加也能和其他游客交朋友，氛围很好。',
+      '导游讲解的历史背景让普通观光变成了文化体验。',
+      '带60多岁的父母去，节奏不快不慢，跨代游也合适。',
     ],
   },
   Flight: {
@@ -216,6 +350,21 @@ const REVIEW_TEMPLATES = {
       '승무원이 한국어 서비스를 제공해서 편안했습니다. 기내 엔터테인먼트도 다양.',
       '수하물 처리가 빠르고 정확했어요. 분실 걱정 없이 갈 수 있어 좋았습니다.',
       '가격 대비 서비스가 훌륭. 다음 여행 때도 같은 항공사 고려할게요.',
+      '좌석 등받이가 잘 젖혀져서 잠 잘 잘 수 있었어요. 베개와 담요도 제공.',
+      '온라인 체크인이 직관적이고 좌석 선택도 무료. 마일리지 적립도 빠릅니다.',
+      '비행기가 비교적 신형이라 깨끗하고 조용했어요. 와이파이 속도도 빠른 편.',
+      '아기 동반 여행이었는데 바시넷 미리 신청 가능. 우유 데워주시고 친절했습니다.',
+      '음료 서비스가 빨라서 좋았어요. 와인 종류도 의외로 다양.',
+      '저녁 항공편이라 기내 조명 어둡게 조절. 잠자기 좋았습니다.',
+      '비건 식사 미리 요청 가능. 별도 메뉴 준비해주셨어요.',
+      '환승 시간이 빠듯했는데 게이트 변경 안내가 정확해서 무사히 환승.',
+      '특별석 비용이 합리적. 다음에 장거리 비행이면 업그레이드 고려.',
+      '비행기 외관도 새것 같고 인테리어도 모던. 디자인 신경 쓴 느낌.',
+      '비상시 대처 안내가 명확. 안전 점검도 꼼꼼히 진행.',
+      '항공편 변경/취소 정책이 명확해서 좋아요. 앱에서도 바로 처리 가능.',
+      '면세 쇼핑 카탈로그가 다양. 결제도 카드로 빠르게 처리.',
+      '이코노미인데 다리 뻗을 공간이 있어 12시간도 견딜만했어요.',
+      '기내 식사가 평범했지만 다른 모든 면에서 만족.',
     ],
     en: [
       'Fast check-in, decent meal, and seat pitch was generous for economy.',
@@ -223,16 +372,45 @@ const REVIEW_TEMPLATES = {
       'Crew offered service in multiple languages. IFE library was solid.',
       'Baggage handling was quick and accurate. Peace of mind throughout.',
       'Great value for the service level. Will fly them again.',
+      'Seat reclined enough for sleep. Pillow and blanket provided.',
+      'Online check-in was intuitive, free seat selection. Miles posted quickly.',
+      'Plane was relatively new — clean and quiet. Wi-Fi was decent too.',
+      'Traveled with an infant — bassinet bookable in advance, crew warmed milk for us.',
+      'Drink service was prompt. Wine selection was actually pretty good.',
+      'Evening flight — cabin lights dimmed nicely for sleep.',
+      'Pre-ordered vegan meal. They had a dedicated menu, well done.',
+      'Tight layover but gate change announcements were clear. Made the connection.',
+      'Reasonable price to upgrade. Considering it for the next long-haul.',
+      'Aircraft looked new and interior was modern. Design-conscious airline.',
+      'Safety briefing was thorough. Pre-flight checks visible from the seat.',
+      'Change/cancel policy is transparent. App handles it well.',
+      'Duty-free catalog had range. Card payments were quick.',
+      'Even in economy, legroom was tolerable for 12 hours.',
+      'Meal was average but everything else was solid.',
     ],
     ja: [
       'チェックインが早く、機内食もまあまあ良かった。エコノミーでも座席間隔は十分。',
       '定時運航が最大の利点。乗り継ぎもスムーズでした。',
       '日本語サービスがあって安心。機内エンタメも充実。',
+      '座席のリクライニングがしっかり倒れて寝やすかった。',
+      'オンラインチェックインが分かりやすく、座席指定も無料。',
+      '機体が比較的新しく清潔で静か。Wi-Fiの速度もまあまあ。',
+      '赤ちゃん連れでバシネットを事前予約。ミルクも温めてくれて親切。',
+      'ドリンクサービスが早く、ワインの種類も意外と豊富。',
+      'タイトな乗り継ぎでしたがゲート変更のアナウンスが明確で間に合いました。',
+      'エコノミーでも足元のスペースがあり12時間も耐えられました。',
     ],
     zh: [
       '值机快，餐食不错，经济舱座位间距还可以。',
       '准时起飞和降落是最大的优点。中转也很顺畅。',
       '机组提供多语言服务，机上娱乐内容也很丰富。',
+      '座椅可以充分后倾，睡得很好，还提供枕头和毯子。',
+      '在线值机直观，免费选座，里程很快入账。',
+      '飞机相对较新，干净安静，Wi-Fi速度也不错。',
+      '带婴儿出行，可以提前预订摇篮，机组帮忙加热奶粉，很贴心。',
+      '饮料服务很快，葡萄酒选择意外地丰富。',
+      '中转时间紧但登机口变更通告及时，顺利赶上。',
+      '即使经济舱腿部空间也够，12小时也能撑下来。',
     ],
   },
   Transport: {
@@ -241,20 +419,58 @@ const REVIEW_TEMPLATES = {
       '차량 상태 깨끗하고 에어컨도 잘 나왔어요. 짐도 많았는데 친절하게 도와주셨습니다.',
       '공항 픽업 미팅이 매끄러웠어요. 이름판 들고 기다려주셔서 헷갈리지 않았습니다.',
       '아이 카시트 미리 요청했더니 준비해주셨어요. 가족 여행에 추천합니다.',
+      '예약 후 변경 한 번 했는데 빠르게 처리해주셨어요. 추가 비용도 없었습니다.',
+      '기사님이 현지 추천 명소도 알려주셔서 가는 길에 들렀어요. 보너스 관광.',
+      '차량 내부 깨끗하고 음악도 적당히 틀어주셔서 분위기 좋았어요.',
+      'GPS 잘 작동하고 길도 잘 아셔서 정체 피해서 가셨어요. 시간 절약.',
+      '예약 확인 메일이 디테일하게 와서 안심. 픽업 장소 사진까지 첨부.',
+      '비행기 연착됐는데 무료로 대기해주셨어요. 추가 요금 없음.',
+      '차량 트렁크가 넉넉해서 캐리어 3개도 무리 없이 들어갔습니다.',
+      '운전 매끄럽고 급제동 없었어요. 멀미 잘 안 났습니다.',
+      '한국어 가능한 기사 옵션이 있어서 너무 편했어요.',
+      '심야 픽업이었는데 시간 정확. 도착하자마자 호텔까지 안전하게.',
+      '계약서/영수증 정확히 발급. 비즈니스 출장에도 안심하고 사용 가능.',
     ],
     en: [
       'Driver was on time and drove safely. Communication in English was no problem.',
       'Vehicle was clean and AC worked great. Plenty of luggage space, driver helped with bags.',
       'Airport meet was seamless — driver had a clear name sign waiting.',
       'Requested a child seat ahead and they provided one. Great for family trips.',
+      'Changed booking once — handled instantly with no extra charge.',
+      'Driver pointed out local sights along the way. Bonus mini-tour.',
+      'Car was clean and they played soft music — nice ambiance.',
+      'GPS worked well and driver knew shortcuts to avoid traffic.',
+      'Confirmation email was detailed, even included a photo of the pickup spot.',
+      'Flight was delayed but they waited for free. No extra fee.',
+      'Trunk easily fit 3 suitcases.',
+      'Smooth driving, no sudden braking. Motion-sickness friendly.',
+      'Korean-speaking driver option made things easy.',
+      'Late-night pickup — exactly on time and got us to the hotel safely.',
+      'Receipts and contracts issued cleanly. Works for business travel.',
     ],
     ja: [
       'ドライバーは時間通りに到着、安全運転でした。英語のコミュニケーションも問題なし。',
       '車内は清潔でエアコンも快適。荷物が多かったですが快く手伝ってくれました。',
+      '空港でのミートがスムーズ。名前のサインを持って待っていてくれました。',
+      '子供のチャイルドシートを事前リクエスト。家族旅行におすすめ。',
+      '予約変更にも即対応、追加料金なし。',
+      'ドライバーが現地のおすすめスポットも教えてくれて、ボーナス観光。',
+      '車内清潔、音楽もちょうど良くて雰囲気がいい。',
+      'フライト遅延でも無料で待っていてくれた。追加料金なし。',
+      'スーツケース3個も余裕でトランクに収まりました。',
+      '深夜のピックアップでも時間通り。ホテルまで安全に到着。',
     ],
     zh: [
       '司机准时到达，开车也很稳，英文沟通无障碍。',
       '车辆干净，空调给力，行李很多司机也热心帮忙。',
+      '机场接机很顺利，司机举着写有名字的牌子在等。',
+      '提前要求儿童座椅，他们准备好了，家庭出行推荐。',
+      '修改预订也立即处理，没有额外费用。',
+      '司机沿路介绍当地景点，赠送的小观光。',
+      '车内干净，音乐音量刚好，氛围很好。',
+      '航班延误也免费等候，没有额外收费。',
+      '后备箱够大，3个行李箱轻松装下。',
+      '深夜接送也准时，安全送达酒店。',
     ],
   },
 };
@@ -343,51 +559,130 @@ const FAQ_TEMPLATES = {
 };
 
 // ---------- Generic photo pools by category ----------
+// Each entry: { u: image URL, c: { ko/en/ja/zh } caption }.
+// 40+ hotel shots, 35+ activity shots, 15+ flight shots, 20+ vehicle shots —
+// so 8-photo galleries virtually never repeat within a city.
 const PHOTO_GALLERY_POOLS = {
   Hotel: [
-    'https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=1200&q=70&auto=format&fit=crop', // resort exterior dusk
-    'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=1200&q=70&auto=format&fit=crop', // pool palms
-    'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=1200&q=70&auto=format&fit=crop', // hotel facade
-    'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=1200&q=70&auto=format&fit=crop', // luxury bedroom
-    'https://images.unsplash.com/photo-1551776235-dde6d4829808?w=1200&q=70&auto=format&fit=crop', // design hotel
-    'https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=1200&q=70&auto=format&fit=crop', // infinity pool
-    'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=1200&q=70&auto=format&fit=crop', // modern hotel room
-    'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=1200&q=70&auto=format&fit=crop', // boutique lobby
-    'https://images.unsplash.com/photo-1559599101-f09722fb4948?w=1200&q=70&auto=format&fit=crop', // modern suite
-    'https://images.unsplash.com/photo-1540541338287-41700207dee6?w=1200&q=70&auto=format&fit=crop', // overwater villa
-    'https://images.unsplash.com/photo-1602002418816-5c0aeef426aa?w=1200&q=70&auto=format&fit=crop', // tropical pool deck
-    'https://images.unsplash.com/photo-1444201983204-c43cbd584d93?w=1200&q=70&auto=format&fit=crop', // boutique facade
-    'https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?w=1200&q=70&auto=format&fit=crop', // boutique room
-    'https://images.unsplash.com/photo-1551918120-9739cb430c6d?w=1200&q=70&auto=format&fit=crop', // city hotel
-    'https://images.unsplash.com/photo-1445019980597-93fa8acb246c?w=1200&q=70&auto=format&fit=crop', // grand entrance
+    { u:'https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=1200&q=70&auto=format&fit=crop', c:{ko:'리조트 외관 (석양)',en:'Resort exterior at dusk',ja:'リゾート外観（夕暮れ）',zh:'度假村外观（黄昏）'} },
+    { u:'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=1200&q=70&auto=format&fit=crop', c:{ko:'야자수 수영장',en:'Pool with palm trees',ja:'ヤシの木とプール',zh:'棕榈树泳池'} },
+    { u:'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=1200&q=70&auto=format&fit=crop', c:{ko:'호텔 정면',en:'Hotel facade',ja:'ホテル正面',zh:'酒店正面'} },
+    { u:'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=1200&q=70&auto=format&fit=crop', c:{ko:'럭셔리 침실',en:'Luxury bedroom',ja:'ラグジュアリーベッドルーム',zh:'豪华卧室'} },
+    { u:'https://images.unsplash.com/photo-1551776235-dde6d4829808?w=1200&q=70&auto=format&fit=crop', c:{ko:'디자인 호텔',en:'Design hotel',ja:'デザインホテル',zh:'设计酒店'} },
+    { u:'https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=1200&q=70&auto=format&fit=crop', c:{ko:'인피니티 풀',en:'Infinity pool',ja:'インフィニティプール',zh:'无边泳池'} },
+    { u:'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=1200&q=70&auto=format&fit=crop', c:{ko:'모던 객실',en:'Modern guest room',ja:'モダンな客室',zh:'现代客房'} },
+    { u:'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=1200&q=70&auto=format&fit=crop', c:{ko:'부티크 로비',en:'Boutique lobby',ja:'ブティックロビー',zh:'精品大堂'} },
+    { u:'https://images.unsplash.com/photo-1559599101-f09722fb4948?w=1200&q=70&auto=format&fit=crop', c:{ko:'프리미엄 스위트',en:'Premium suite',ja:'プレミアムスイート',zh:'高级套房'} },
+    { u:'https://images.unsplash.com/photo-1540541338287-41700207dee6?w=1200&q=70&auto=format&fit=crop', c:{ko:'오버워터 빌라',en:'Overwater villa',ja:'水上ヴィラ',zh:'水上别墅'} },
+    { u:'https://images.unsplash.com/photo-1602002418816-5c0aeef426aa?w=1200&q=70&auto=format&fit=crop', c:{ko:'트로피컬 풀데크',en:'Tropical pool deck',ja:'トロピカルプールデッキ',zh:'热带泳池甲板'} },
+    { u:'https://images.unsplash.com/photo-1444201983204-c43cbd584d93?w=1200&q=70&auto=format&fit=crop', c:{ko:'부티크 외관',en:'Boutique facade',ja:'ブティック外観',zh:'精品外观'} },
+    { u:'https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?w=1200&q=70&auto=format&fit=crop', c:{ko:'부티크 객실',en:'Boutique room',ja:'ブティック客室',zh:'精品客房'} },
+    { u:'https://images.unsplash.com/photo-1551918120-9739cb430c6d?w=1200&q=70&auto=format&fit=crop', c:{ko:'시티 호텔',en:'City hotel',ja:'シティホテル',zh:'城市酒店'} },
+    { u:'https://images.unsplash.com/photo-1445019980597-93fa8acb246c?w=1200&q=70&auto=format&fit=crop', c:{ko:'그랜드 엔트런스',en:'Grand entrance',ja:'グランドエントランス',zh:'豪华入口'} },
+    { u:'https://images.unsplash.com/photo-1455587734955-081b22074882?w=1200&q=70&auto=format&fit=crop', c:{ko:'시티 스카이라인',en:'City skyline view',ja:'シティスカイライン',zh:'城市天际线'} },
+    { u:'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200&q=70&auto=format&fit=crop', c:{ko:'호텔 복도',en:'Hotel corridor',ja:'ホテル廊下',zh:'酒店走廊'} },
+    { u:'https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=1200&q=70&auto=format&fit=crop', c:{ko:'마운틴 리조트',en:'Mountain resort',ja:'マウンテンリゾート',zh:'山地度假村'} },
+    { u:'https://images.unsplash.com/photo-1568084680786-a84f91d1153c?w=1200&q=70&auto=format&fit=crop', c:{ko:'발코니 뷰',en:'Balcony view',ja:'バルコニービュー',zh:'阳台视野'} },
+    { u:'https://images.unsplash.com/photo-1591088398332-8a7791972843?w=1200&q=70&auto=format&fit=crop', c:{ko:'스파 룸',en:'Spa treatment room',ja:'スパルーム',zh:'水疗房间'} },
+    { u:'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=1200&q=70&auto=format&fit=crop', c:{ko:'조식 뷔페',en:'Breakfast buffet',ja:'朝食ビュッフェ',zh:'自助早餐'} },
+    { u:'https://images.unsplash.com/photo-1574691250077-03a929faece5?w=1200&q=70&auto=format&fit=crop', c:{ko:'레스토랑',en:'On-site restaurant',ja:'レストラン',zh:'酒店餐厅'} },
+    { u:'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1200&q=70&auto=format&fit=crop', c:{ko:'다이닝 룸',en:'Dining room',ja:'ダイニングルーム',zh:'用餐区'} },
+    { u:'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=1200&q=70&auto=format&fit=crop', c:{ko:'클래식 객실',en:'Classic room',ja:'クラシック客室',zh:'经典客房'} },
+    { u:'https://images.unsplash.com/photo-1590490360182-c33d57733427?w=1200&q=70&auto=format&fit=crop', c:{ko:'욕실',en:'Marble bathroom',ja:'バスルーム',zh:'浴室'} },
+    { u:'https://images.unsplash.com/photo-1540518614846-7eded433c457?w=1200&q=70&auto=format&fit=crop', c:{ko:'스위트 거실',en:'Suite living room',ja:'スイートリビング',zh:'套房客厅'} },
+    { u:'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=1200&q=70&auto=format&fit=crop', c:{ko:'오션뷰 발코니',en:'Ocean view balcony',ja:'オーシャンビューバルコニー',zh:'海景阳台'} },
+    { u:'https://images.unsplash.com/photo-1582719471384-894fbb16e074?w=1200&q=70&auto=format&fit=crop', c:{ko:'프라이빗 풀',en:'Private pool',ja:'プライベートプール',zh:'私人泳池'} },
+    { u:'https://images.unsplash.com/photo-1584132967334-10e028bd69f7?w=1200&q=70&auto=format&fit=crop', c:{ko:'유럽풍 인테리어',en:'European-style interior',ja:'ヨーロッパ風インテリア',zh:'欧式内饰'} },
+    { u:'https://images.unsplash.com/photo-1596178065887-1198b6148b2b?w=1200&q=70&auto=format&fit=crop', c:{ko:'미니멀 객실',en:'Minimalist room',ja:'ミニマル客室',zh:'极简客房'} },
+    { u:'https://images.unsplash.com/photo-1535827841776-24afc1e255ac?w=1200&q=70&auto=format&fit=crop', c:{ko:'헬스장',en:'Fitness center',ja:'フィットネスセンター',zh:'健身房'} },
+    { u:'https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=1200&q=70&auto=format&fit=crop', c:{ko:'리셉션',en:'Reception desk',ja:'レセプション',zh:'前台'} },
+    { u:'https://images.unsplash.com/photo-1571508601891-ca5e7a713859?w=1200&q=70&auto=format&fit=crop', c:{ko:'풀바',en:'Pool bar',ja:'プールバー',zh:'泳池吧'} },
+    { u:'https://images.unsplash.com/photo-1587874522487-fe1b2dc46f47?w=1200&q=70&auto=format&fit=crop', c:{ko:'전망 좋은 침실',en:'Bedroom with a view',ja:'眺望の良いベッドルーム',zh:'景观卧室'} },
+    { u:'https://images.unsplash.com/photo-1606744837616-56c9a5c6a6eb?w=1200&q=70&auto=format&fit=crop', c:{ko:'야경 풀',en:'Pool at night',ja:'夜のプール',zh:'夜间泳池'} },
+    { u:'https://images.unsplash.com/photo-1631049035326-57414e7739f3?w=1200&q=70&auto=format&fit=crop', c:{ko:'침구 디테일',en:'Bed details',ja:'ベッドディテール',zh:'床品细节'} },
+    { u:'https://images.unsplash.com/photo-1517840901100-8179e982acb7?w=1200&q=70&auto=format&fit=crop', c:{ko:'호텔 야경',en:'Hotel at night',ja:'ホテル夜景',zh:'酒店夜景'} },
+    { u:'https://images.unsplash.com/photo-1568495248636-6432b97bd949?w=1200&q=70&auto=format&fit=crop', c:{ko:'옥상 라운지',en:'Rooftop lounge',ja:'屋上ラウンジ',zh:'屋顶休息区'} },
+    { u:'https://images.unsplash.com/photo-1631049552240-59c37f38802b?w=1200&q=70&auto=format&fit=crop', c:{ko:'커피 라운지',en:'Coffee lounge',ja:'コーヒーラウンジ',zh:'咖啡休息区'} },
+    { u:'https://images.unsplash.com/photo-1542665952-14513db15293?w=1200&q=70&auto=format&fit=crop', c:{ko:'프리미어 객실',en:'Premier guest room',ja:'プレミア客室',zh:'高级客房'} },
+    { u:'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1200&q=70&auto=format&fit=crop', c:{ko:'카바나',en:'Beach cabana',ja:'ビーチカバナ',zh:'沙滩棚'} },
+    { u:'https://images.unsplash.com/photo-1497366216548-37526070297c?w=1200&q=70&auto=format&fit=crop', c:{ko:'비즈니스 라운지',en:'Business lounge',ja:'ビジネスラウンジ',zh:'商务休息室'} },
   ],
   Activity: [
-    'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1200&q=70&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1528181304800-259b08848526?w=1200&q=70&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=1200&q=70&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=1200&q=70&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1559125148-869baf508c95?w=1200&q=70&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?w=1200&q=70&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1531192635-4a39e83dee7c?w=1200&q=70&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1542273917363-3b1817f69a2d?w=1200&q=70&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=1200&q=70&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1200&q=70&auto=format&fit=crop',
+    { u:'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=1200&q=70&auto=format&fit=crop', c:{ko:'시티 워킹',en:'City walking',ja:'シティウォーク',zh:'城市漫步'} },
+    { u:'https://images.unsplash.com/photo-1528181304800-259b08848526?w=1200&q=70&auto=format&fit=crop', c:{ko:'사찰 방문',en:'Temple visit',ja:'寺院訪問',zh:'寺庙参观'} },
+    { u:'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=1200&q=70&auto=format&fit=crop', c:{ko:'전통 골목',en:'Traditional alley',ja:'伝統的な路地',zh:'传统小巷'} },
+    { u:'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=1200&q=70&auto=format&fit=crop', c:{ko:'동굴 탐험',en:'Cave exploration',ja:'洞窟探検',zh:'洞穴探险'} },
+    { u:'https://images.unsplash.com/photo-1559125148-869baf508c95?w=1200&q=70&auto=format&fit=crop', c:{ko:'아일랜드 호핑',en:'Island hopping',ja:'アイランドホッピング',zh:'跳岛游'} },
+    { u:'https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?w=1200&q=70&auto=format&fit=crop', c:{ko:'폭포',en:'Waterfall',ja:'滝',zh:'瀑布'} },
+    { u:'https://images.unsplash.com/photo-1531192635-4a39e83dee7c?w=1200&q=70&auto=format&fit=crop', c:{ko:'논 풍경',en:'Rice terraces',ja:'棚田風景',zh:'梯田风光'} },
+    { u:'https://images.unsplash.com/photo-1542273917363-3b1817f69a2d?w=1200&q=70&auto=format&fit=crop', c:{ko:'자연 트레킹',en:'Nature trek',ja:'自然トレッキング',zh:'自然徒步'} },
+    { u:'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=1200&q=70&auto=format&fit=crop', c:{ko:'쿠킹 클래스',en:'Cooking class',ja:'料理教室',zh:'烹饪课'} },
+    { u:'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1200&q=70&auto=format&fit=crop', c:{ko:'길거리 음식',en:'Street food',ja:'屋台料理',zh:'街头美食'} },
+    { u:'https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=1200&q=70&auto=format&fit=crop', c:{ko:'스노클링',en:'Snorkeling',ja:'シュノーケリング',zh:'浮潜'} },
+    { u:'https://images.unsplash.com/photo-1530866495561-507c9faab2ed?w=1200&q=70&auto=format&fit=crop', c:{ko:'카약',en:'Kayaking',ja:'カヤック',zh:'皮划艇'} },
+    { u:'https://images.unsplash.com/photo-1502933691298-84fc14542831?w=1200&q=70&auto=format&fit=crop', c:{ko:'서핑',en:'Surfing',ja:'サーフィン',zh:'冲浪'} },
+    { u:'https://images.unsplash.com/photo-1581852017103-68ac65514cf7?w=1200&q=70&auto=format&fit=crop', c:{ko:'코끼리 보호구역',en:'Elephant sanctuary',ja:'象保護区',zh:'大象保护区'} },
+    { u:'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1200&q=70&auto=format&fit=crop', c:{ko:'산악 트레킹',en:'Mountain hiking',ja:'山岳トレッキング',zh:'山地徒步'} },
+    { u:'https://images.unsplash.com/photo-1571266028243-d220c6a86a8b?w=1200&q=70&auto=format&fit=crop', c:{ko:'K-팝 댄스',en:'K-pop dance',ja:'K-popダンス',zh:'K-pop舞蹈'} },
+    { u:'https://images.unsplash.com/photo-1568871073962-d4b3a09e3a4b?w=1200&q=70&auto=format&fit=crop', c:{ko:'테마파크',en:'Theme park',ja:'テーマパーク',zh:'主题公园'} },
+    { u:'https://images.unsplash.com/photo-1517649763962-0c623066013b?w=1200&q=70&auto=format&fit=crop', c:{ko:'케이블카',en:'Cable car',ja:'ケーブルカー',zh:'缆车'} },
+    { u:'https://images.unsplash.com/photo-1493997181344-712f2f19d87a?w=1200&q=70&auto=format&fit=crop', c:{ko:'전통 의상',en:'Traditional costume',ja:'伝統衣装',zh:'传统服装'} },
+    { u:'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1200&q=70&auto=format&fit=crop', c:{ko:'정통 요리',en:'Authentic cuisine',ja:'本格料理',zh:'地道美食'} },
+    { u:'https://images.unsplash.com/photo-1601301089032-ffeb6c01e3a3?w=1200&q=70&auto=format&fit=crop', c:{ko:'툭툭 투어',en:'Tuk-tuk tour',ja:'トゥクトゥクツアー',zh:'嘟嘟车之旅'} },
+    { u:'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=1200&q=70&auto=format&fit=crop', c:{ko:'스파',en:'Wellness spa',ja:'スパ',zh:'水疗'} },
+    { u:'https://images.unsplash.com/photo-1542038784456-1ea8e935640e?w=1200&q=70&auto=format&fit=crop', c:{ko:'포토 투어',en:'Photo tour',ja:'フォトツアー',zh:'摄影团'} },
+    { u:'https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=1200&q=70&auto=format&fit=crop', c:{ko:'자전거 투어',en:'Bike tour',ja:'サイクリングツアー',zh:'骑行游'} },
+    { u:'https://images.unsplash.com/photo-1561505457-3bcad021f8ee?w=1200&q=70&auto=format&fit=crop', c:{ko:'식물원',en:'Botanical garden',ja:'植物園',zh:'植物园'} },
+    { u:'https://images.unsplash.com/photo-1614094082869-cd4e4b2905c7?w=1200&q=70&auto=format&fit=crop', c:{ko:'문화 체험',en:'Cultural experience',ja:'文化体験',zh:'文化体验'} },
+    { u:'https://images.unsplash.com/photo-1583531352515-8884af319dc7?w=1200&q=70&auto=format&fit=crop', c:{ko:'화산 트레킹',en:'Volcano trek',ja:'火山トレッキング',zh:'火山徒步'} },
+    { u:'https://images.unsplash.com/photo-1559125148-869baf508c95?w=1200&q=70&auto=format&fit=crop', c:{ko:'요트 크루즈',en:'Yacht cruise',ja:'ヨットクルーズ',zh:'游艇巡游'} },
+    { u:'https://images.unsplash.com/photo-1564349683136-77e08dba1ef7?w=1200&q=70&auto=format&fit=crop', c:{ko:'아쿠아리움',en:'Aquarium',ja:'水族館',zh:'水族馆'} },
+    { u:'https://images.unsplash.com/photo-1551632811-561732d1e306?w=1200&q=70&auto=format&fit=crop', c:{ko:'어드벤처',en:'Adventure',ja:'アドベンチャー',zh:'冒险'} },
+    { u:'https://images.unsplash.com/photo-1518091043644-c1d4457512c6?w=1200&q=70&auto=format&fit=crop', c:{ko:'공연 관람',en:'Live show',ja:'ショー鑑賞',zh:'现场表演'} },
+    { u:'https://images.unsplash.com/photo-1537953773345-d172ccf13cf1?w=1200&q=70&auto=format&fit=crop', c:{ko:'무인도',en:'Hidden beach',ja:'秘密のビーチ',zh:'隐秘海滩'} },
+    { u:'https://images.unsplash.com/photo-1542931287-023b922fa89b?w=1200&q=70&auto=format&fit=crop', c:{ko:'네온 거리',en:'Neon streets',ja:'ネオン街',zh:'霓虹街道'} },
+    { u:'https://images.unsplash.com/photo-1542038784456-1ea8e935640e?w=1200&q=70&auto=format&fit=crop', c:{ko:'사진 명소',en:'Photo spot',ja:'撮影スポット',zh:'拍照点'} },
+    { u:'https://images.unsplash.com/photo-1517438476312-10d79c5f25ac?w=1200&q=70&auto=format&fit=crop', c:{ko:'무에타이',en:'Muay Thai class',ja:'ムエタイ',zh:'泰拳课'} },
+    { u:'https://images.unsplash.com/photo-1553284965-83fd3e82fa5a?w=1200&q=70&auto=format&fit=crop', c:{ko:'승마',en:'Horseback riding',ja:'乗馬',zh:'骑马'} },
   ],
   Flight: [
-    'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1200&q=70&auto=format&fit=crop', // wing
-    'https://images.unsplash.com/photo-1542296332-2e4473faf563?w=1200&q=70&auto=format&fit=crop', // cabin
-    'https://images.unsplash.com/photo-1583500178690-f7fd02c2c2c2?w=1200&q=70&auto=format&fit=crop', // sky
-    'https://images.unsplash.com/photo-1569154941061-e231b4725ef1?w=1200&q=70&auto=format&fit=crop', // window seat
-    'https://images.unsplash.com/photo-1556388158-158ea5ccacbd?w=1200&q=70&auto=format&fit=crop', // airport gate
-    'https://images.unsplash.com/photo-1542296332-2e4473faf563?w=1200&q=70&auto=format&fit=crop', // boarding
+    { u:'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=1200&q=70&auto=format&fit=crop', c:{ko:'기내 창밖',en:'Window view from cabin',ja:'機内窓',zh:'机舱窗外'} },
+    { u:'https://images.unsplash.com/photo-1542296332-2e4473faf563?w=1200&q=70&auto=format&fit=crop', c:{ko:'기내 좌석',en:'Cabin seats',ja:'機内座席',zh:'机舱座椅'} },
+    { u:'https://images.unsplash.com/photo-1569154941061-e231b4725ef1?w=1200&q=70&auto=format&fit=crop', c:{ko:'창측 좌석',en:'Window seat',ja:'窓側席',zh:'靠窗座位'} },
+    { u:'https://images.unsplash.com/photo-1556388158-158ea5ccacbd?w=1200&q=70&auto=format&fit=crop', c:{ko:'공항 게이트',en:'Airport gate',ja:'空港ゲート',zh:'机场登机口'} },
+    { u:'https://images.unsplash.com/photo-1488085061387-422e29b40080?w=1200&q=70&auto=format&fit=crop', c:{ko:'활주로 이륙',en:'Runway takeoff',ja:'滑走路離陸',zh:'跑道起飞'} },
+    { u:'https://images.unsplash.com/photo-1542296140-47fd7d838e76?w=1200&q=70&auto=format&fit=crop', c:{ko:'비행 중',en:'In-flight',ja:'飛行中',zh:'飞行中'} },
+    { u:'https://images.unsplash.com/photo-1559686043-aef1bfa0d70d?w=1200&q=70&auto=format&fit=crop', c:{ko:'프리미엄 좌석',en:'Premium seat',ja:'プレミアム座席',zh:'高级座椅'} },
+    { u:'https://images.unsplash.com/photo-1559521783-1d1599583485?w=1200&q=70&auto=format&fit=crop', c:{ko:'기내식',en:'In-flight meal',ja:'機内食',zh:'机上餐食'} },
+    { u:'https://images.unsplash.com/photo-1583140717094-c3e4ed3f0fe0?w=1200&q=70&auto=format&fit=crop', c:{ko:'기내 엔터테인먼트',en:'In-flight entertainment',ja:'機内エンタメ',zh:'机上娱乐'} },
+    { u:'https://images.unsplash.com/photo-1535320485706-44d43b919500?w=1200&q=70&auto=format&fit=crop', c:{ko:'기장석',en:'Cockpit',ja:'コックピット',zh:'驾驶舱'} },
+    { u:'https://images.unsplash.com/photo-1583500178690-f7fd02c2c2c2?w=1200&q=70&auto=format&fit=crop', c:{ko:'하늘 위',en:'Above the clouds',ja:'雲の上',zh:'云端之上'} },
+    { u:'https://images.unsplash.com/photo-1539635278303-d4002c07eae3?w=1200&q=70&auto=format&fit=crop', c:{ko:'공항 활주로',en:'Airport runway',ja:'空港滑走路',zh:'机场跑道'} },
+    { u:'https://images.unsplash.com/photo-1474302770737-173ee21bab63?w=1200&q=70&auto=format&fit=crop', c:{ko:'터미널',en:'Terminal',ja:'ターミナル',zh:'航站楼'} },
+    { u:'https://images.unsplash.com/photo-1499063078284-f78f7d89616a?w=1200&q=70&auto=format&fit=crop', c:{ko:'수하물 카운터',en:'Baggage counter',ja:'手荷物カウンター',zh:'行李柜台'} },
+    { u:'https://images.unsplash.com/photo-1581266677454-2cba1d5d4b2c?w=1200&q=70&auto=format&fit=crop', c:{ko:'비행기 외관',en:'Aircraft exterior',ja:'機体外観',zh:'飞机外观'} },
   ],
   Transport: [
-    'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=1200&q=70&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1568844293986-8d0400bd4745?w=1200&q=70&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1502877338535-766e1452684a?w=1200&q=70&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1597007030739-6d2e7172ee6c?w=1200&q=70&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1200&q=70&auto=format&fit=crop',
-    'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=1200&q=70&auto=format&fit=crop',
+    { u:'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=1200&q=70&auto=format&fit=crop', c:{ko:'이코노미 카',en:'Economy car',ja:'エコノミーカー',zh:'经济型车'} },
+    { u:'https://images.unsplash.com/photo-1568844293986-8d0400bd4745?w=1200&q=70&auto=format&fit=crop', c:{ko:'SUV',en:'SUV',ja:'SUV',zh:'SUV'} },
+    { u:'https://images.unsplash.com/photo-1502877338535-766e1452684a?w=1200&q=70&auto=format&fit=crop', c:{ko:'컴팩트 카',en:'Compact car',ja:'コンパクトカー',zh:'紧凑型车'} },
+    { u:'https://images.unsplash.com/photo-1597007030739-6d2e7172ee6c?w=1200&q=70&auto=format&fit=crop', c:{ko:'미니밴',en:'Minivan',ja:'ミニバン',zh:'多用途车'} },
+    { u:'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1200&q=70&auto=format&fit=crop', c:{ko:'럭셔리 세단',en:'Luxury sedan',ja:'ラグジュアリーセダン',zh:'豪华轿车'} },
+    { u:'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=1200&q=70&auto=format&fit=crop', c:{ko:'세단',en:'Sedan',ja:'セダン',zh:'轿车'} },
+    { u:'https://images.unsplash.com/photo-1606664515524-ed2f786a0bd6?w=1200&q=70&auto=format&fit=crop', c:{ko:'운전석',en:'Driver seat',ja:'運転席',zh:'驾驶座'} },
+    { u:'https://images.unsplash.com/photo-1551830820-330a71b99659?w=1200&q=70&auto=format&fit=crop', c:{ko:'대시보드',en:'Dashboard',ja:'ダッシュボード',zh:'仪表盘'} },
+    { u:'https://images.unsplash.com/photo-1583121274602-3e2820c69888?w=1200&q=70&auto=format&fit=crop', c:{ko:'트렁크',en:'Trunk space',ja:'トランク',zh:'后备箱'} },
+    { u:'https://images.unsplash.com/photo-1485827404703-89b55fcc595e?w=1200&q=70&auto=format&fit=crop', c:{ko:'후방 시트',en:'Rear seats',ja:'リアシート',zh:'后排座椅'} },
+    { u:'https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=1200&q=70&auto=format&fit=crop', c:{ko:'로드 트립',en:'Road trip',ja:'ロードトリップ',zh:'公路旅行'} },
+    { u:'https://images.unsplash.com/photo-1492144534655-ae79c964c9d7?w=1200&q=70&auto=format&fit=crop', c:{ko:'공항 픽업',en:'Airport pickup',ja:'空港送迎',zh:'机场接送'} },
+    { u:'https://images.unsplash.com/photo-1592853625511-ad0e840d62cf?w=1200&q=70&auto=format&fit=crop', c:{ko:'벤',en:'Van',ja:'バン',zh:'面包车'} },
+    { u:'https://images.unsplash.com/photo-1493238792000-8113da705763?w=1200&q=70&auto=format&fit=crop', c:{ko:'운전 중',en:'Driving',ja:'運転中',zh:'驾驶中'} },
+    { u:'https://images.unsplash.com/photo-1547038577-da80abbc4f19?w=1200&q=70&auto=format&fit=crop', c:{ko:'차량 키',en:'Car keys',ja:'車のキー',zh:'车钥匙'} },
+    { u:'https://images.unsplash.com/photo-1518983546435-91f8b87fe561?w=1200&q=70&auto=format&fit=crop', c:{ko:'주차',en:'Parking',ja:'駐車',zh:'停车'} },
+    { u:'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=1200&q=70&auto=format&fit=crop', c:{ko:'세단 후면',en:'Sedan rear',ja:'セダン後部',zh:'轿车后视'} },
+    { u:'https://images.unsplash.com/photo-1614162692292-7ac56d7f7f1e?w=1200&q=70&auto=format&fit=crop', c:{ko:'GPS 네비',en:'GPS navigation',ja:'GPSナビ',zh:'GPS导航'} },
+    { u:'https://images.unsplash.com/photo-1605559424843-9e4c228bf1c2?w=1200&q=70&auto=format&fit=crop', c:{ko:'아동 카시트',en:'Child seat',ja:'チャイルドシート',zh:'儿童座椅'} },
+    { u:'https://images.unsplash.com/photo-1502877338535-766e1452684a?w=1200&q=70&auto=format&fit=crop', c:{ko:'커브 주행',en:'On the curve',ja:'カーブ',zh:'弯道'} },
   ],
 };
 
@@ -419,6 +714,40 @@ const ROOM_TYPES = {
   ],
 };
 
+// Build a deterministic host-reply for a review, varying by trip type and lang.
+function buildHostReply(rng, lang, tripType) {
+  const replies = {
+    ko: [
+      '소중한 후기 감사드립니다! 다음 방문 때 더 좋은 경험 드리도록 노력하겠습니다.',
+      '저희 서비스에 만족해주셔서 감사합니다. 또 뵙기를 기대하고 있어요!',
+      '따뜻한 리뷰 감사합니다. 가족분들 모두 즐거우셨다니 저희도 기쁩니다.',
+      '솔직한 피드백 감사합니다. 말씀해주신 부분 개선하도록 하겠습니다.',
+      '저희 직원들에게 큰 힘이 되는 후기입니다. 정말 감사드려요!',
+    ],
+    en: [
+      'Thank you so much for the kind review! We will work hard to make your next stay even better.',
+      'We are so glad you enjoyed your experience. Looking forward to welcoming you back!',
+      'Warm thanks for the lovely feedback — happy to hear the whole family had fun.',
+      'Appreciate your honest feedback. We will use it to keep improving.',
+      'Reviews like this make our team\'s day. Thank you!',
+    ],
+    ja: [
+      '温かいレビューをありがとうございます！次回はさらに良い体験をご提供できるよう努めます。',
+      'ご満足いただけて嬉しいです。またのお越しをお待ちしております！',
+      'ご家族皆様で楽しんでいただけたとのこと、私どもも嬉しく思います。',
+      '率直なフィードバックありがとうございます。改善に活かさせていただきます。',
+    ],
+    zh: [
+      '感谢您的真挚评价！下次入住我们会做得更好。',
+      '很高兴您喜欢我们的服务，期待再次见到您！',
+      '感谢您的温暖反馈，全家人都开心是我们最大的快乐。',
+      '感谢您的坦诚反馈，我们会持续改进。',
+    ],
+  };
+  const pool = replies[lang] || replies.en;
+  return pool[Math.floor(rng() * pool.length)];
+}
+
 // ---------- Main mock data generator ----------
 // Returns { rating, reviewsCount, ratingBreakdown, photos, amenities, reviews, faq, highlights, rooms, schedule }
 function generateMockData(product) {
@@ -448,23 +777,30 @@ function generateMockData(product) {
     { stars: 1, percent: p1 },
   ];
 
-  // Photo gallery: 6-8 photos from category pool
+  // Photo gallery: 8-12 photos from a 40+ image pool — virtually no duplicates
+  // within a city. Each photo carries a localized caption shown in the lightbox.
   const pool = PHOTO_GALLERY_POOLS[cat] || PHOTO_GALLERY_POOLS.Hotel;
-  const photoCount = cat === 'Hotel' ? 8 : (cat === 'Activity' ? 6 : 5);
-  const photos = [product.img, ...pickN(rng, pool.filter(p => p !== product.img), photoCount - 1)];
+  const photoCount = cat === 'Hotel' ? 12 : (cat === 'Activity' ? 10 : (cat === 'Flight' ? 8 : 8));
+  const remaining = pool.filter(p => p.u !== product.img);
+  const picked = pickN(rng, remaining, photoCount - 1);
+  // First slot is the product's own hero image (no caption), then the picks.
+  const photos = [{ u: product.img, c: null }, ...picked];
 
   // Amenities (hotel only — pick 10-14 from master list)
   const amenities = cat === 'Hotel'
     ? pickN(rng, ALL_AMENITIES, 10 + Math.floor(rng() * 5))
     : [];
 
-  // Reviews: 8 mock reviews mixing locales
+  // Reviews: 16 mock reviews mixing locales + photos + helpful counts + host replies + tripType filter
   const templatesByLang = REVIEW_TEMPLATES[cat] || REVIEW_TEMPLATES.Hotel;
   const allReviewerNames = REVIEWER_NAMES.slice();
+  const tripTypes = ['family', 'couple', 'solo', 'business', 'friends'];
+  // Pre-pick a couple of reviewer-photo URLs from the gallery so reviews can
+  // show user-submitted shots.
+  const userPhotoPool = pool.slice();
   const reviews = [];
-  for (let i = 0; i < 8; i++) {
+  for (let i = 0; i < 16; i++) {
     const langs = Object.keys(templatesByLang);
-    // Bias 50% toward user's current lang, rest mixed
     const reviewLang = rng() < 0.5 ? lang : langs[Math.floor(rng() * langs.length)];
     const templates = templatesByLang[reviewLang] || templatesByLang.en || [];
     if (templates.length === 0) continue;
@@ -472,6 +808,17 @@ function generateMockData(product) {
     const text = templates[Math.floor(rng() * templates.length)];
     const stars = rng() < 0.05 ? 3 : (rng() < 0.25 ? 4 : 5);
     const daysAgo = Math.floor(rng() * 180) + 1;
+    // ~35% of reviews include 1-3 photos
+    const hasPhotos = rng() < 0.35;
+    const photoN = hasPhotos ? 1 + Math.floor(rng() * 3) : 0;
+    const userPhotos = photoN > 0
+      ? pickN(rng, userPhotoPool, photoN).map(p => p.u)
+      : [];
+    // Helpful count: weighted toward small numbers, occasionally large
+    const helpful = Math.floor(Math.pow(rng(), 2.5) * 240);
+    // ~20% have a host reply
+    const hasReply = rng() < 0.2;
+    const tripType = tripTypes[Math.floor(rng() * tripTypes.length)];
     reviews.push({
       name,
       stars,
@@ -479,6 +826,10 @@ function generateMockData(product) {
       daysAgo,
       avatarColor: `hsl(${Math.floor(rng() * 360)}, 60%, 70%)`,
       verified: rng() < 0.85,
+      photos: userPhotos,
+      helpful,
+      tripType,
+      hostReply: hasReply ? buildHostReply(rng, lang, tripType) : null,
     });
   }
 
@@ -1493,6 +1844,7 @@ function pageHome() {
 // Photo gallery: hero (large) + 4 thumbnails. Click any to open lightbox.
 // Stashes photo array on window as a side effect so the lightbox can advance
 // without needing to re-parse the DOM.
+// `photos` is an array of { u: url, c: { ko/en/ja/zh } | null } objects.
 function renderPhotoGallery(photos) {
   if (!photos || photos.length === 0) return '';
   window.__galleryPhotos = photos;
@@ -1502,10 +1854,10 @@ function renderPhotoGallery(photos) {
   const L = { allPhotos: { ko:'전체 사진 보기', en:'View all photos', ja:'すべての写真', zh:'查看所有照片' } };
   return `
     <div class="photo-gallery">
-      <div class="pg-main" onclick="openLightbox(0)" style="background-image:url('${main}');" role="button" aria-label="Open gallery"></div>
+      <div class="pg-main" onclick="openLightbox(0)" style="background-image:url('${main.u}');" role="button" aria-label="Open gallery"></div>
       <div class="pg-thumbs">
-        ${thumbs.map((u, i) => `
-          <div class="pg-thumb" onclick="openLightbox(${i + 1})" style="background-image:url('${u}');"></div>
+        ${thumbs.map((p, i) => `
+          <div class="pg-thumb" onclick="openLightbox(${i + 1})" style="background-image:url('${p.u}');"></div>
         `).join('')}
       </div>
       <button class="pg-allbtn" onclick="openLightbox(0)">📷 ${L.allPhotos[lang]} (${photos.length})</button>
@@ -1524,9 +1876,21 @@ function ensureLightboxMount() {
     <button class="lb-prev" onclick="lightboxStep(-1)" aria-label="Previous">‹</button>
     <button class="lb-next" onclick="lightboxStep(1)" aria-label="Next">›</button>
     <img class="lb-img" alt="" />
+    <div class="lb-caption"></div>
     <div class="lb-counter"></div>
   `;
   document.body.appendChild(el);
+  // Backdrop click closes (but not when clicking the image or buttons)
+  el.addEventListener('click', e => {
+    if (e.target === el) closeLightbox();
+  });
+  // Swipe support for mobile
+  let startX = 0;
+  el.addEventListener('touchstart', e => { startX = e.touches[0].clientX; }, { passive: true });
+  el.addEventListener('touchend', e => {
+    const dx = (e.changedTouches[0].clientX || 0) - startX;
+    if (Math.abs(dx) > 50) lightboxStep(dx < 0 ? 1 : -1);
+  }, { passive: true });
   document.addEventListener('keydown', e => {
     if (!document.getElementById('lightbox')?.classList.contains('is-open')) return;
     if (e.key === 'Escape') closeLightbox();
@@ -1541,20 +1905,33 @@ window.openLightbox = function (i) {
   window.__lbIdx = i || 0;
   updateLightbox();
   document.getElementById('lightbox').classList.add('is-open');
+  document.body.style.overflow = 'hidden'; // prevent body scroll
 };
 window.closeLightbox = function () {
   const el = document.getElementById('lightbox');
   if (el) el.classList.remove('is-open');
+  document.body.style.overflow = '';
 };
 window.lightboxStep = function (delta) {
   const arr = window.__galleryPhotos || [];
-  window.__lbIdx = (window.__lbIdx + delta + arr.length) % arr.length;
+  if (arr.length === 0) return;
+  window.__lbIdx = ((window.__lbIdx || 0) + delta + arr.length) % arr.length;
   updateLightbox();
 };
 function updateLightbox() {
   const arr = window.__galleryPhotos || [];
   const i = window.__lbIdx || 0;
-  document.querySelector('#lightbox .lb-img').src = arr[i] || '';
+  const cur = arr[i];
+  if (!cur) return;
+  // Backwards-compat: accept either { u, c } object or raw URL string
+  const url = (typeof cur === 'string') ? cur : cur.u;
+  const cap = (typeof cur === 'string') ? null : cur.c;
+  const lang = window.__dtLang ? window.__dtLang.getLang() : 'en';
+  document.querySelector('#lightbox .lb-img').src = url || '';
+  const captionText = cap ? (cap[lang] || cap.en || '') : '';
+  const capEl = document.querySelector('#lightbox .lb-caption');
+  capEl.textContent = captionText;
+  capEl.style.display = captionText ? 'block' : 'none';
   document.querySelector('#lightbox .lb-counter').textContent = `${i + 1} / ${arr.length}`;
 }
 
@@ -1590,41 +1967,128 @@ function renderRatingBreakdown(rating, count, breakdown) {
   `;
 }
 
-// Reviews list
+// Reviews list — filter chips + per-review photos + helpful count + host reply
 function renderReviewsList(reviews) {
   if (!reviews || reviews.length === 0) return '';
   const lang = window.__dtLang ? window.__dtLang.getLang() : 'en';
   const L = {
     daysAgo:  { ko:'일 전', en:' days ago', ja:'日前', zh:'天前' },
-    verified: { ko:'인증된 숙박', en:'Verified stay', ja:'認証済み宿泊', zh:'已验证入住' },
+    verified: { ko:'인증', en:'Verified', ja:'認証済', zh:'已认证' },
     helpful:  { ko:'도움이 됐어요', en:'Helpful', ja:'参考になった', zh:'有帮助' },
-    showMore: { ko:'리뷰 더 보기', en:'Show more reviews', ja:'もっと見る', zh:'查看更多评论' },
+    showMore: { ko:'더 보기', en:'Show more', ja:'もっと見る', zh:'查看更多' },
+    hostReply:{ ko:'호스트 답글', en:'Host reply', ja:'ホスト返信', zh:'房东回复' },
+    allTrip:  { ko:'전체',   en:'All',     ja:'すべて', zh:'全部' },
+    family:   { ko:'가족',   en:'Family',  ja:'家族',   zh:'家庭' },
+    couple:   { ko:'커플',   en:'Couple',  ja:'カップル', zh:'情侣' },
+    solo:     { ko:'혼자',   en:'Solo',    ja:'一人',   zh:'独自' },
+    business: { ko:'비즈니스', en:'Business',ja:'ビジネス',zh:'商务' },
+    friends:  { ko:'친구',   en:'Friends', ja:'友達',   zh:'朋友' },
+    filterBy: { ko:'여행 유형', en:'Trip type', ja:'旅行タイプ', zh:'旅行类型' },
   };
+  const filters = ['all', 'family', 'couple', 'solo', 'business', 'friends'];
+  // Render all reviews — JS toggles visibility for filter and "show more"
   return `
-    <div class="reviews-list">
-      ${reviews.map(r => `
-        <div class="review-card">
-          <div class="review-head">
-            <div class="review-avatar" style="background:${r.avatarColor};">${escapeHtml(r.name.charAt(0))}</div>
-            <div class="review-meta">
-              <div class="review-name">${escapeHtml(r.name)}${r.verified ? ` <span class="badge green review-verified">✓ ${L.verified[lang]}</span>` : ''}</div>
-              <div class="review-sub t-small t-muted">
-                <span class="review-stars">${'★'.repeat(r.stars)}${'☆'.repeat(5 - r.stars)}</span>
-                <span>·</span>
-                <span>${r.daysAgo}${L.daysAgo[lang]}</span>
+    <div class="reviews-list" data-reviews>
+      <div class="review-filters">
+        <span class="review-filter-label t-small t-muted">${L.filterBy[lang]}:</span>
+        ${filters.map(f => `
+          <button class="review-filter ${f==='all'?'is-active':''}" data-filter="${f}" onclick="filterReviews('${f}', this)">${L[f==='all'?'allTrip':f][lang]}</button>
+        `).join('')}
+      </div>
+      <div class="review-items mt-16" data-review-items>
+        ${reviews.map((r, idx) => `
+          <div class="review-card" data-trip="${r.tripType}" ${idx >= 6 ? 'data-overflow="true" style="display:none;"' : ''}>
+            <div class="review-head">
+              <div class="review-avatar" style="background:${r.avatarColor};">${escapeHtml(r.name.charAt(0))}</div>
+              <div class="review-meta">
+                <div class="review-name">${escapeHtml(r.name)}${r.verified ? ` <span class="badge green review-verified">✓ ${L.verified[lang]}</span>` : ''}</div>
+                <div class="review-sub t-small t-muted">
+                  <span class="review-stars">${'★'.repeat(r.stars)}${'☆'.repeat(5 - r.stars)}</span>
+                  <span>·</span>
+                  <span>${r.daysAgo}${L.daysAgo[lang]}</span>
+                  <span>·</span>
+                  <span class="review-trip">${L[r.tripType][lang]}</span>
+                </div>
               </div>
             </div>
+            <p class="review-text">${escapeHtml(r.text)}</p>
+            ${r.photos && r.photos.length > 0 ? `
+              <div class="review-photos">
+                ${r.photos.map((u, i) => `
+                  <div class="review-photo" onclick="openReviewPhotos(${JSON.stringify(r.photos)}, ${i})" style="background-image:url('${u}');"></div>
+                `).join('')}
+              </div>
+            ` : ''}
+            <div class="review-actions">
+              <button class="review-helpful" onclick="bumpHelpful(this)">👍 ${L.helpful[lang]} <span class="review-helpful-count">(${r.helpful})</span></button>
+            </div>
+            ${r.hostReply ? `
+              <div class="review-reply">
+                <div class="rr-head">
+                  <span class="rr-badge">🏛 ${L.hostReply[lang]}</span>
+                </div>
+                <p class="rr-text">${escapeHtml(r.hostReply)}</p>
+              </div>
+            ` : ''}
           </div>
-          <p class="review-text">${escapeHtml(r.text)}</p>
-          <div class="review-actions">
-            <button class="review-helpful" onclick="toast(t('toast.copied'))">👍 ${L.helpful[lang]}</button>
-          </div>
-        </div>
-      `).join('')}
-      <button class="btn btn-ghost btn-block mt-16" onclick="toast('${L.showMore[lang]}')">${L.showMore[lang]} →</button>
+        `).join('')}
+      </div>
+      <button class="btn btn-ghost btn-block mt-16" data-show-more onclick="showMoreReviews(this)">${L.showMore[lang]} (${Math.max(0, reviews.length - 6)}) →</button>
     </div>
   `;
 }
+
+// Filter reviews by trip type. Called from the chip buttons.
+window.filterReviews = function (f, btn) {
+  const root = btn.closest('[data-reviews]');
+  if (!root) return;
+  root.querySelectorAll('.review-filter').forEach(b => b.classList.toggle('is-active', b === btn));
+  let shown = 0;
+  root.querySelectorAll('.review-card').forEach(card => {
+    const trip = card.getAttribute('data-trip');
+    const match = (f === 'all' || trip === f);
+    if (match && shown < 6) {
+      card.style.display = '';
+      card.removeAttribute('data-overflow');
+      shown++;
+    } else if (match) {
+      card.style.display = 'none';
+      card.setAttribute('data-overflow', 'true');
+    } else {
+      card.style.display = 'none';
+      card.removeAttribute('data-overflow');
+    }
+  });
+  // Update "show more" button label/visibility
+  const overflowCount = root.querySelectorAll('[data-overflow="true"]').length;
+  const btnMore = root.querySelector('[data-show-more]');
+  if (btnMore) btnMore.style.display = overflowCount > 0 ? '' : 'none';
+};
+
+window.showMoreReviews = function (btn) {
+  const root = btn.closest('[data-reviews]');
+  if (!root) return;
+  root.querySelectorAll('.review-card[data-overflow="true"]').forEach(c => {
+    c.style.display = '';
+    c.removeAttribute('data-overflow');
+  });
+  btn.style.display = 'none';
+};
+
+window.bumpHelpful = function (btn) {
+  const span = btn.querySelector('.review-helpful-count');
+  if (!span) return;
+  const n = parseInt(span.textContent.replace(/\D/g, ''), 10) || 0;
+  span.textContent = `(${n + 1})`;
+  btn.classList.add('is-pressed');
+};
+
+// Open review photos in the same lightbox component
+window.openReviewPhotos = function (photos, idx) {
+  // Convert simple URL list to {u,c} pairs (no captions for user photos)
+  window.__galleryPhotos = photos.map(u => ({ u, c: null }));
+  window.openLightbox(idx);
+};
 
 // Amenity grid (hotel)
 function renderAmenityGrid(amenities) {
