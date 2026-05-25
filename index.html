@@ -433,26 +433,25 @@ document.querySelectorAll('a[href^="#"]').forEach(a => {
   layer.appendChild(frag);
 })();
 
-// Mouse parallax on character stage — subtle 3D tilt + character offset
+// Mouse parallax on character stage — only when mouse is over the right (character) half,
+// so it never interferes with CTA button clicks on the left.
 (function initParallax() {
   const stage = document.getElementById('charStage');
   if (!stage) return;
   const img = stage.querySelector('.char-img');
-  const hero = document.querySelector('.hero');
-  if (!hero) return;
+  // Bind to the stage's parent column only, not the whole hero
+  const host = stage.parentElement || stage;
 
-  let rect = hero.getBoundingClientRect();
-  window.addEventListener('resize', () => { rect = hero.getBoundingClientRect(); });
-
-  hero.addEventListener('mousemove', (e) => {
-    const x = (e.clientX - rect.left) / rect.width  - 0.5;  // -0.5 .. 0.5
-    const y = (e.clientY - rect.top)  / rect.height - 0.5;
-    const tiltX = -y * 8; // up/down → rotateX
-    const tiltY =  x * 12; // left/right → rotateY
+  host.addEventListener('mousemove', (e) => {
+    const r = stage.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width  - 0.5;
+    const y = (e.clientY - r.top)  / r.height - 0.5;
+    const tiltX = -y * 8;
+    const tiltY =  x * 12;
     stage.style.transform  = `perspective(900px) rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
     if (img) img.style.transform = `translate(${x * 14}px, ${y * 10}px)`;
   });
-  hero.addEventListener('mouseleave', () => {
+  host.addEventListener('mouseleave', () => {
     stage.style.transform = '';
     if (img) img.style.transform = '';
   });

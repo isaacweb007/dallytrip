@@ -437,7 +437,7 @@ select.glass-input { appearance: none; padding-right: 40px; background-image: ur
   content: '';
   position: absolute; inset: -1px;
   border-radius: 40px;
-  pointer-events: none;
+  pointer-events: none !important; /* CRITICAL: must not eat clicks */
   background: conic-gradient(from 0deg, rgba(124,92,255,0.45), rgba(34,184,255,0.45), rgba(38,208,124,0.45), rgba(255,138,61,0.45), rgba(124,92,255,0.45));
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
           mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
@@ -447,6 +447,15 @@ select.glass-input { appearance: none; padding-right: 40px; background-image: ur
   animation: spinHalo 20s linear infinite;
   z-index: 0;
 }
+.hero-premium::before { pointer-events: none !important; }
+
+/* Inside-the-panel children must always be interactive */
+.hero-premium > * { position: relative; z-index: 2; }
+.hero-premium .btn,
+.hero-premium a,
+.hero-premium button,
+.hero-premium input,
+.hero-premium select { position: relative; z-index: 5; }
 
 /* Stage that wraps the character + all floating ornaments */
 .char-stage {
