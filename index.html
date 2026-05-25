@@ -552,9 +552,11 @@ async function fetchJsonSafeL(url) {
   try {
     const r = await fetch(url, { headers:{ Accept:'application/json' }});
     if (!r.ok) return null;
-    const ct = r.headers.get('content-type') || '';
-    if (!ct.includes('json')) return null;
-    return await r.json();
+    // NOTE: Cloudflare Pages sometimes returns Pages Functions responses with
+    // Content-Type: text/html even though our _lib.js sets application/json.
+    // So we always read as text and try JSON.parse — much more forgiving.
+    const txt = await r.text();
+    try { return JSON.parse(txt); } catch { return null; }
   } catch { return null; }
 }
 

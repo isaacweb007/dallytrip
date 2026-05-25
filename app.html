@@ -1343,9 +1343,11 @@ async function fetchJsonSafe(url) {
   try {
     const r = await fetch(url, { headers:{ 'Accept':'application/json' } });
     if (!r.ok) return null;
-    const ct = r.headers.get('content-type') || '';
-    if (!ct.includes('json')) return null;
-    return await r.json();
+    // Cloudflare Pages sometimes serves Functions responses with text/html
+    // Content-Type even when our _lib.js sets application/json. Don't trust
+    // the header — read as text and try JSON.parse instead.
+    const txt = await r.text();
+    try { return JSON.parse(txt); } catch { return null; }
   } catch { return null; }
 }
 
@@ -2494,7 +2496,9 @@ async function loadExternalResults() {
   let data;
   try {
     const r = await fetch(u.toString(), { headers: { 'Accept':'application/json' } });
-    data = await r.json();
+    // Read as text + parse to tolerate Cloudflare's text/html content-type.
+    const txt = await r.text();
+    try { data = JSON.parse(txt); } catch { data = null; }
   } catch (e) {
     host.innerHTML = `<div class="glass-card" style="padding:20px;">⚠ Partner search unavailable. (${e.message})</div>`;
     return;

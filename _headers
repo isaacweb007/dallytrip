@@ -3,6 +3,12 @@
 # HTML/JS/CSS는 항상 최신, 이미지는 1년 캐시
 # =========================================================
 
+# API (Pages Functions) — force JSON content-type
+# Cloudflare's default text/html override was breaking client JSON parsing
+/api/*
+  Content-Type: application/json; charset=utf-8
+  Cache-Control: public, max-age=60, s-maxage=300
+
 # HTML — 매번 검증 (브라우저가 옛 페이지를 보지 않도록)
 /
   Cache-Control: public, max-age=0, must-revalidate
