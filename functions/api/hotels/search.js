@@ -149,7 +149,7 @@ const SHARED_HOTEL_PHOTOS = [
   'https://images.unsplash.com/photo-1445019980597-93fa8acb246c?w=900&q=70&auto=format&fit=crop', // 14 grand entrance
   'https://images.unsplash.com/photo-1559599101-f09722fb4948?w=900&q=70&auto=format&fit=crop', // 15 modern suite
   'https://images.unsplash.com/photo-1444201983204-c43cbd584d93?w=900&q=70&auto=format&fit=crop', // 16 boutique facade
-  'https://images.unsplash.com/photo-1551776235-dde6d4829808?w=900&q=70&auto=format&fit=crop', // 17 design hotel
+  'https://images.unsplash.com/photo-1568084680786-a84f91d1153c?w=900&q=70&auto=format&fit=crop', // 17 design hotel
   'https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=900&q=70&auto=format&fit=crop', // 18 infinity pool
   'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=900&q=70&auto=format&fit=crop', // 19 beach resort
 ];

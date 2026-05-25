@@ -33,7 +33,7 @@ export async function onRequestGet({ request, env }) {
     Economy:  'https://images.unsplash.com/photo-1549399542-7e3f8b79c341?w=900&q=70&auto=format&fit=crop',
     Compact:  'https://images.unsplash.com/photo-1502877338535-766e1452684a?w=900&q=70&auto=format&fit=crop',
     SUV:      'https://images.unsplash.com/photo-1568844293986-8d0400bd4745?w=900&q=70&auto=format&fit=crop',
-    Minivan:  'https://images.unsplash.com/photo-1597007030739-6d2e7172ee6c?w=900&q=70&auto=format&fit=crop',
+    Minivan:  'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=900&q=70&auto=format&fit=crop',
     Sedan:    'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=900&q=70&auto=format&fit=crop',
     Luxury:   'https://images.unsplash.com/photo-1503376780353-7e6692767b70?w=900&q=70&auto=format&fit=crop',
   };

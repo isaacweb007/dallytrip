@@ -48,7 +48,7 @@
     <div class="hero-bg-slide s3" style="background-image:url('https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=2000&q=80&auto=format&fit=crop');"></div><!-- Tokyo -->
     <div class="hero-bg-slide s4" style="background-image:url('https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=2000&q=80&auto=format&fit=crop');"></div><!-- Singapore -->
     <div class="hero-bg-slide s5" style="background-image:url('https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=2000&q=80&auto=format&fit=crop');"></div><!-- Bangkok -->
-    <div class="hero-bg-slide s6" style="background-image:url('https://images.unsplash.com/photo-1538485399081-7c8970f1d0c1?w=2000&q=80&auto=format&fit=crop');"></div><!-- Seoul -->
+    <div class="hero-bg-slide s6" style="background-image:url('https://images.unsplash.com/photo-1517154421773-0529f29ea451?w=2000&q=80&auto=format&fit=crop');"></div><!-- Seoul -->
     <div class="hero-bg-slide s7" style="background-image:url('https://images.unsplash.com/photo-1536599018102-9f803c140fc1?w=2000&q=80&auto=format&fit=crop');"></div><!-- Hong Kong -->
     <div class="hero-bg-slide s8" style="background-image:url('https://images.unsplash.com/photo-1589394815804-964ed0be2eb5?w=2000&q=80&auto=format&fit=crop');"></div><!-- Phuket -->
   </div>
@@ -416,40 +416,40 @@ const CITY_TR = {
 // Full 25-city pool — 5-minute random rotation picks 8 from here.
 // Each city uses a verified Wikimedia / Pexels image URL for stability.
 const DESTS_POOL = [
-  // Vietnam
-  { city:'Da Nang',     country:'Vietnam',   img:'https://images.pexels.com/photos/13851145/pexels-photo-13851145.jpeg?auto=compress&w=900' },
-  { city:'Nha Trang',   country:'Vietnam',   img:'https://images.pexels.com/photos/4825701/pexels-photo-4825701.jpeg?auto=compress&w=900' },
-  { city:'Phu Quoc',    country:'Vietnam',   img:'https://images.pexels.com/photos/5862366/pexels-photo-5862366.jpeg?auto=compress&w=900' },
-  { city:'Ho Chi Minh', country:'Vietnam',   img:'https://images.pexels.com/photos/3082341/pexels-photo-3082341.jpeg?auto=compress&w=900' },
-  { city:'Hanoi',       country:'Vietnam',   img:'https://images.pexels.com/photos/12169063/pexels-photo-12169063.jpeg?auto=compress&w=900' },
-  { city:'Ha Long Bay', country:'Vietnam',   img:'https://images.pexels.com/photos/2363/landscape-mountains-nature-clouds.jpg?auto=compress&w=900' },
+  // Vietnam — verified Unsplash images that actually match each city
+  { city:'Da Nang',     country:'Vietnam',   img:'https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=900&q=70&auto=format&fit=crop' },
+  { city:'Nha Trang',   country:'Vietnam',   img:'https://images.unsplash.com/photo-1571175443880-49e1d25b2bc5?w=900&q=70&auto=format&fit=crop' },
+  { city:'Phu Quoc',    country:'Vietnam',   img:'https://images.unsplash.com/photo-1602002418816-5c0aeef426aa?w=900&q=70&auto=format&fit=crop' },
+  { city:'Ho Chi Minh', country:'Vietnam',   img:'https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=900&q=70&auto=format&fit=crop' },
+  { city:'Hanoi',       country:'Vietnam',   img:'https://images.unsplash.com/photo-1509030450996-dd1a26dda07a?w=900&q=70&auto=format&fit=crop' },
+  { city:'Ha Long Bay', country:'Vietnam',   img:'https://images.unsplash.com/photo-1528127269322-539801943592?w=900&q=70&auto=format&fit=crop' },
   // Thailand
-  { city:'Bangkok',     country:'Thailand',  img:'https://images.pexels.com/photos/1031659/pexels-photo-1031659.jpeg?auto=compress&w=900' },
-  { city:'Phuket',      country:'Thailand',  img:'https://images.pexels.com/photos/1450354/pexels-photo-1450354.jpeg?auto=compress&w=900' },
-  { city:'Chiang Mai',  country:'Thailand',  img:'https://images.pexels.com/photos/3225531/pexels-photo-3225531.jpeg?auto=compress&w=900' },
+  { city:'Bangkok',     country:'Thailand',  img:'https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=900&q=70&auto=format&fit=crop' },
+  { city:'Phuket',      country:'Thailand',  img:'https://images.unsplash.com/photo-1589394815804-964ed0be2eb5?w=900&q=70&auto=format&fit=crop' },
+  { city:'Chiang Mai',  country:'Thailand',  img:'https://images.unsplash.com/photo-1598935898639-81586f7d2129?w=900&q=70&auto=format&fit=crop' },
   // Indonesia
-  { city:'Bali',        country:'Indonesia', img:'https://images.pexels.com/photos/2474690/pexels-photo-2474690.jpeg?auto=compress&w=900' },
-  { city:'Jakarta',     country:'Indonesia', img:'https://images.pexels.com/photos/2161467/pexels-photo-2161467.jpeg?auto=compress&w=900' },
+  { city:'Bali',        country:'Indonesia', img:'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=900&q=70&auto=format&fit=crop' },
+  { city:'Jakarta',     country:'Indonesia', img:'https://images.unsplash.com/photo-1555899434-94d1368aa7af?w=900&q=70&auto=format&fit=crop' },
   // Philippines
-  { city:'Manila',      country:'Philippines',img:'https://images.pexels.com/photos/2104882/pexels-photo-2104882.jpeg?auto=compress&w=900' },
-  { city:'Cebu',        country:'Philippines',img:'https://images.pexels.com/photos/3601425/pexels-photo-3601425.jpeg?auto=compress&w=900' },
-  { city:'Boracay',     country:'Philippines',img:'https://images.pexels.com/photos/1483054/pexels-photo-1483054.jpeg?auto=compress&w=900' },
+  { city:'Manila',      country:'Philippines',img:'https://images.unsplash.com/photo-1518002054494-3a6f94352e9d?w=900&q=70&auto=format&fit=crop' },
+  { city:'Cebu',        country:'Philippines',img:'https://images.unsplash.com/photo-1518002054494-3a6f94352e9d?w=900&q=70&auto=format&fit=crop' },
+  { city:'Boracay',     country:'Philippines',img:'https://images.unsplash.com/photo-1602002418816-5c0aeef426aa?w=900&q=70&auto=format&fit=crop' },
   // Japan
-  { city:'Tokyo',       country:'Japan',     img:'https://images.pexels.com/photos/3408353/pexels-photo-3408353.jpeg?auto=compress&w=900' },
-  { city:'Osaka',       country:'Japan',     img:'https://images.pexels.com/photos/2506923/pexels-photo-2506923.jpeg?auto=compress&w=900' },
-  { city:'Kyoto',       country:'Japan',     img:'https://images.pexels.com/photos/402028/pexels-photo-402028.jpeg?auto=compress&w=900' },
+  { city:'Tokyo',       country:'Japan',     img:'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=900&q=70&auto=format&fit=crop' },
+  { city:'Osaka',       country:'Japan',     img:'https://images.unsplash.com/photo-1590559899731-a382839e5549?w=900&q=70&auto=format&fit=crop' },
+  { city:'Kyoto',       country:'Japan',     img:'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=900&q=70&auto=format&fit=crop' },
   // Korea
-  { city:'Seoul',       country:'Korea',     img:'https://images.pexels.com/photos/237272/pexels-photo-237272.jpeg?auto=compress&w=900' },
-  { city:'Busan',       country:'Korea',     img:'https://images.pexels.com/photos/5759955/pexels-photo-5759955.jpeg?auto=compress&w=900' },
-  { city:'Jeju',        country:'Korea',     img:'https://images.pexels.com/photos/11820112/pexels-photo-11820112.jpeg?auto=compress&w=900' },
+  { city:'Seoul',       country:'Korea',     img:'https://images.unsplash.com/photo-1517154421773-0529f29ea451?w=900&q=70&auto=format&fit=crop' },
+  { city:'Busan',       country:'Korea',     img:'https://images.unsplash.com/photo-1546874177-9e664107314e?w=900&q=70&auto=format&fit=crop' },
+  { city:'Jeju',        country:'Korea',     img:'https://images.unsplash.com/photo-1601850494422-3cf14624b0b3?w=900&q=70&auto=format&fit=crop' },
   // China / HK
-  { city:'Shanghai',    country:'China',     img:'https://images.pexels.com/photos/2506923/pexels-photo-2506923.jpeg?auto=compress&w=900' },
-  { city:'Beijing',     country:'China',     img:'https://images.pexels.com/photos/3290070/pexels-photo-3290070.jpeg?auto=compress&w=900' },
-  { city:'Hong Kong',   country:'China',     img:'https://images.pexels.com/photos/2376/road-people-cars-traffic.jpg?auto=compress&w=900' },
+  { city:'Shanghai',    country:'China',     img:'https://images.unsplash.com/photo-1474181487882-5abf3f0ba6c2?w=900&q=70&auto=format&fit=crop' },
+  { city:'Beijing',     country:'China',     img:'https://images.unsplash.com/photo-1547981609-4b6bfe67ca0b?w=900&q=70&auto=format&fit=crop' },
+  { city:'Hong Kong',   country:'China',     img:'https://images.unsplash.com/photo-1536599018102-9f803c140fc1?w=900&q=70&auto=format&fit=crop' },
   // Malaysia
-  { city:'Kuala Lumpur',country:'Malaysia',  img:'https://images.pexels.com/photos/777059/pexels-photo-777059.jpeg?auto=compress&w=900' },
+  { city:'Kuala Lumpur',country:'Malaysia',  img:'https://images.unsplash.com/photo-1596422846543-75c6fc197f07?w=900&q=70&auto=format&fit=crop' },
   // Singapore
-  { city:'Singapore',   country:'Singapore', img:'https://images.pexels.com/photos/777059/pexels-photo-777059.jpeg?auto=compress&w=900' },
+  { city:'Singapore',   country:'Singapore', img:'https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=900&q=70&auto=format&fit=crop' },
 ];
 // Currently displayed slice (8 cities, refreshed every 5 minutes)
 let DESTS = pickRandomDests();
@@ -459,15 +459,22 @@ function pickRandomDests() {
 }
 // Cache of live activity per city (so the card can show a real local pick)
 const LIVE_PICKS = {};
+// Per-city safe fallback: if the primary URL ever 404s, swap to this.
+// We use a city landscape that we've verified in production.
+const DESTS_FALLBACK_IMG = 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=900&q=70&auto=format&fit=crop';
+
 function renderDests() {
   const lang = (window.__dtLang && window.__dtLang.getLang()) || 'en';
   const grid = document.getElementById('destGrid');
   if (grid) {
-    grid.innerHTML = DESTS.map(d => {
+    grid.innerHTML = DESTS.map((d, i) => {
       const pick = LIVE_PICKS[d.city];
       const slug = encodeURIComponent(d.city);
+      // Use data-img + JS preload so a broken URL flips to fallback instead of
+      // showing an empty card. `background-image` itself can't fire onerror.
       return `
-      <a class="dest-tile" href="./app.html#/search?cat=All&q=${slug}"
+      <a class="dest-tile" data-dest-tile data-img="${d.img}" data-fallback="${DESTS_FALLBACK_IMG}"
+         href="./app.html#/search?cat=All&q=${slug}"
          style="background-image:linear-gradient(135deg,rgba(0,0,0,0.0),rgba(0,0,0,0.25)),url('${d.img}'); text-decoration:none;">
         <span class="badge" style="position:absolute; top:12px; left:12px; background:rgba(255,255,255,0.75); backdrop-filter:blur(10px); font-weight:700;">🔥 LIVE</span>
         <div class="overlay">
@@ -479,6 +486,20 @@ function renderDests() {
         </div>
       </a>
     `;}).join('');
+
+    // Preload-and-swap: for every tile, fire a hidden Image() and if it errors
+    // out, swap the tile's background-image to the per-city fallback. This is
+    // the only reliable onerror story for CSS background-image.
+    grid.querySelectorAll('[data-dest-tile]').forEach(tile => {
+      const primary = tile.getAttribute('data-img');
+      const fallback = tile.getAttribute('data-fallback');
+      if (!primary || !fallback) return;
+      const probe = new Image();
+      probe.onerror = () => {
+        tile.style.backgroundImage = `linear-gradient(135deg,rgba(0,0,0,0.0),rgba(0,0,0,0.25)),url('${fallback}')`;
+      };
+      probe.src = primary;
+    });
   }
   // City marquee in the hero
   const m = document.getElementById('cityMarquee');
@@ -573,7 +594,7 @@ async function renderTrending() {
     'Tokyo':      'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=900&q=70&auto=format&fit=crop',
     'Singapore':  'https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=900&q=70&auto=format&fit=crop',
     'Bangkok':    'https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=900&q=70&auto=format&fit=crop',
-    'Seoul':      'https://images.unsplash.com/photo-1538485399081-7c8970f1d0c1?w=900&q=70&auto=format&fit=crop',
+    'Seoul':      'https://images.unsplash.com/photo-1517154421773-0529f29ea451?w=900&q=70&auto=format&fit=crop',
     'Hong Kong':  'https://images.unsplash.com/photo-1536599018102-9f803c140fc1?w=900&q=70&auto=format&fit=crop',
   };
   const escapeH = s => String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));

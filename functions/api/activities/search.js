@@ -303,9 +303,9 @@ const ACTIVITY_IMAGES = [
   { kw: ['waterfall', 'falls', 'kawasan', 'sekumpul', 'pagsanjan'],
     img: 'https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?w=900&q=70&auto=format&fit=crop' },
   { kw: ['volcano', 'taal', 'crater'],
-    img: 'https://images.unsplash.com/photo-1583531352515-8884af319dc7?w=900&q=70&auto=format&fit=crop' },
+    img: 'https://images.unsplash.com/photo-1581852017103-68ac65514cf7?w=900&q=70&auto=format&fit=crop' },
   { kw: ['rice terrace', 'tegallalang', 'ubud rice'],
-    img: 'https://images.unsplash.com/photo-1531192635-4a39e83dee7c?w=900&q=70&auto=format&fit=crop' },
+    img: 'https://images.unsplash.com/photo-1432405972618-c60b0225b8f9?w=900&q=70&auto=format&fit=crop' },
   { kw: ['national park', 'inthanon', 'erawan', 'khao yai', 'safari', 'jungle', 'rainforest', 'olle trail'],
     img: 'https://images.unsplash.com/photo-1542273917363-3b1817f69a2d?w=900&q=70&auto=format&fit=crop' },
   { kw: ['cable car', 'gondola', 'cable', 'ngong ping', 'penang hill'],
@@ -333,7 +333,7 @@ const ACTIVITY_IMAGES = [
          'kung fu', 'symphony of lights'],
     img: 'https://images.unsplash.com/photo-1518091043644-c1d4457512c6?w=900&q=70&auto=format&fit=crop' },
   { kw: ['marble mountain', 'lava tube', 'manjang', 'cave', 'tunnels', 'cu chi'],
-    img: 'https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=900&q=70&auto=format&fit=crop' },
+    img: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=900&q=70&auto=format&fit=crop' },
   { kw: ['ha long', 'halong', 'ninh binh', 'trang an', 'mekong'],
     img: 'https://images.unsplash.com/photo-1528127269322-539801943592?w=900&q=70&auto=format&fit=crop' },
 
@@ -343,13 +343,13 @@ const ACTIVITY_IMAGES = [
          'tianzifang', 'sunday walking'],
     img: 'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=900&q=70&auto=format&fit=crop' },
   { kw: ['dmz'],
-    img: 'https://images.unsplash.com/photo-1538485399081-7c8970f1d0c1?w=900&q=70&auto=format&fit=crop' },
+    img: 'https://images.unsplash.com/photo-1517154421773-0529f29ea451?w=900&q=70&auto=format&fit=crop' },
   { kw: ['skydeck', 'observation', 'skytree', 'sky bar', 'rooftop', 'tower', 'flyer'],
     img: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=900&q=70&auto=format&fit=crop' },
   { kw: ['photoshoot', 'photo'],
     img: 'https://images.unsplash.com/photo-1542038784456-1ea8e935640e?w=900&q=70&auto=format&fit=crop' },
   { kw: ['vespa', 'tuk-tuk', 'tuktuk'],
-    img: 'https://images.unsplash.com/photo-1601301089032-ffeb6c01e3a3?w=900&q=70&auto=format&fit=crop' },
+    img: 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=900&q=70&auto=format&fit=crop' },
 
   // — Food / drink / class —
   { kw: ['cooking class', 'sushi making'],
@@ -364,23 +364,23 @@ const ACTIVITY_IMAGES = [
   { kw: ['massage', 'spa', 'mud bath', 'hot spring'],
     img: 'https://images.unsplash.com/photo-1544161515-4ab6ce6db874?w=900&q=70&auto=format&fit=crop' },
   { kw: ['muay thai', 'kung fu class'],
-    img: 'https://images.unsplash.com/photo-1517438476312-10d79c5f25ac?w=900&q=70&auto=format&fit=crop' },
+    img: 'https://images.unsplash.com/photo-1502933691298-84fc14542831?w=900&q=70&auto=format&fit=crop' },
 
   // — K-pop / anime / nightlife —
   { kw: ['k-pop', 'kpop'],
-    img: 'https://images.unsplash.com/photo-1571266028243-d220c6a86a8b?w=900&q=70&auto=format&fit=crop' },
+    img: 'https://images.unsplash.com/photo-1614094082869-cd4e4b2905c7?w=900&q=70&auto=format&fit=crop' },
   { kw: ['anime', 'gaming', 'akihabara', 'ghibli', 'pop culture', 'shibuya', 'harajuku'],
     img: 'https://images.unsplash.com/photo-1542931287-023b922fa89b?w=900&q=70&auto=format&fit=crop' },
 
   // — Theme parks —
   { kw: ['disney', 'disneyland'],
-    img: 'https://images.unsplash.com/photo-1605457867610-e990b283f7e6?w=900&q=70&auto=format&fit=crop' },
+    img: 'https://images.unsplash.com/photo-1601850494422-3cf14624b0b3?w=900&q=70&auto=format&fit=crop' },
   { kw: ['universal studio'],
-    img: 'https://images.unsplash.com/photo-1571266028243-d220c6a86a8b?w=900&q=70&auto=format&fit=crop' },
+    img: 'https://images.unsplash.com/photo-1614094082869-cd4e4b2905c7?w=900&q=70&auto=format&fit=crop' },
   { kw: ['everland', 'lotte world', 'vinpearl', 'theme park', 'water park', 'waterpark',
          'splash jungle', 'sunway lagoon', 'adventure cove', 'dreamland', 'wonders combo',
          'vinwonders'],
-    img: 'https://images.unsplash.com/photo-1568871073962-d4b3a09e3a4b?w=900&q=70&auto=format&fit=crop' },
+    img: 'https://images.unsplash.com/photo-1517649763962-0c623066013b?w=900&q=70&auto=format&fit=crop' },
   { kw: ['ocean park', 'aquarium', 'sea aquarium', 'kaiyukan'],
     img: 'https://images.unsplash.com/photo-1564349683136-77e08dba1ef7?w=900&q=70&auto=format&fit=crop' },
   { kw: ['gardens by the bay', 'cloud forest', 'botanical', 'butterfly', 'entopia', 'flower'],
@@ -402,12 +402,12 @@ const ACTIVITY_DEFAULT_BY_CITY = {
   'Chiang Mai':'https://images.unsplash.com/photo-1598935898639-81586f7d2129?w=900&q=70&auto=format&fit=crop',
   'Bali':      'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=900&q=70&auto=format&fit=crop',
   'Jakarta':   'https://images.unsplash.com/photo-1555899434-94d1368aa7af?w=900&q=70&auto=format&fit=crop',
-  'Manila':    'https://images.unsplash.com/photo-1518509562904-e7ef99cddc85?w=900&q=70&auto=format&fit=crop',
+  'Manila':    'https://images.unsplash.com/photo-1528127269322-539801943592?w=900&q=70&auto=format&fit=crop',
   'Cebu':      'https://images.unsplash.com/photo-1518002054494-3a6f94352e9d?w=900&q=70&auto=format&fit=crop',
-  'Boracay':   'https://images.unsplash.com/photo-1518509562904-e7ef99cddc85?w=900&q=70&auto=format&fit=crop',
-  'Seoul':     'https://images.unsplash.com/photo-1538485399081-7c8970f1d0c1?w=900&q=70&auto=format&fit=crop',
-  'Busan':     'https://images.unsplash.com/photo-1583266219671-2c1bb0bba4c0?w=900&q=70&auto=format&fit=crop',
-  'Jeju':      'https://images.unsplash.com/photo-1605457867610-e990b283f7e6?w=900&q=70&auto=format&fit=crop',
+  'Boracay':   'https://images.unsplash.com/photo-1528127269322-539801943592?w=900&q=70&auto=format&fit=crop',
+  'Seoul':     'https://images.unsplash.com/photo-1517154421773-0529f29ea451?w=900&q=70&auto=format&fit=crop',
+  'Busan':     'https://images.unsplash.com/photo-1568084680786-a84f91d1153c?w=900&q=70&auto=format&fit=crop',
+  'Jeju':      'https://images.unsplash.com/photo-1601850494422-3cf14624b0b3?w=900&q=70&auto=format&fit=crop',
   'Tokyo':     'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=900&q=70&auto=format&fit=crop',
   'Osaka':     'https://images.unsplash.com/photo-1590559899731-a382839e5549?w=900&q=70&auto=format&fit=crop',
   'Kyoto':     'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=900&q=70&auto=format&fit=crop',
@@ -415,7 +415,7 @@ const ACTIVITY_DEFAULT_BY_CITY = {
   'Beijing':   'https://images.unsplash.com/photo-1547981609-4b6bfe67ca0b?w=900&q=70&auto=format&fit=crop',
   'Hong Kong': 'https://images.unsplash.com/photo-1536599018102-9f803c140fc1?w=900&q=70&auto=format&fit=crop',
   'Kuala Lumpur':'https://images.unsplash.com/photo-1596422846543-75c6fc197f07?w=900&q=70&auto=format&fit=crop',
-  'Penang':    'https://images.unsplash.com/photo-1594388572748-ce4d2d59b91b?w=900&q=70&auto=format&fit=crop',
+  'Penang':    'https://images.unsplash.com/photo-1596422846543-75c6fc197f07?w=900&q=70&auto=format&fit=crop',
   'Singapore': 'https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=900&q=70&auto=format&fit=crop',
 };
 
@@ -425,5 +425,5 @@ function pickActivityImage(name, city) {
     if (entry.kw.some(k => lower.includes(k))) return entry.img;
   }
   return ACTIVITY_DEFAULT_BY_CITY[city] ||
-    'https://images.unsplash.com/photo-1580974511812-2c4c8ddf2456?w=900&q=70&auto=format&fit=crop';
+    'https://images.unsplash.com/photo-1502602898657-3e91760cbb34?w=900&q=70&auto=format&fit=crop';
 }
