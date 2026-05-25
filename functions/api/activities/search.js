@@ -320,9 +320,12 @@ const ACTIVITY_IMAGES = [
     img: 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=900&q=70&auto=format&fit=crop' },
 
   // — Temples / culture / heritage —
-  { kw: ['temple', 'wat ', 'pho', 'pagoda', 'cham tower', 'fushimi inari', 'kinkaku', 'po nagar',
-         'beomeosa', 'temple of heaven', 'big buddha', 'golden bridge', 'forbidden city',
-         'great wall', 'summer palace', 'gyeongbokgung', 'angkor', 'intramuros', 'grand palace'],
+  // NOTE: keep keywords specific (e.g. 'wat pho' not 'pho') so they don't false-
+  // match unrelated words like "photoshoot" or "phone".
+  { kw: ['temple', 'wat ', 'wat pho', 'pagoda', 'cham tower', 'fushimi inari', 'kinkaku',
+         'po nagar', 'beomeosa', 'temple of heaven', 'big buddha', 'golden bridge',
+         'forbidden city', 'great wall', 'summer palace', 'gyeongbokgung', 'angkor',
+         'intramuros', 'grand palace'],
     img: 'https://images.unsplash.com/photo-1528181304800-259b08848526?w=900&q=70&auto=format&fit=crop' },
   { kw: ['hanbok', 'kimono', 'ao dai', 'tea ceremony', 'geisha'],
     img: 'https://images.unsplash.com/photo-1493997181344-712f2f19d87a?w=900&q=70&auto=format&fit=crop' },
