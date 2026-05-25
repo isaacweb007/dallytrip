@@ -140,6 +140,7 @@
     'how.4.desc':               { ko:'예약 확정 후 떠나면 끝.', en:'Receive booking confirmation and travel — that\'s it.', ja:'予約確認を受け取って出発するだけ。', zh:'收到预订确认后出发，就这么简单。' },
 
     'dest.title':               { ko:'인기 여행지',    en:'Popular destinations',ja:'人気の目的地',zh:'热门目的地' },
+    'trending.title':           { ko:'아시아 실시간 인기',en:'Trending now in Asia',ja:'アジアで急上昇',zh:'亚洲实时热门' },
 
     'cta.kicker':               { ko:'여행을 떠날 준비?', en:'Ready to travel?',ja:'旅に出る準備は？',zh:'准备出发？' },
     'cta.title':                { ko:'하나의 토큰.<br/>무한한 여행지.', en:'One token.<br/>Infinite destinations.', ja:'ひとつのトークン。<br/>無限の目的地。', zh:'一种代币。<br/>无限目的地。' },

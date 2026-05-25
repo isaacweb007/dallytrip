@@ -128,6 +128,105 @@ input, select, textarea { font-family: inherit; }
 .neu-in     { background: var(--bg-main); border-radius: 22px; box-shadow: var(--neu-in); }
 .neu-in-deep{ background: var(--bg-main); border-radius: 22px; box-shadow: var(--neu-in-deep); }
 
+/* ============================================================
+   PREMIUM Liquid Glass — reference-grade glass cards with
+   iridescent rim, multi-layer drop shadow, inner highlight curve.
+   Use on landing's Feature, How-it-works, Destination, CTA cards.
+   ============================================================ */
+.liquid-card {
+  position: relative;
+  border-radius: 28px;
+  padding: 28px;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.25) 100%);
+  backdrop-filter: blur(32px) saturate(180%);
+  -webkit-backdrop-filter: blur(32px) saturate(180%);
+  border: 1px solid rgba(255,255,255,0.55);
+  isolation: isolate;
+  box-shadow:
+    /* outer ambient */
+    0 36px 70px rgba(31,61,88,0.22),
+    /* outer near */
+    0 10px 24px rgba(31,61,88,0.14),
+    /* neumorphism uplift */
+    -12px -12px 32px rgba(255,255,255,0.65),
+    12px 12px 32px rgba(154,174,196,0.30),
+    /* inner top sheen */
+    inset 0 2px 0 rgba(255,255,255,0.95),
+    /* inner bottom shade */
+    inset 0 -14px 30px rgba(31,61,88,0.06),
+    /* inner edge glow */
+    inset 0 0 0 1px rgba(255,255,255,0.45);
+  transition: transform 280ms ease-out, box-shadow 280ms ease-out;
+}
+.liquid-card:hover {
+  transform: translateY(-4px) scale(1.015);
+  box-shadow:
+    0 50px 100px rgba(31,61,88,0.28),
+    0 14px 30px rgba(31,61,88,0.18),
+    -16px -16px 40px rgba(255,255,255,0.72),
+    16px 16px 40px rgba(154,174,196,0.35),
+    inset 0 2px 0 rgba(255,255,255,0.95),
+    inset 0 -14px 30px rgba(31,61,88,0.08),
+    inset 0 0 0 1px rgba(255,255,255,0.55);
+}
+/* Iridescent rim — animated conic gradient ring */
+.liquid-card::before {
+  content: '';
+  position: absolute; inset: -1px;
+  border-radius: 28px;
+  padding: 1px;
+  background: conic-gradient(from 0deg,
+    rgba(124,92,255,0.55),
+    rgba(34,184,255,0.55),
+    rgba(38,208,124,0.55),
+    rgba(255,138,61,0.55),
+    rgba(124,92,255,0.55));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+          mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor; mask-composite: exclude;
+  opacity: 0.45;
+  pointer-events: none;
+  z-index: 1;
+  animation: irisSpin 28s linear infinite;
+}
+@keyframes irisSpin { to { transform: rotate(360deg); } }
+/* Light prism (top-left soft circle) */
+.liquid-card::after {
+  content: '';
+  position: absolute;
+  top: 8px; left: 8px;
+  width: 70px; height: 70px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,255,255,0.55) 0%, transparent 70%);
+  filter: blur(8px);
+  pointer-events: none;
+  z-index: 1;
+}
+.liquid-card > * { position: relative; z-index: 2; }
+
+/* Compact variant for grid items */
+.liquid-card.tight { padding: 20px; border-radius: 22px; }
+.liquid-card.tight::before { border-radius: 22px; }
+
+/* Deeper neumorphism for floating numbered orbs (How-it-works step pills, etc.) */
+.neu-orb {
+  width: 64px; height: 64px;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  font-weight: 800; color: #fff;
+  background: var(--grad-main-cta);
+  box-shadow:
+    -8px -8px 18px rgba(255,255,255,0.85),
+    10px 10px 24px rgba(15,32,48,0.20),
+    inset 0 2px 6px rgba(255,255,255,0.55),
+    inset 0 -8px 16px rgba(0,0,0,0.18);
+}
+.neu-orb.blue   { background: linear-gradient(135deg, #6FD3FF, #22B8FF); }
+.neu-orb.green  { background: linear-gradient(135deg, #80F2BA, #26D07C); }
+.neu-orb.orange { background: linear-gradient(135deg, #FFB78E, #FF8A3D); }
+.neu-orb.purple { background: linear-gradient(135deg, #B7A4FF, #7C5CFF); }
+
 /* Combine glass + neu — translucent surface with neu shadow rim */
 .glass-neu {
   background: rgba(255,255,255,0.55);
@@ -782,18 +881,23 @@ select.glass-input { appearance: none; padding-right: 40px; background-image: ur
   opacity: 0;
   transform: scale(1.05);
   will-change: opacity, transform;
-  animation: kenburns 30s ease-in-out infinite;
+  animation: kenburns 64s ease-in-out infinite;
 }
-/* 3-slide rotation: each slide visible 10s, fades 1s */
-.hero-bg-slide.s1 { animation-delay: 0s; }
-.hero-bg-slide.s2 { animation-delay: 10s; }
-.hero-bg-slide.s3 { animation-delay: 20s; }
+/* 8-slide rotation: each slide visible ~8s, fades ~1s */
+.hero-bg-slide.s1 { animation-delay: 0s;  }
+.hero-bg-slide.s2 { animation-delay: 8s;  }
+.hero-bg-slide.s3 { animation-delay: 16s; }
+.hero-bg-slide.s4 { animation-delay: 24s; }
+.hero-bg-slide.s5 { animation-delay: 32s; }
+.hero-bg-slide.s6 { animation-delay: 40s; }
+.hero-bg-slide.s7 { animation-delay: 48s; }
+.hero-bg-slide.s8 { animation-delay: 56s; }
 @keyframes kenburns {
-  0%   { opacity: 0; transform: scale(1.10) translate(-2%, -2%); }
-  3%   { opacity: 1; }
-  30%  { opacity: 1; transform: scale(1.18) translate(2%, 2%); }
-  33%  { opacity: 0; }
-  100% { opacity: 0; transform: scale(1.05); }
+  0%     { opacity: 0; transform: scale(1.10) translate(-2%, -2%); }
+  1.5%   { opacity: 1; }
+  12.5%  { opacity: 1; transform: scale(1.18) translate(2%, 2%); }
+  14%    { opacity: 0; }
+  100%   { opacity: 0; transform: scale(1.05); }
 }
 
 /* Vignette + color cast over the photo for readability */
@@ -947,18 +1051,31 @@ select.glass-input { appearance: none; padding-right: 40px; background-image: ur
   background-size: cover; background-position: center;
   overflow: hidden;
   border: 1px solid var(--glass-border);
-  box-shadow: var(--shadow-soft);
-  transition: transform var(--t-base);
+  box-shadow:
+    0 26px 50px rgba(31,61,88,0.22),
+    -10px -10px 24px rgba(255,255,255,0.55),
+    10px 10px 28px rgba(154,174,196,0.30);
+  transition: transform var(--t-base), box-shadow var(--t-base);
 }
-.dest-tile:hover { transform: translateY(-4px); }
+.dest-tile:hover {
+  transform: translateY(-6px) scale(1.02);
+  box-shadow:
+    0 36px 64px rgba(31,61,88,0.28),
+    -14px -14px 32px rgba(255,255,255,0.65),
+    14px 14px 32px rgba(154,174,196,0.40);
+}
 .dest-tile .overlay {
   position: absolute; left: 14px; right: 14px; bottom: 14px;
-  background: rgba(255,255,255,0.42);
-  backdrop-filter: blur(18px);
-  border: 1px solid rgba(255,255,255,0.55);
-  border-radius: 18px;
-  padding: 12px 14px;
+  background: linear-gradient(135deg, rgba(255,255,255,0.65) 0%, rgba(255,255,255,0.40) 100%);
+  backdrop-filter: blur(22px) saturate(160%);
+  -webkit-backdrop-filter: blur(22px) saturate(160%);
+  border: 1px solid rgba(255,255,255,0.7);
+  border-radius: 20px;
+  padding: 14px 16px;
   color: var(--text-main);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.9),
+    0 8px 20px rgba(15,32,48,0.15);
 }
 .dest-tile .overlay .country { font-size: 11px; color: var(--text-muted); font-weight: 600; }
 .dest-tile .overlay .city { font-weight: 800; font-size: 16px; }

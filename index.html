@@ -10,8 +10,8 @@
 <meta name="description" content="DallyTrip은 TON Chain 기반 $1 토큰으로만 호텔, 투어, 액티비티를 예약하는 Web3 여행앱입니다." />
 <link rel="preconnect" href="https://cdn.jsdelivr.net" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
-<link rel="stylesheet" href="./assets/styles.css?v=20260525c" />
-<script src="./assets/i18n.js?v=20260525d"></script>
+<link rel="stylesheet" href="./assets/styles.css?v=20260525d" />
+<script src="./assets/i18n.js?v=20260525e"></script>
 <!-- Travelpayouts affiliate tracking (marker 532633) -->
 <script>(function(){var s=document.createElement('script');s.async=1;s.src='https://emrldco.com/NTMyNjMz.js?t=532633';document.head.appendChild(s);})();</script>
 </head>
@@ -41,11 +41,16 @@
 
 <!-- ============== Hero (premium) ============== -->
 <section class="hero">
-  <!-- Full-screen travel background (Ken Burns slideshow) -->
+  <!-- Full-screen travel background (Ken Burns slideshow — 8 Asian destinations) -->
   <div class="hero-bg" aria-hidden="true">
-    <div class="hero-bg-slide s1" style="background-image:url('https://images.unsplash.com/photo-1528127269322-539801943592?w=2000&q=80&auto=format&fit=crop');"></div>
-    <div class="hero-bg-slide s2" style="background-image:url('https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=2000&q=80&auto=format&fit=crop');"></div>
-    <div class="hero-bg-slide s3" style="background-image:url('https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=2000&q=80&auto=format&fit=crop');"></div>
+    <div class="hero-bg-slide s1" style="background-image:url('https://images.unsplash.com/photo-1528127269322-539801943592?w=2000&q=80&auto=format&fit=crop');"></div><!-- Ha Long Bay -->
+    <div class="hero-bg-slide s2" style="background-image:url('https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=2000&q=80&auto=format&fit=crop');"></div><!-- Bali -->
+    <div class="hero-bg-slide s3" style="background-image:url('https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=2000&q=80&auto=format&fit=crop');"></div><!-- Tokyo -->
+    <div class="hero-bg-slide s4" style="background-image:url('https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=2000&q=80&auto=format&fit=crop');"></div><!-- Singapore -->
+    <div class="hero-bg-slide s5" style="background-image:url('https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=2000&q=80&auto=format&fit=crop');"></div><!-- Bangkok -->
+    <div class="hero-bg-slide s6" style="background-image:url('https://images.unsplash.com/photo-1538485399081-7c8970f1d0c1?w=2000&q=80&auto=format&fit=crop');"></div><!-- Seoul -->
+    <div class="hero-bg-slide s7" style="background-image:url('https://images.unsplash.com/photo-1536599018102-9f803c140fc1?w=2000&q=80&auto=format&fit=crop');"></div><!-- Hong Kong -->
+    <div class="hero-bg-slide s8" style="background-image:url('https://images.unsplash.com/photo-1589394815804-964ed0be2eb5?w=2000&q=80&auto=format&fit=crop');"></div><!-- Phuket -->
   </div>
   <div class="hero-overlay" aria-hidden="true"></div>
   <div class="hero-particles" id="heroParticles" aria-hidden="true"></div>
@@ -253,22 +258,22 @@
 </section>
 
 <!-- ============== Feature Cards ============== -->
-<section id="features" class="container">
+<section id="features" class="container mt-48">
   <div class="grid grid-3">
-    <div class="glass-card" style="padding:28px;">
-      <div style="width:48px;height:48px;border-radius:14px;background:var(--grad-main-cta);display:grid;place-items:center;color:#fff;font-weight:800;box-shadow:0 8px 20px rgba(38,208,124,0.35);">$1</div>
+    <div class="liquid-card">
+      <div class="neu-orb green" style="width:56px;height:56px;border-radius:18px;font-size:18px;">$1</div>
       <h3 class="h3 mt-16" data-i18n="feat.payment.title">$1 Only Payment</h3>
-      <p class="t-muted mt-8" style="line-height:1.55;" data-i18n="feat.payment.desc">All bookings are paid only with $1 Token. No cards, no banks, no other crypto.</p>
+      <p class="t-muted mt-8" style="line-height:1.6;" data-i18n="feat.payment.desc">All bookings are paid only with $1 Token. No cards, no banks, no other crypto.</p>
     </div>
-    <div class="glass-card" style="padding:28px;">
-      <div style="width:48px;height:48px;border-radius:14px;background:var(--grad-premium);display:grid;place-items:center;color:#fff;font-weight:800;">⛓</div>
+    <div class="liquid-card">
+      <div class="neu-orb purple" style="width:56px;height:56px;border-radius:18px;font-size:22px;">⛓</div>
       <h3 class="h3 mt-16" data-i18n="feat.wallet.title">TON Wallet Connect</h3>
-      <p class="t-muted mt-8" style="line-height:1.55;" data-i18n="feat.wallet.desc">Connect your TON wallet via TonConnect and book instantly with one click.</p>
+      <p class="t-muted mt-8" style="line-height:1.6;" data-i18n="feat.wallet.desc">Connect your TON wallet via TonConnect and book instantly with one click.</p>
     </div>
-    <div class="glass-card" style="padding:28px;">
-      <div style="width:48px;height:48px;border-radius:14px;background:var(--grad-warning);display:grid;place-items:center;color:#fff;font-weight:800;">✈</div>
+    <div class="liquid-card">
+      <div class="neu-orb orange" style="width:56px;height:56px;border-radius:18px;font-size:22px;">✈</div>
       <h3 class="h3 mt-16" data-i18n="feat.travel.title">Web3 Travel</h3>
-      <p class="t-muted mt-8" style="line-height:1.55;" data-i18n="feat.travel.desc">Hotels, tours and activities — booked in one simple Web3 travel app.</p>
+      <p class="t-muted mt-8" style="line-height:1.6;" data-i18n="feat.travel.desc">Hotels, tours and activities — booked in one simple Web3 travel app.</p>
     </div>
   </div>
 </section>
@@ -280,23 +285,23 @@
     <span class="kicker" data-i18n="how.kicker">4 simple steps</span>
   </div>
   <div class="grid grid-4">
-    <div class="glass-card" style="padding:24px;">
-      <div class="badge blue"><span data-i18n="how.step">Step</span> 1</div>
+    <div class="liquid-card tight">
+      <div class="neu-orb blue" style="width:48px;height:48px;font-size:18px;">1</div>
       <h4 class="h4 mt-16" data-i18n="how.1.title">Connect TON wallet</h4>
       <p class="t-muted t-small mt-8" data-i18n="how.1.desc">Tap Connect Wallet and approve via TonConnect.</p>
     </div>
-    <div class="glass-card" style="padding:24px;">
-      <div class="badge green"><span data-i18n="how.step">Step</span> 2</div>
+    <div class="liquid-card tight">
+      <div class="neu-orb green" style="width:48px;height:48px;font-size:18px;">2</div>
       <h4 class="h4 mt-16" data-i18n="how.2.title">Pick a trip</h4>
       <p class="t-muted t-small mt-8" data-i18n="how.2.desc">Choose a hotel, tour or activity from curated lists.</p>
     </div>
-    <div class="glass-card" style="padding:24px;">
-      <div class="badge orange"><span data-i18n="how.step">Step</span> 3</div>
+    <div class="liquid-card tight">
+      <div class="neu-orb orange" style="width:48px;height:48px;font-size:18px;">3</div>
       <h4 class="h4 mt-16" data-i18n="how.3.title">Pay with $1</h4>
       <p class="t-muted t-small mt-8" data-i18n="how.3.desc">Confirm payment with a single $1 token transaction.</p>
     </div>
-    <div class="glass-card" style="padding:24px;">
-      <div class="badge purple"><span data-i18n="how.step">Step</span> 4</div>
+    <div class="liquid-card tight">
+      <div class="neu-orb purple" style="width:48px;height:48px;font-size:18px;">4</div>
       <h4 class="h4 mt-16" data-i18n="how.4.title">Enjoy your trip</h4>
       <p class="t-muted t-small mt-8" data-i18n="how.4.desc">Receive booking confirmation and travel — that's it.</p>
     </div>
@@ -312,11 +317,29 @@
   <div class="grid grid-4" id="destGrid"></div>
 </section>
 
+<!-- ============== Trending Now (LIVE from partners) ============== -->
+<section id="trending" class="container mt-48">
+  <div class="section-title">
+    <div>
+      <span class="kicker">🔥 LIVE · via Travelpayouts</span>
+      <h2 data-i18n="trending.title">Trending now in Asia</h2>
+    </div>
+    <a href="./app.html#/search?cat=Hotels" data-i18n="btn.viewAll">See all →</a>
+  </div>
+  <div class="grid grid-3" id="trendingGrid">
+    <!-- Skeletons -->
+    <div class="liquid-card tight"><div class="shimmer" style="height:180px;border-radius:18px;"></div><div class="shimmer mt-16" style="height:16px;width:65%;border-radius:8px;"></div><div class="shimmer mt-8" style="height:14px;width:40%;border-radius:6px;"></div></div>
+    <div class="liquid-card tight"><div class="shimmer" style="height:180px;border-radius:18px;"></div><div class="shimmer mt-16" style="height:16px;width:65%;border-radius:8px;"></div><div class="shimmer mt-8" style="height:14px;width:40%;border-radius:6px;"></div></div>
+    <div class="liquid-card tight"><div class="shimmer" style="height:180px;border-radius:18px;"></div><div class="shimmer mt-16" style="height:16px;width:65%;border-radius:8px;"></div><div class="shimmer mt-8" style="height:14px;width:40%;border-radius:6px;"></div></div>
+  </div>
+</section>
+
 <!-- ============== CTA Section ============== -->
 <section class="container mt-48">
-  <div class="glass-panel" style="padding:48px; text-align:center; position:relative; overflow:hidden;">
-    <div style="position:absolute;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(34,184,255,0.4),transparent 70%);filter:blur(50px);top:-100px;right:-50px;"></div>
-    <div style="position:absolute;width:240px;height:240px;border-radius:50%;background:radial-gradient(circle,rgba(38,208,124,0.4),transparent 70%);filter:blur(50px);bottom:-80px;left:-40px;"></div>
+  <div class="liquid-card" style="padding:56px 32px; text-align:center; overflow:hidden;">
+    <div style="position:absolute;width:340px;height:340px;border-radius:50%;background:radial-gradient(circle,rgba(34,184,255,0.45),transparent 70%);filter:blur(50px);top:-110px;right:-60px;z-index:0;"></div>
+    <div style="position:absolute;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(38,208,124,0.45),transparent 70%);filter:blur(50px);bottom:-100px;left:-40px;z-index:0;"></div>
+    <div style="position:absolute;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(124,92,255,0.40),transparent 70%);filter:blur(50px);top:40%;left:50%;transform:translate(-50%,-50%);z-index:0;"></div>
 
     <span class="kicker" data-i18n="cta.kicker">Ready to travel?</span>
     <h2 class="h2 mt-16" data-i18n="cta.title" data-i18n-html>One token. <br/>Infinite destinations.</h2>
@@ -406,6 +429,87 @@ function toast(msg){ const wrap=document.createElement('div'); wrap.className='t
 window.toast = toast;
 window.addEventListener('DOMContentLoaded', renderDests);
 window.addEventListener('dt:lang', renderDests);
+
+// ============== Trending Now — live partner data ==============
+const FX_RATE_LANDING = 3;                                    // 1 $1 = 3 USD
+const usdToTok = (u) => (Number(u||0) / FX_RATE_LANDING).toFixed(2);
+const fmtN = (n) => Number(n||0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+async function fetchJsonSafeL(url) {
+  try {
+    const r = await fetch(url, { headers:{ Accept:'application/json' }});
+    if (!r.ok) return null;
+    const ct = r.headers.get('content-type') || '';
+    if (!ct.includes('json')) return null;
+    return await r.json();
+  } catch { return null; }
+}
+
+async function renderTrending() {
+  const grid = document.getElementById('trendingGrid');
+  if (!grid) return;
+  const cities = ['Bali', 'Tokyo', 'Singapore', 'Bangkok', 'Seoul', 'Hong Kong'];
+  const lang = (window.__dtLang && window.__dtLang.getLang()) || 'en';
+
+  // Fan out fetches
+  const responses = await Promise.all(cities.map(c =>
+    fetchJsonSafeL(`/api/hotels/search?city=${encodeURIComponent(c)}`).then(r => ({city:c, r}))
+  ));
+
+  // Pick one top hotel per city (lowest price), build cards
+  const cards = responses.map(({city, r}) => {
+    const list = (r && r.results) || [];
+    if (!list.length) return null;
+    const top = list.slice().sort((a,b) => (a.price||0) - (b.price||0))[0];
+    return { city, hotel: top };
+  }).filter(Boolean);
+
+  if (cards.length === 0) {
+    grid.innerHTML = `<div class="liquid-card" style="grid-column:1/-1;text-align:center;"><p class="t-muted">Loading partner data…</p></div>`;
+    return;
+  }
+
+  const cityTr = (c) => (CITY_TR[c]||{})[lang] || c;
+  const countryTr = (city) => {
+    const map = { 'Bali':'Indonesia', 'Tokyo':'Japan', 'Singapore':'Singapore', 'Bangkok':'Thailand', 'Seoul':'Korea', 'Hong Kong':'China' };
+    const en = map[city] || '';
+    return (COUNTRY_TR[en]||{})[lang] || en;
+  };
+  const cityImg = {
+    'Bali':       'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=900&q=70&auto=format&fit=crop',
+    'Tokyo':      'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=900&q=70&auto=format&fit=crop',
+    'Singapore':  'https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=900&q=70&auto=format&fit=crop',
+    'Bangkok':    'https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=900&q=70&auto=format&fit=crop',
+    'Seoul':      'https://images.unsplash.com/photo-1538485399081-7c8970f1d0c1?w=900&q=70&auto=format&fit=crop',
+    'Hong Kong':  'https://images.unsplash.com/photo-1536599018102-9f803c140fc1?w=900&q=70&auto=format&fit=crop',
+  };
+  const escapeH = s => String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  grid.innerHTML = cards.map(({city, hotel}) => `
+    <a class="liquid-card tight" href="./app.html#/search?cat=Hotels" style="text-decoration:none; color:inherit; padding:14px;">
+      <div style="position:relative; height:200px; border-radius:18px; background:url('${cityImg[city]}') center/cover; overflow:hidden; box-shadow:inset 0 0 0 1px rgba(255,255,255,0.55), 0 12px 24px rgba(15,32,48,0.18);">
+        <span class="badge" style="position:absolute;top:12px;left:12px;background:rgba(255,255,255,0.78);backdrop-filter:blur(10px);font-weight:700;">🔥 LIVE</span>
+        <div style="position:absolute;left:12px;right:12px;bottom:12px;background:linear-gradient(135deg, rgba(255,255,255,0.7), rgba(255,255,255,0.45));backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.7);border-radius:14px;padding:10px 12px;color:var(--text-main);box-shadow:inset 0 1px 0 rgba(255,255,255,0.9);">
+          <div class="t-small t-muted" style="font-weight:700;">${escapeH(countryTr(city))}</div>
+          <div style="font-weight:800;font-size:15px;">${escapeH(cityTr(city))}</div>
+        </div>
+      </div>
+      <div style="padding:14px 4px 6px;">
+        <div class="t-small t-muted" style="font-weight:700; letter-spacing:0.04em;">${escapeH(hotel.stars ? '⭐'.repeat(Math.min(5, Math.round(hotel.stars))) : 'Hotel')}</div>
+        <div style="font-weight:800; font-size:15px; line-height:1.3; margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeH(hotel.name)}</div>
+        <div class="row space-between items-center mt-8">
+          <div>
+            <span style="font-size:20px;font-weight:800;color:var(--token-green);">${fmtN(usdToTok(hotel.price))}</span>
+            <span class="t-small t-muted" style="font-weight:700;">$1 / night</span>
+          </div>
+          <span class="btn btn-secondary btn-sm">View →</span>
+        </div>
+      </div>
+    </a>
+  `).join('');
+}
+window.addEventListener('DOMContentLoaded', renderTrending);
+window.addEventListener('dt:lang', renderTrending);
 
 // Smooth scroll
 document.querySelectorAll('a[href^="#"]').forEach(a => {
