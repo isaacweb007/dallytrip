@@ -24,11 +24,14 @@ export const corsPreflight = () =>
     },
   });
 
+// Default marker (Travelpayouts) — overridable via env TRAVELPAYOUTS_MARKER
+export const DEFAULT_MARKER = '532633';
+
 // Append affiliate marker to any partner URL
 export const withMarker = (url, marker) => {
-  if (!marker) return url;
+  const m = marker || DEFAULT_MARKER;
   const u = new URL(url);
-  if (!u.searchParams.has('marker')) u.searchParams.set('marker', marker);
+  if (!u.searchParams.has('marker')) u.searchParams.set('marker', m);
   return u.toString();
 };
 
