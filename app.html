@@ -59,6 +59,20 @@ const CITY_TR = {
 const trCity = c => { const lang = window.__dtLang ? window.__dtLang.getLang() : 'en'; return (CITY_TR[c]||{})[lang] || c; };
 const trCountry = c => { const lang = window.__dtLang ? window.__dtLang.getLang() : 'en'; return (COUNTRY_TR[c]||{})[lang] || c; };
 
+// tField — backward-compatible i18n for product strings.
+//   tField('hello')              → 'hello'
+//   tField({ko:'안녕', en:'hi'}) → 'hi' (or '안녕' depending on current lang)
+// Use this everywhere a product field could be either a string (legacy / API
+// passthrough) or a localized object. Falls back: current → en → ko → first.
+function tField(v) {
+  if (v == null) return '';
+  if (typeof v === 'string' || typeof v === 'number') return v;
+  if (Array.isArray(v)) return v.map(tField);
+  const lang = window.__dtLang ? window.__dtLang.getLang() : 'en';
+  return v[lang] || v.en || v.ko || v[Object.keys(v)[0]] || '';
+}
+window.tField = tField;
+
 // ================= Mock data =================
 const PRODUCTS = [
   { id: 'p1', cat:'Hotel', country:'Vietnam', city:'Da Nang', name:'Da Nang Ocean View Resort', price:150, rating:4.8, reviews:248, img:'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=900&auto=format&fit=crop&q=70', desc:'Beachfront 5-star resort with infinity pool overlooking the East Sea.', included:['Breakfast','WiFi','Pool access','Airport shuttle (paid)'], excluded:['Lunch / Dinner','Spa'], cancel:'Free cancellation up to 48h before check-in.' },
@@ -514,13 +528,12 @@ async function fetchJsonSafe(url) {
 function normalizeHotel(h, city) {
   const cityName = h.location || city || 'Da Nang';
   const hotelName = h.name || `${cityName} Hotel`;
-  // If Hotellook gave us a hotelId, use its real photo CDN; else cycle the city pool
-  let img;
-  if (h.hotelId) {
-    img = `https://photo.hotellook.com/image_v2/limit/h${h.hotelId}_1/800/520.auto`;
-  } else {
-    img = cityImg(cityName, hotelName);
-  }
+  // Server already picks the best photo (Hotellook CDN if hotelId, else curated
+  // city-hotel pool). Fall back to client-side city pool only if it's missing.
+  const img = h.image
+    || (h.hotelId
+          ? `https://photo.hotellook.com/image_v2/limit/h${h.hotelId}_1/800/520.auto`
+          : cityImg(cityName, hotelName));
   return {
     id: `live_h_${h.hotelId || hotelName.replace(/\s+/g,'_').toLowerCase().slice(0,40)}`,
     source: 'live',
@@ -534,10 +547,30 @@ function normalizeHotel(h, city) {
     reviews: Math.floor(50 + Math.random() * 800),
     img,
     imgFallback: cityImg(cityName, hotelName),
-    desc: `Curated stay in ${cityName}. Booked via Travelpayouts partners.`,
-    included: ['Standard amenities', 'Free cancellation per partner policy'],
-    excluded: ['City tax', 'Tips'],
-    cancel: 'Per partner policy — see partner booking page.',
+    desc: {
+      ko: `${trCity(cityName)}의 큐레이션 숙소. Travelpayouts 파트너 예약.`,
+      en: `Curated stay in ${cityName}. Booked via Travelpayouts partners.`,
+      ja: `${cityName}の厳選ホテル。Travelpayoutsパートナー経由で予約。`,
+      zh: `${cityName}的精选住宿，通过Travelpayouts合作伙伴预订。`,
+    },
+    included: {
+      ko: ['기본 편의시설', '파트너 정책에 따른 무료 취소'],
+      en: ['Standard amenities', 'Free cancellation per partner policy'],
+      ja: ['基本設備', 'パートナーポリシーに従う無料キャンセル'],
+      zh: ['标准设施', '按合作伙伴政策免费取消'],
+    },
+    excluded: {
+      ko: ['도시세', '팁'],
+      en: ['City tax', 'Tips'],
+      ja: ['市税', 'チップ'],
+      zh: ['城市税', '小费'],
+    },
+    cancel: {
+      ko: '파트너 정책에 따름 — 파트너 예약 페이지 참조.',
+      en: 'Per partner policy — see partner booking page.',
+      ja: 'パートナーポリシーに従う — パートナー予約ページを参照。',
+      zh: '按合作伙伴政策 — 请查看合作伙伴预订页面。',
+    },
     bookingUrl: h.bookingUrl,
   };
 }
@@ -560,9 +593,14 @@ function normalizeFlight(f) {
   const cityFromAirport = AIRPORT_TO_CITY[toAirport] || toAirport;
   const durationStr = isDuffel ? parseISODuration(f.duration) : (f.duration || '');
   const airlineDisplay = (isDuffel ? f.airlineName : f.airline) || f.airline || 'Multiple';
-  const baggageIncl = isDuffel && f.baggageInfo ? f.baggageInfo : '기내 수하물 1개';
-  const baggageExcl = isDuffel && f.baggageInfo ? [] : ['위탁 수하물 (항공사별 상이)', '식사'];
+  // Baggage info comes from Duffel already as a string; default per-locale otherwise.
+  const baggageIncl = isDuffel && f.baggageInfo
+    ? f.baggageInfo
+    : { ko:'기내 수하물 1개', en:'1 carry-on bag', ja:'機内持ち込み手荷物1個', zh:'1件随身行李' };
 
+  // Flight hero: prefer airline logo (server-provided) over generic stock airplane.
+  // Card / detail page will still fall back to LIVE_IMG.flight via background-image
+  // chaining, but a per-flight visual ties the card to *this* flight.
   return {
     id: `live_f_${f.id || f.flightNumber || Math.random().toString(36).slice(2,8)}`,
     source: 'live',
@@ -570,6 +608,7 @@ function normalizeFlight(f) {
     cat: 'Flight',
     country: COUNTRY_OF_CITY[cityFromAirport] || 'Vietnam',
     city: cityFromAirport,
+    // route + airline reads correctly in any locale, just keep raw codes
     name: `${f.from} → ${f.to}${airlineDisplay !== 'Multiple' ? ' · ' + airlineDisplay : ''}`,
     fromCode: f.from, toCode: f.to,
     fromCity: AIRPORT_TO_CITY[f.from] || f.from,
@@ -587,13 +626,41 @@ function normalizeFlight(f) {
     priceUSD: Number(f.price || 0),
     price: usdToToken(f.price || 0),
     rating: 4.6, reviews: Math.floor(80 + Math.random() * 600),
-    img: LIVE_IMG.flight,
+    img: f.image || cityImg(cityFromAirport, `${f.from}-${f.to}`) || LIVE_IMG.flight,
+    imgFallback: LIVE_IMG.flight,
     desc: isDuffel
-      ? `${f.from}에서 ${f.to}행 실시간 항공편. ${airlineDisplay}. ${baggageIncl}.`
-      : `${f.from}에서 ${f.to}행 항공편. 아비아세일즈 제공 최저가.`,
-    included: [baggageIncl, '온라인 체크인'],
-    excluded: baggageExcl,
-    cancel: '항공사 정책에 따름.',
+      ? {
+          ko: `${f.from}에서 ${f.to}행 실시간 항공편. ${airlineDisplay}.`,
+          en: `Live flight ${f.from} → ${f.to} operated by ${airlineDisplay}.`,
+          ja: `${f.from}発${f.to}行きライブフライト。${airlineDisplay}運航。`,
+          zh: `${f.from}飞往${f.to}的实时航班。由${airlineDisplay}运营。`,
+        }
+      : {
+          ko: `${f.from}에서 ${f.to}행 항공편. 아비아세일즈 제공 최저가.`,
+          en: `Flight ${f.from} → ${f.to}. Lowest fare via Aviasales.`,
+          ja: `${f.from}発${f.to}行きフライト。Aviasalesの最安値。`,
+          zh: `${f.from}飞往${f.to}的航班。Aviasales提供最低价。`,
+        },
+    included: {
+      ko: [typeof baggageIncl === 'string' ? baggageIncl : baggageIncl.ko, '온라인 체크인'],
+      en: [typeof baggageIncl === 'string' ? baggageIncl : baggageIncl.en, 'Online check-in'],
+      ja: [typeof baggageIncl === 'string' ? baggageIncl : baggageIncl.ja, 'オンラインチェックイン'],
+      zh: [typeof baggageIncl === 'string' ? baggageIncl : baggageIncl.zh, '在线值机'],
+    },
+    excluded: isDuffel && f.baggageInfo
+      ? { ko:[], en:[], ja:[], zh:[] }
+      : {
+          ko: ['위탁 수하물 (항공사별 상이)', '식사'],
+          en: ['Checked bag (airline-dependent)', 'Meals'],
+          ja: ['受託手荷物（航空会社による）', '機内食'],
+          zh: ['托运行李（视航空公司而定）', '餐食'],
+        },
+    cancel: {
+      ko: '항공사 정책에 따름.',
+      en: 'Subject to airline policy.',
+      ja: '航空会社のポリシーに従う。',
+      zh: '受航空公司政策约束。',
+    },
     bookingUrl: f.bookingUrl || null,
   };
 }
@@ -613,11 +680,34 @@ function normalizeCar(c, city) {
     priceUSD: Number(c.price || 0),
     price: usdToToken(c.price || 0),
     rating: 4.7, reviews: Math.floor(60 + Math.random() * 400),
-    img: cityImg(city, c.model || c.type) || LIVE_IMG.car,
-    desc: `${c.type} rental from ${c.supplier}. ${c.transmission} transmission, seats ${c.seats}.`,
-    included: ['Rental car', 'Insurance options at checkout'],
-    excluded: ['Fuel', 'Extras'],
-    cancel: 'Free cancellation up to 48h.',
+    // Server now sends a per-vehicle photo (matches type). Fall back to city pool
+    // only if the API didn't send anything.
+    img: c.image || cityImg(city, c.model || c.type) || LIVE_IMG.car,
+    imgFallback: LIVE_IMG.car,
+    desc: {
+      ko: `${c.supplier}의 ${c.type} 렌터카. ${c.transmission === 'Auto' ? '자동' : '수동'}변속, ${c.seats}인승.`,
+      en: `${c.type} rental from ${c.supplier}. ${c.transmission} transmission, seats ${c.seats}.`,
+      ja: `${c.supplier}の${c.type}レンタカー。${c.transmission === 'Auto' ? 'オートマ' : 'マニュアル'}、${c.seats}人乗り。`,
+      zh: `来自${c.supplier}的${c.type}租赁车。${c.transmission === 'Auto' ? '自动' : '手动'}变速箱，${c.seats}座。`,
+    },
+    included: {
+      ko: ['렌터카', '체크아웃 시 보험 옵션'],
+      en: ['Rental car', 'Insurance options at checkout'],
+      ja: ['レンタカー', 'チェックアウト時の保険オプション'],
+      zh: ['租赁车辆', '结账时的保险选项'],
+    },
+    excluded: {
+      ko: ['연료', '추가 옵션'],
+      en: ['Fuel', 'Extras'],
+      ja: ['燃料', 'オプション'],
+      zh: ['燃料', '附加项目'],
+    },
+    cancel: {
+      ko: '48시간 전 무료 취소.',
+      en: 'Free cancellation up to 48h.',
+      ja: '48時間前まで無料キャンセル可。',
+      zh: '48小时前免费取消。',
+    },
     bookingUrl: c.bookingUrl,
   };
 }
@@ -635,11 +725,28 @@ function normalizeActivity(a) {
     price: usdToToken(a.price || 0),
     rating: a.rating || 4.7,
     reviews: a.reviews || 0,
-    img: cityImg(cityName, a.name) || LIVE_IMG.activity,
+    // Server keyword-matches activity name → category image. Always prefer that.
+    img: a.image || cityImg(cityName, a.name) || LIVE_IMG.activity,
+    imgFallback: cityImg(cityName, a.name) || LIVE_IMG.activity,
     desc: a.name,
-    included: ['Entry / ticket', 'Skip-the-line (where applicable)'],
-    excluded: ['Transport', 'Meals'],
-    cancel: 'Per partner policy.',
+    included: {
+      ko: ['입장권 / 티켓', '줄서기 면제 (해당 시)'],
+      en: ['Entry / ticket', 'Skip-the-line (where applicable)'],
+      ja: ['入場券 / チケット', '優先入場（該当する場合）'],
+      zh: ['入场券', '免排队 (如适用)'],
+    },
+    excluded: {
+      ko: ['교통편', '식사'],
+      en: ['Transport', 'Meals'],
+      ja: ['交通費', '食事'],
+      zh: ['交通', '餐食'],
+    },
+    cancel: {
+      ko: '파트너 정책에 따름.',
+      en: 'Per partner policy.',
+      ja: 'パートナーポリシーに従う。',
+      zh: '按合作伙伴政策。',
+    },
     bookingUrl: a.bookingUrl,
   };
 }
@@ -938,7 +1045,7 @@ function productCard(p) {
     </div>
     <div class="body">
       <div class="loc">${trCountry(p.country)} · ${trCity(p.city)}</div>
-      <div class="title">${p.name}</div>
+      <div class="title">${tField(p.name)}</div>
       <div class="meta">${metaInner}</div>
       ${extAvg ? `
         <div class="price-compare">
@@ -1003,36 +1110,47 @@ function pageSearch(params) {
 
   // Flights: show dedicated search form + live results section
   const isFlights = cat === 'Flights';
+  // i18n labels for the flight search form (4 langs)
+  const _flang = window.__dtLang ? window.__dtLang.getLang() : 'en';
+  const _flbl = {
+    title:   { ko:'실시간 항공 검색', en:'Live flight search', ja:'リアルタイム航空券検索', zh:'实时航班搜索' },
+    from:    { ko:'출발지 (IATA)',   en:'From (IATA)',        ja:'出発地 (IATA)',          zh:'出发地 (IATA)' },
+    to:      { ko:'도착지 (IATA)',   en:'To (IATA)',          ja:'到着地 (IATA)',          zh:'目的地 (IATA)' },
+    date:    { ko:'출발일',          en:'Depart date',        ja:'出発日',                 zh:'出发日期' },
+    adults:  { ko:'성인',            en:'Adults',             ja:'大人',                   zh:'成人' },
+    pax:     { ko:'명',              en:'',                   ja:'名',                    zh:'人' },
+    search:  { ko:'검색',            en:'Search',             ja:'検索',                   zh:'搜索' },
+  };
   const flightSearchForm = isFlights ? `
     <div class="glass-card neu" style="padding:20px;margin-bottom:20px;">
       <div class="row items-center gap-8 mb-12">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--ocean-blue)" stroke-width="2"><path d="M17.8 19.2L16 11l3.5-3.5C21 6 21 4 19 2c-2-2-4-2-5.5-.5L10 5 1.8 3.2l-1.6 1.6L6 10l-2 3-3 1v2l4-1 .8.8-1 4h2l1-3 3-2 3.8 5.8 1.6-1.6z"/></svg>
-        <span style="font-weight:700;">실시간 항공 검색</span>
+        <span style="font-weight:700;">${_flbl.title[_flang]}</span>
         <span class="badge" style="background:#F0FFF4;color:#15803d;font-size:11px;">Duffel Live</span>
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr auto;gap:10px;align-items:end;flex-wrap:wrap;">
         <div class="field" style="margin:0;">
-          <label style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">출발지 (IATA)</label>
+          <label style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">${_flbl.from[_flang]}</label>
           <input id="s_from" class="glass-input" placeholder="ICN" maxlength="3"
                  value="${escapeHtml(urlFrom)}" style="text-transform:uppercase;font-weight:700;font-size:16px;text-align:center;" />
         </div>
         <div class="field" style="margin:0;">
-          <label style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">도착지 (IATA)</label>
+          <label style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">${_flbl.to[_flang]}</label>
           <input id="s_to" class="glass-input" placeholder="DAD" maxlength="3"
                  value="${escapeHtml(urlTo)}" style="text-transform:uppercase;font-weight:700;font-size:16px;text-align:center;" />
         </div>
         <div class="field" style="margin:0;">
-          <label style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">출발일</label>
+          <label style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">${_flbl.date[_flang]}</label>
           <input id="s_date" class="glass-input" type="date" value="${escapeHtml(urlDate)}" />
         </div>
         <div class="field" style="margin:0;">
-          <label style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">성인</label>
+          <label style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">${_flbl.adults[_flang]}</label>
           <select id="s_adults" class="glass-input">
-            ${[1,2,3,4].map(n=>`<option value="${n}" ${n===parseInt(urlAdult)?'selected':''}>${n}명</option>`).join('')}
+            ${[1,2,3,4].map(n=>`<option value="${n}" ${n===parseInt(urlAdult)?'selected':''}>${n}${_flbl.pax[_flang]}</option>`).join('')}
           </select>
         </div>
         <button class="btn btn-primary" onclick="loadExternalResults()" style="white-space:nowrap;height:48px;padding:0 20px;">
-          ✈ 검색
+          ✈ ${_flbl.search[_flang]}
         </button>
       </div>
     </div>
@@ -1184,29 +1302,36 @@ function externalCard(r, type) {
     return duffelFlightCard(r);
   }
 
-  // Normalize fields for display
+  // Normalize fields for display. Prefer the per-item image our server now sends
+  // (hotels: Hotellook CDN, activities: keyword-matched, cars: type-matched).
+  // Fall back to the city pool, then to the category default.
   let title, sub, img;
+  const cityForFallback = r.city || r.location || r.to || '';
   if (type === 'flights') {
     title = `${r.from} → ${r.to}`;
     sub = `${r.airline||'Multiple'} · ${r.depart||''}`;
-    img = 'https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=600&q=70';
+    img = r.image || cityImg(AIRPORT_TO_CITY[r.to] || cityForFallback, `${r.from}-${r.to}`) || LIVE_IMG.flight;
   } else if (type === 'hotels') {
     title = r.name || 'Hotel';
     sub = `${r.stars?'⭐'.repeat(Math.round(r.stars))+' · ':''}${r.location||''}`;
-    img = 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=600&q=70';
+    img = r.image
+      || (r.hotelId ? `https://photo.hotellook.com/image_v2/limit/h${r.hotelId}_1/800/520.auto` : null)
+      || cityImg(cityForFallback, title)
+      || LIVE_IMG.hotel;
   } else if (type === 'cars') {
     title = `${r.type} · ${r.model}`;
     sub = `${r.supplier} · ${r.seats} seats · ${r.transmission}`;
-    img = 'https://images.unsplash.com/photo-1494976388531-d1058494cdd8?w=600&q=70';
+    img = r.image || cityImg(cityForFallback, r.model || r.type) || LIVE_IMG.car;
   } else {
     title = r.name || 'Activity';
     sub = `⭐ ${r.rating||'-'} · ${r.reviews||0} reviews`;
-    img = 'https://images.unsplash.com/photo-1580974511812-2c4c8ddf2456?w=600&q=70';
+    img = r.image || cityImg(cityForFallback, title) || LIVE_IMG.activity;
   }
+  const fallback = cityImg(cityForFallback, title) || LIVE_IMG[type === 'flights' ? 'flight' : (type === 'hotels' ? 'hotel' : (type === 'cars' ? 'car' : 'activity'))];
   const usd = r.price ? `$${fmt(r.price)}` : '—';
   return `
     <a class="product-card" href="${escapeHtml(r.bookingUrl||'#')}" target="_blank" rel="nofollow sponsored noopener">
-      <div class="img" style="background-image:url('${img}')">
+      <div class="img" style="background-image:url('${img}'),url('${fallback}')">
         <span class="badge badge-on-image" style="background:linear-gradient(135deg,#E0D7FF,#C5B5FF);color:#4830b0;">🌐 External</span>
       </div>
       <div class="body">
@@ -1225,8 +1350,28 @@ function externalCard(r, type) {
 // ── Duffel 전용 항공 카드 (실시간 재고, 항공사 로고, 수하물 정보) ─────────
 function duffelFlightCard(r) {
   const usd   = r.price ? `$${fmt(r.price)}` : '—';
-  const stops = r.transfers === 0 || r.stops === 0 ? '직항' : `${r.stops||r.transfers}회 경유`;
+  const lang  = window.__dtLang ? window.__dtLang.getLang() : 'en';
+  const L = {
+    direct:  { ko:'직항', en:'Nonstop', ja:'直行', zh:'直飞' },
+    stops:   { ko:'회 경유', en:' stop(s)', ja:'回乗継', zh:'次中转' },
+    book:    { ko:'예약하기', en:'Book', ja:'予約する', zh:'预订' },
+  };
+  const stops = (r.transfers === 0 || r.stops === 0)
+    ? L.direct[lang]
+    : `${r.stops||r.transfers}${L.stops[lang]}`;
   const dur   = r.duration ? ` · ${r.duration}` : '';
+
+  // Hero image: airline logo if available (the most "this is YOUR airline"
+  // visual), else city image of the destination, else stock plane.
+  const destCity = AIRPORT_TO_CITY[r.to] || '';
+  const heroImg = r.airlineLogo
+    || cityImg(destCity, `${r.from}-${r.to}`)
+    || LIVE_IMG.flight;
+  const heroBg = r.airlineLogo
+    // Airline logo over a soft gradient — keep the logo readable and centered.
+    ? `background:linear-gradient(135deg,#EAF6FF,#F4F8FF) center/cover; background-image:url('${escapeHtml(r.airlineLogo)}'),linear-gradient(135deg,#EAF6FF,#F4F8FF); background-repeat:no-repeat; background-position:center; background-size:contain, cover;`
+    : `background-image:url('${heroImg}'),url('${LIVE_IMG.flight}'); background-size:cover; background-position:center;`;
+
   const logoHtml = r.airlineLogo
     ? `<img src="${escapeHtml(r.airlineLogo)}" alt="" style="height:22px;width:auto;object-fit:contain;border-radius:4px;">`
     : `<span style="font-size:13px;font-weight:700;color:var(--text-main);">${escapeHtml(r.airline||'')}</span>`;
@@ -1234,7 +1379,7 @@ function duffelFlightCard(r) {
   return `
     <div class="product-card" style="cursor:pointer;" onclick="location.hash='/product/'+${JSON.stringify(r.id||'')}"
          data-offer="${escapeHtml(r.offerId||'')}">
-      <div class="img" style="background-image:url('https://images.unsplash.com/photo-1436491865332-7a61a109cc05?w=600&q=70')">
+      <div class="img" style="${heroBg}">
         <span class="badge badge-on-image" style="background:rgba(255,255,255,0.92);color:#16a34a;font-weight:700;">✈ Duffel Live</span>
       </div>
       <div class="body">
@@ -1253,7 +1398,7 @@ function duffelFlightCard(r) {
         ${r.baggageInfo ? `<div class="t-small t-muted" style="margin-top:4px;">🧳 ${escapeHtml(r.baggageInfo)}</div>` : ''}
         <div class="price-row" style="margin-top:10px;">
           <div><span style="font-size:20px;font-weight:800;color:var(--text-main);">${usd}</span> <span class="t-small t-muted">USD</span></div>
-          <span class="btn btn-primary btn-sm">예약하기</span>
+          <span class="btn btn-primary btn-sm">${L.book[lang]}</span>
         </div>
       </div>
     </div>`;
@@ -1408,34 +1553,34 @@ function pageProduct(id) {
     </div>
 
     <div class="glass-panel" style="overflow:hidden;">
-      <div style="aspect-ratio:16/8; background:url('${p.img}') center/cover;"></div>
+      <div style="aspect-ratio:16/8; background-image:url('${p.img}'),url('${p.imgFallback || cityImg(p.city, p.name) || LIVE_IMG[(p.cat||'hotel').toLowerCase()] || LIVE_IMG.hotel}'); background-size:cover; background-position:center;"></div>
     </div>
 
     <div class="grid" style="grid-template-columns: 1.6fr 1fr; gap:24px; margin-top:24px;">
       <div>
         <div class="glass-card" style="padding:28px;">
           <span class="badge blue">${t('cat.'+p.cat)}</span>
-          <h2 class="h2 mt-16" style="font-size:32px;">${p.name}</h2>
+          <h2 class="h2 mt-16" style="font-size:32px;">${tField(p.name)}</h2>
           <div class="row gap-12 items-center mt-8 t-muted">
             <span>📍 ${trCity(p.city)}, ${trCountry(p.country)}</span>
             <span>·</span>
             <span>⭐ ${p.rating} (${p.reviews})</span>
           </div>
-          <p class="mt-16" style="line-height:1.6;">${p.desc}</p>
+          <p class="mt-16" style="line-height:1.6;">${tField(p.desc)}</p>
           ${heroBlock}
         </div>
 
         <div class="glass-card mt-16" style="padding:28px;">
           <h4 class="h4">${t('common.included')}</h4>
           <ul class="mt-8" style="padding-left:18px; line-height:1.8;">
-            ${p.included.map(x => `<li>✓ ${x}</li>`).join('')}
+            ${(tField(p.included)||[]).map(x => `<li>✓ ${x}</li>`).join('')}
           </ul>
           <h4 class="h4 mt-16">${t('common.notIncluded')}</h4>
           <ul class="mt-8" style="padding-left:18px; line-height:1.8; color:var(--text-muted);">
-            ${p.excluded.map(x => `<li>✗ ${x}</li>`).join('')}
+            ${(tField(p.excluded)||[]).map(x => `<li>✗ ${x}</li>`).join('')}
           </ul>
           <h4 class="h4 mt-16">${t('common.cancelPolicy')}</h4>
-          <p class="t-muted mt-8">${p.cancel}</p>
+          <p class="t-muted mt-8">${tField(p.cancel)}</p>
         </div>
       </div>
 
@@ -1486,10 +1631,10 @@ function pageCheckout() {
     <div class="glass-card mt-16" style="padding:24px;">
       <h4 class="h4">${t('app.checkout.summary')}</h4>
       <div class="row items-center mt-16 gap-16">
-        <div style="width:88px;height:88px;border-radius:18px;background:url('${product.img}') center/cover;border:1px solid var(--glass-border);"></div>
+        <div style="width:88px;height:88px;border-radius:18px;background-image:url('${product.img}'),url('${product.imgFallback || cityImg(product.city, tField(product.name)) || LIVE_IMG.hotel}');background-size:cover;background-position:center;border:1px solid var(--glass-border);"></div>
         <div style="flex:1;">
           <div class="t-muted t-small">${trCountry(product.country)} · ${trCity(product.city)}</div>
-          <div style="font-weight:800;font-size:16px;">${product.name}</div>
+          <div style="font-weight:800;font-size:16px;">${tField(product.name)}</div>
           <div class="t-muted t-small mt-8">${date} · ${units} ${t(unitKey)}</div>
         </div>
         <div style="text-align:right;">
@@ -1543,7 +1688,7 @@ function pageBookingSuccess(id) {
 
       <div class="glass-card mt-24" style="padding:20px; text-align:left;">
         <div class="row space-between"><span class="t-muted">${t('app.success.bookingId')}</span><b>${b.id}</b></div>
-        <div class="row space-between mt-8"><span class="t-muted">${t('common.product')}</span><b>${b.product.name}</b></div>
+        <div class="row space-between mt-8"><span class="t-muted">${t('common.product')}</span><b>${tField(b.product.name)}</b></div>
         <div class="row space-between mt-8"><span class="t-muted">${t('common.date')}</span><b>${b.date}</b></div>
         <div class="row space-between mt-8"><span class="t-muted">${t('common.amount')}</span><b>${price(b.amount)}</b></div>
         <div class="row space-between mt-8"><span class="t-muted">${t('common.status')}</span><span class="badge status-pending">${t('status.Pending Confirmation')}</span></div>
@@ -1581,13 +1726,13 @@ function pageBookings() {
           const unitKey = b.product.cat==='Hotel' ? 'units.nights' : 'units.guestsPlural';
           return `
           <div class="glass-card" style="padding:18px; display:flex; gap:16px;">
-            <div style="width:96px;height:96px;border-radius:18px;background:url('${b.product.img}') center/cover; flex-shrink:0;"></div>
+            <div style="width:96px;height:96px;border-radius:18px;background-image:url('${b.product.img}'),url('${b.product.imgFallback || cityImg(b.product.city, tField(b.product.name)) || LIVE_IMG.hotel}');background-size:cover;background-position:center; flex-shrink:0;"></div>
             <div style="flex:1;">
               <div class="row space-between items-center">
                 <span class="badge ${badgeForStatus(b.status)}">${t('status.'+b.status)}</span>
                 <span class="t-small t-muted">${b.id}</span>
               </div>
-              <div style="font-weight:800;font-size:15px;margin-top:6px;">${b.product.name}</div>
+              <div style="font-weight:800;font-size:15px;margin-top:6px;">${tField(b.product.name)}</div>
               <div class="t-small t-muted">${b.date} · ${b.units} ${t(unitKey)}</div>
               <div class="row space-between items-end mt-8">
                 <span>${price(b.amount)}</span>
@@ -1649,7 +1794,7 @@ function pageWallet() {
           <tbody>
             ${(state.bookings.slice(0,5).map(b => `
               <tr>
-                <td><span class="badge orange">${t('admin.dash.booking')}</span> ${b.product.name}</td>
+                <td><span class="badge orange">${t('admin.dash.booking')}</span> ${tField(b.product.name)}</td>
                 <td>-${fmt(b.amount)} $1</td>
                 <td>${b.createdAt}</td>
                 <td><a class="t-mono t-small" href="#" onclick="event.preventDefault();toast(t('toast.tonExplorer'))">${b.tx}</a></td>

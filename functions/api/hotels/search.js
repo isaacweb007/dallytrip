@@ -58,6 +58,10 @@ export async function onRequestGet({ request, env }) {
       country: h.location?.country,
       price: Math.round(h.priceAvg || h.priceFrom || 0),
       currency: 'USD',
+      // Hotellook CDN gives a real photo of THIS hotel when hotelId is known.
+      image: h.hotelId
+        ? `https://photo.hotellook.com/image_v2/limit/h${h.hotelId}_1/800/520.auto`
+        : pickCityHotelImage(h.location?.name || locName, h.hotelName || h.name),
       bookingUrl: withMarker(
         `https://search.hotellook.com/hotels?destination=${encodeURIComponent(locName)}` +
           `&checkIn=${checkin}&checkOut=${checkout}&adults=${adults}`,
@@ -78,6 +82,7 @@ export async function onRequestGet({ request, env }) {
       country: COUNTRY_OF[city] || '',
       price: h.price,
       currency: 'USD',
+      image: pickCityHotelImage(city, h.name),
       bookingUrl: withMarker(
         `https://search.hotellook.com/hotels?destination=${encodeURIComponent(city)}` +
           `&checkIn=${checkin}&checkOut=${checkout}&adults=${adults}`,
@@ -102,6 +107,135 @@ function defaultDate(addDays) {
   const d = new Date();
   d.setDate(d.getDate() + 30 + addDays);
   return d.toISOString().slice(0, 10);
+}
+
+// ============== Per-city HOTEL image pools ==============
+// Each pool only contains hotel/resort/villa shots (not generic city landscapes),
+// so even when Hotellook doesn't return a hotelId, the showcase card looks like
+// an actual hotel for that destination. Stable hash of hotelName picks one.
+const HOTEL_IMG_POOL = {
+  'Da Nang':[
+    'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1582719508461-905c673771fd?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=900&q=70&auto=format&fit=crop',
+  ],
+  'Phu Quoc':[
+    'https://images.unsplash.com/photo-1540541338287-41700207dee6?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1602002418816-5c0aeef426aa?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1571003123894-1f0594d2b5d9?w=900&q=70&auto=format&fit=crop',
+  ],
+  'Nha Trang':[
+    'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=900&q=70&auto=format&fit=crop',
+  ],
+  'Ho Chi Minh':[
+    'https://images.unsplash.com/photo-1606402179428-a57976d71fa4?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1551918120-9739cb430c6d?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=900&q=70&auto=format&fit=crop',
+  ],
+  'Hanoi':[
+    'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1551918120-9739cb430c6d?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1606402179428-a57976d71fa4?w=900&q=70&auto=format&fit=crop',
+  ],
+  'Bangkok':[
+    'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1551918120-9739cb430c6d?w=900&q=70&auto=format&fit=crop',
+  ],
+  'Phuket':[
+    'https://images.unsplash.com/photo-1540541338287-41700207dee6?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1602002418816-5c0aeef426aa?w=900&q=70&auto=format&fit=crop',
+  ],
+  'Chiang Mai':[
+    'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=900&q=70&auto=format&fit=crop',
+  ],
+  'Bali':[
+    'https://images.unsplash.com/photo-1540541338287-41700207dee6?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1602002418816-5c0aeef426aa?w=900&q=70&auto=format&fit=crop',
+  ],
+  'Jakarta':[
+    'https://images.unsplash.com/photo-1551918120-9739cb430c6d?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=900&q=70&auto=format&fit=crop',
+  ],
+  'Manila':[
+    'https://images.unsplash.com/photo-1551918120-9739cb430c6d?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=900&q=70&auto=format&fit=crop',
+  ],
+  'Cebu':[
+    'https://images.unsplash.com/photo-1540541338287-41700207dee6?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1571896349842-33c89424de2d?w=900&q=70&auto=format&fit=crop',
+  ],
+  'Boracay':[
+    'https://images.unsplash.com/photo-1602002418816-5c0aeef426aa?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1540541338287-41700207dee6?w=900&q=70&auto=format&fit=crop',
+  ],
+  'Seoul':[
+    'https://images.unsplash.com/photo-1551918120-9739cb430c6d?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=900&q=70&auto=format&fit=crop',
+  ],
+  'Busan':[
+    'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=900&q=70&auto=format&fit=crop',
+  ],
+  'Jeju':[
+    'https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1540541338287-41700207dee6?w=900&q=70&auto=format&fit=crop',
+  ],
+  'Tokyo':[
+    'https://images.unsplash.com/photo-1551918120-9739cb430c6d?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=900&q=70&auto=format&fit=crop',
+  ],
+  'Osaka':[
+    'https://images.unsplash.com/photo-1606402179428-a57976d71fa4?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=900&q=70&auto=format&fit=crop',
+  ],
+  'Kyoto':[
+    'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1611892440504-42a792e24d32?w=900&q=70&auto=format&fit=crop',
+  ],
+  'Shanghai':[
+    'https://images.unsplash.com/photo-1551918120-9739cb430c6d?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=900&q=70&auto=format&fit=crop',
+  ],
+  'Beijing':[
+    'https://images.unsplash.com/photo-1606402179428-a57976d71fa4?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=900&q=70&auto=format&fit=crop',
+  ],
+  'Hong Kong':[
+    'https://images.unsplash.com/photo-1551918120-9739cb430c6d?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=900&q=70&auto=format&fit=crop',
+  ],
+  'Kuala Lumpur':[
+    'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=900&q=70&auto=format&fit=crop',
+  ],
+  'Penang':[
+    'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=900&q=70&auto=format&fit=crop',
+  ],
+  'Singapore':[
+    'https://images.unsplash.com/photo-1551918120-9739cb430c6d?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1564501049412-61c2a3083791?w=900&q=70&auto=format&fit=crop',
+    'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=900&q=70&auto=format&fit=crop',
+  ],
+};
+const HOTEL_DEFAULT = 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=900&q=70&auto=format&fit=crop';
+
+function pickCityHotelImage(city, hotelName) {
+  const pool = HOTEL_IMG_POOL[city] || [HOTEL_DEFAULT];
+  const name = hotelName || city || 'hotel';
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) | 0;
+  return pool[Math.abs(h) % pool.length];
 }
 
 // ============== Curated showcase per city ==============
