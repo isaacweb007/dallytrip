@@ -75,10 +75,13 @@ export async function onRequestGet({ request, env }) {
   // its real hotelId — that's what unlocks the real per-hotel photo. Without
   // this step every Furama/Sheraton/Pullman/etc. falls back to the same generic
   // city-pool image (the bug user complained about).
+  let debugInfo = null;
   if (liveResults.length === 0) {
     const showcase = CURATED[city] || CURATED._default(city);
+    const debugDump = [];
     liveResults = await Promise.all(showcase.map(async (h, i) => {
-      const realId = await lookupHotelId(h.name, city, TOKEN);
+      const { id: realId, debug } = await lookupHotelId(h.name, city, TOKEN);
+      if (i < 2) debugDump.push({ name: h.name, ...debug });
       return {
         id: `tph_curated_${city.toLowerCase().replace(/\s+/g,'_')}_${i}`,
         hotelId: realId || null,
@@ -101,34 +104,55 @@ export async function onRequestGet({ request, env }) {
         ),
       };
     }));
+    debugInfo = debugDump;
   }
 
-  return json({
+  const payload = {
     provider: 'hotellook',
     city,
     count: liveResults.length,
     results: liveResults,
-  });
+  };
+  if (url.searchParams.get('debug') === '1' && debugInfo) {
+    payload.debug = debugInfo;
+  }
+  return json(payload);
 }
 
 // Resolve a curated hotel name to its real Hotellook ID so we can pull the
 // REAL photo of that specific hotel (not a generic city stock shot).
-// Returns null on any failure; caller falls back to the pool image.
+// Returns { id, debug } — id is null on any failure; debug surfaces what the
+// API actually returned so we can diagnose without redeploying.
 async function lookupHotelId(hotelName, city, token) {
-  if (!hotelName || !token) return null;
+  if (!hotelName || !token) return { id: null, debug: 'no name/token' };
   try {
+    // Hotellook's lookup uses `lookFor=both` and returns both `locations` and
+    // `hotels` arrays. `hotel` (singular) is also accepted in some docs.
     const lu = new URL('https://engine.hotellook.com/api/v2/lookup.json');
-    // Including the city in the query disambiguates same-name properties (e.g.
-    // there are many "Marriott"s). lookFor=hotel skips location/airport noise.
     lu.searchParams.set('query', `${hotelName} ${city}`);
     lu.searchParams.set('lang', 'en');
-    lu.searchParams.set('lookFor', 'hotel');
-    lu.searchParams.set('limit', '1');
+    lu.searchParams.set('lookFor', 'both');
+    lu.searchParams.set('limit', '3');
     lu.searchParams.set('token', token);
     const data = await fetch(lu.toString()).then(safeJson);
-    return data?.results?.hotels?.[0]?.id || null;
-  } catch {
-    return null;
+    // Some Hotellook responses wrap hotels under results.hotels; some under
+    // a flat `hotels` key. Probe both. The hotel record uses `id` or `hotelId`.
+    const hotels = data?.results?.hotels || data?.hotels || [];
+    const first = Array.isArray(hotels) ? hotels[0] : null;
+    const realId = first?.id || first?.hotelId || null;
+    return {
+      id: realId,
+      debug: {
+        url: lu.toString().replace(token, '***'),
+        keys: data ? Object.keys(data) : null,
+        resultsKeys: data?.results ? Object.keys(data.results) : null,
+        hotelsLen: Array.isArray(hotels) ? hotels.length : 'not array',
+        firstHotelKeys: first ? Object.keys(first) : null,
+        sampleFirst: first || null,
+      },
+    };
+  } catch (e) {
+    return { id: null, debug: { error: String(e?.message || e) } };
   }
 }
 
