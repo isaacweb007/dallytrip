@@ -1,684 +1,648 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
-<meta http-equiv="Pragma" content="no-cache" />
-<meta http-equiv="Expires" content="0" />
-<title>DallyTrip — Travel with $1</title>
-<meta name="description" content="DallyTrip은 TON Chain 기반 $1 토큰으로만 호텔, 투어, 액티비티를 예약하는 Web3 여행앱입니다." />
-<link rel="preconnect" href="https://cdn.jsdelivr.net" />
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
-<link rel="stylesheet" href="./assets/styles.css?v=20260525f" />
-<script src="./assets/i18n.js?v=20260525e"></script>
-<!-- Travelpayouts affiliate tracking (marker 532633) -->
-<script>(function(){var s=document.createElement('script');s.async=1;s.src='https://emrldco.com/NTMyNjMz.js?t=532633';document.head.appendChild(s);})();</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="icons/favicon.png">
+<title>달리트립 DallyTrip — 여행하고, 리워드 받고</title>
+<style>
+  :root{
+    --ink:#22254C; --ink-soft:#5A5E86; --cream:#FFF8F0; --card:#FFFFFF;
+    --coral:#FF6B4A; --coral-deep:#E8532F; --gold:#F5B301; --mint:#3ECFB2;
+    --sky:#EAF4FF; --line:#F0E7DB;
+    --r-lg:24px; --r-md:16px; --r-sm:10px;
+    --shadow:0 10px 30px rgba(34,37,76,.10);
+    --shadow-sm:0 4px 14px rgba(34,37,76,.08);
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:'Pretendard Variable',Pretendard,-apple-system,BlinkMacSystemFont,'Noto Sans KR','Segoe UI',sans-serif;
+    background:var(--cream); color:var(--ink); line-height:1.6; overflow-x:hidden;
+  }
+  img{display:block;max-width:100%}
+  button{font-family:inherit;cursor:pointer;border:none}
+  a{text-decoration:none;color:inherit}
+  .wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+
+  /* ---------- header ---------- */
+  header{
+    position:sticky;top:0;z-index:50;
+    background:rgba(255,248,240,.85); backdrop-filter:blur(14px);
+    border-bottom:1px solid var(--line);
+  }
+  .nav{display:flex;align-items:center;gap:28px;height:64px}
+  .logo{display:flex;align-items:center;gap:9px;font-weight:800;font-size:20px;letter-spacing:-.3px}
+  .logo .mark{
+    width:34px;height:34px;border-radius:11px;
+    background:linear-gradient(135deg,var(--coral),var(--gold));
+    display:grid;place-items:center;color:#fff;font-size:17px;
+    box-shadow:0 4px 10px rgba(255,107,74,.35);
+    animation:bob 3.2s ease-in-out infinite;
+  }
+  .logo .mark img{width:100%;height:100%;object-fit:contain;padding:3px}
+  .logo small{font-weight:600;color:var(--ink-soft);font-size:11px;display:block;line-height:1}
+  .menu{display:flex;gap:22px;font-weight:600;font-size:14.5px;color:var(--ink-soft);margin-left:8px}
+  .menu a{padding:6px 2px;border-bottom:2px solid transparent;transition:.2s}
+  .menu a:hover,.menu a.on{color:var(--ink);border-color:var(--coral)}
+  .nav-right{margin-left:auto;display:flex;align-items:center;gap:12px}
+  .dali-pill{
+    display:flex;align-items:center;gap:7px;background:#FFF3D6;border:1px solid #F7DFA0;
+    padding:7px 13px;border-radius:999px;font-weight:700;font-size:13.5px;color:#8A6400;
+  }
+  /* icons/*.webp 는 배경이 투명하다. cover/border-radius/box-shadow 를 쓰면
+     보이지 않는 사각형에 그림자가 생기므로 contain + drop-shadow 로 형태를 살린다. */
+  .coin{
+    width:18px;height:18px;flex:none;object-fit:contain;
+    animation:spin-y 4s linear infinite;
+  }
+  .ic{width:22px;height:22px;object-fit:contain;display:inline-block;vertical-align:-5px;
+      filter:drop-shadow(0 1px 2px rgba(34,37,76,.22))}
+  .ic-xs{width:15px;height:15px;object-fit:contain;display:inline-block;vertical-align:-3px}
+  .btn{
+    background:var(--coral);color:#fff;font-weight:700;font-size:14.5px;
+    padding:10px 20px;border-radius:999px;transition:.2s;box-shadow:0 6px 16px rgba(255,107,74,.35);
+  }
+  .btn:hover{background:var(--coral-deep);transform:translateY(-1px)}
+  .btn.ghost{background:transparent;color:var(--ink);box-shadow:none;border:1.5px solid var(--line)}
+
+  /* ---------- hero ---------- */
+  .hero{position:relative;padding:34px 0 120px}
+  .hero-stage{
+    position:relative;border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--shadow);
+    aspect-ratio:16/7.4; min-height:340px;
+  }
+  .hero-stage > img{width:100%;height:100%;object-fit:cover;transform:scale(1.02);animation:slow-pan 22s ease-in-out infinite alternate}
+  .hero-stage::after{ /* tilt-shift vignette */
+    content:"";position:absolute;inset:0;
+    background:linear-gradient(to bottom,rgba(255,248,240,.28),transparent 30%,transparent 62%,rgba(34,37,76,.38));
+    pointer-events:none;
+  }
+  .hero-copy{position:absolute;left:clamp(20px,5vw,56px);bottom:clamp(66px,10vw,96px);color:#fff;z-index:2;text-shadow:0 2px 18px rgba(20,22,50,.45)}
+  .hero-copy .eyebrow{
+    display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.18);backdrop-filter:blur(6px);
+    border:1px solid rgba(255,255,255,.35);padding:6px 14px;border-radius:999px;font-size:12.5px;font-weight:700;letter-spacing:.4px;margin-bottom:14px;
+  }
+  .hero-copy h1{font-size:clamp(26px,4.2vw,44px);font-weight:800;letter-spacing:-1px;line-height:1.22}
+  .hero-copy p{margin-top:10px;font-size:clamp(13.5px,1.6vw,16.5px);font-weight:500;opacity:.95}
+  .cloud{position:absolute;z-index:3;filter:drop-shadow(0 6px 10px rgba(34,37,76,.12));pointer-events:none}
+  .cloud svg{display:block}
+  .c1{top:26px;left:-40px;animation:drift 34s linear infinite}
+  .c2{top:70px;right:-60px;animation:drift-r 46s linear infinite}
+
+  /* ---------- search card ---------- */
+  .search-card{
+    position:relative;z-index:5;margin:-86px auto 0;max-width:980px;
+    background:var(--card);border-radius:var(--r-lg);box-shadow:var(--shadow);
+    padding:18px 22px 22px;border:1px solid #fff;
+  }
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+  .tab{
+    display:flex;align-items:center;gap:8px;padding:9px 18px;border-radius:999px;
+    background:#F6F1E8;color:var(--ink-soft);font-weight:700;font-size:14px;transition:.18s;
+  }
+  .tab.on{background:var(--ink);color:#fff;box-shadow:0 6px 14px rgba(34,37,76,.25)}
+  .fields{display:grid;grid-template-columns:1.35fr 1fr 1fr .85fr auto;gap:10px}
+  .field{
+    background:#FAF5EC;border:1.5px solid var(--line);border-radius:var(--r-md);
+    padding:9px 14px;display:flex;flex-direction:column;gap:1px;transition:.18s;min-width:0;
+  }
+  .field:focus-within{border-color:var(--coral);background:#fff}
+  .field label{font-size:11px;font-weight:800;color:var(--ink-soft);letter-spacing:.4px}
+  .field input,.field select{
+    border:none;background:transparent;outline:none;font-family:inherit;
+    font-size:15px;font-weight:600;color:var(--ink);width:100%;
+  }
+  .search-go{
+    background:linear-gradient(135deg,var(--coral),#FF8E4A);color:#fff;font-weight:800;font-size:15.5px;
+    border-radius:var(--r-md);padding:0 26px;display:flex;align-items:center;gap:8px;justify-content:center;
+    box-shadow:0 8px 20px rgba(255,107,74,.4);transition:.2s;white-space:nowrap;
+  }
+  .search-go:hover{transform:translateY(-2px);box-shadow:0 12px 26px rgba(255,107,74,.5)}
+  .search-note{margin-top:12px;font-size:12.5px;color:var(--ink-soft);display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+  .search-note b{color:#8A6400}
+  .powered{margin-left:auto;font-size:11px;color:#B9B0A2;font-weight:600}
+
+  /* ---------- reward strip ---------- */
+  .reward-strip{margin:64px 0 0}
+  .reward-card{
+    display:grid;grid-template-columns:200px 1fr auto;gap:26px;align-items:center;
+    background:linear-gradient(115deg,#2A2D5C,#22254C 55%,#3A2E63);
+    border-radius:var(--r-lg);padding:26px 34px;color:#fff;box-shadow:var(--shadow);
+    position:relative;overflow:hidden;
+  }
+  .reward-card::before{
+    content:"";position:absolute;width:340px;height:340px;border-radius:50%;
+    background:radial-gradient(circle,rgba(245,179,1,.25),transparent 65%);
+    right:-80px;top:-120px;
+  }
+  .reward-img{border-radius:18px;overflow:hidden;box-shadow:0 10px 24px rgba(0,0,0,.35);animation:bob 4s ease-in-out infinite}
+  .reward-card h3{font-size:clamp(19px,2.4vw,25px);font-weight:800;letter-spacing:-.4px;line-height:1.3}
+  .reward-card h3 b{color:var(--gold)}
+  .reward-card p{margin-top:8px;font-size:14px;color:#C6C9EA;max-width:520px}
+  .reward-stat{text-align:center;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14);border-radius:var(--r-md);padding:16px 26px}
+  .reward-stat .num{font-size:30px;font-weight:800;color:var(--gold);font-variant-numeric:tabular-nums}
+  .reward-stat .lbl{font-size:12px;color:#C6C9EA;font-weight:600;margin-top:2px}
+
+  /* ---------- sections ---------- */
+  section{padding:72px 0 0}
+  .sec-head{display:flex;align-items:flex-end;gap:14px;margin-bottom:26px}
+  .sec-head h2{font-size:clamp(21px,2.8vw,29px);font-weight:800;letter-spacing:-.6px}
+  .sec-head p{color:var(--ink-soft);font-size:14px;font-weight:500}
+  .sec-head .more{margin-left:auto;font-weight:700;font-size:13.5px;color:var(--coral);white-space:nowrap}
+
+  /* destination cards */
+  .dest-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+  .dest{
+    background:var(--card);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--shadow-sm);
+    transition:.25s;position:relative;
+  }
+  .dest:hover{transform:translateY(-6px);box-shadow:var(--shadow)}
+  .dest .ph{aspect-ratio:4/3;overflow:hidden;position:relative}
+  /* '>' 필수: 배지(.earn) 안의 코인 아이콘까지 카드 크기로 커지는 것을 막는다 */
+  .dest .ph > img{width:100%;height:100%;object-fit:cover;transition:transform .6s}
+  .dest:hover .ph > img{transform:scale(1.06)}
+  .earn{
+    position:absolute;top:12px;left:12px;display:flex;align-items:center;gap:6px;
+    background:rgba(255,255,255,.92);backdrop-filter:blur(4px);
+    padding:5px 11px;border-radius:999px;font-size:12px;font-weight:800;color:#8A6400;
+    box-shadow:var(--shadow-sm);
+  }
+  .dest .body{padding:16px 18px 18px;display:flex;align-items:flex-start;gap:8px}
+  .dest h4{font-size:16.5px;font-weight:800}
+  .dest .sub{font-size:12.5px;color:var(--ink-soft);font-weight:500;margin-top:2px}
+  .dest .price{margin-left:auto;text-align:right}
+  .dest .price b{font-size:16.5px;color:var(--coral-deep)}
+  .dest .price span{display:block;font-size:11px;color:var(--ink-soft);font-weight:600}
+
+  /* hotel results */
+  .hotel-list{display:grid;gap:14px}
+  .hotel{
+    display:grid;grid-template-columns:104px 1fr auto;gap:16px;align-items:center;
+    background:var(--card);border-radius:var(--r-md);padding:14px 18px 14px 14px;
+    box-shadow:var(--shadow-sm);transition:.2s;border:1.5px solid transparent;
+  }
+  .hotel:hover{border-color:#FFD9CC;transform:translateX(4px)}
+  .hotel .thumb{
+    width:104px;height:84px;border-radius:12px;overflow:hidden;
+    display:grid;place-items:center;
+    background:linear-gradient(135deg,var(--sky),#FDEFE0);
+  }
+  .hotel .thumb img{width:100%;height:100%;object-fit:cover}
+  .hotel .thumb img.icon{object-fit:contain;padding:7px} /* 사진이 아닌 아이콘은 잘리지 않게 */
+  .hotel h5{font-size:15.5px;font-weight:800;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .stars{color:var(--gold);font-size:12.5px;letter-spacing:1px}
+  .rating{
+    background:var(--mint);color:#fff;font-size:11.5px;font-weight:800;
+    padding:2px 8px;border-radius:7px;
+  }
+  .hotel .meta{font-size:12.5px;color:var(--ink-soft);font-weight:500;margin-top:3px}
+  .hotel .tag{display:inline-block;background:#EFFAF6;color:#0F8A6D;font-size:11.5px;font-weight:700;padding:2px 9px;border-radius:999px;margin-top:7px;margin-right:5px}
+  .hotel .tag.warn{background:#FFF3D6;color:#8A6400}
+  .hotel .right{text-align:right}
+  .hotel .right .from{font-size:11px;color:var(--ink-soft);font-weight:600}
+  .hotel .right b{font-size:19px;color:var(--ink)}
+  .hotel .right .dali{font-size:12px;color:#8A6400;font-weight:800;margin-top:2px;display:flex;align-items:center;gap:5px;justify-content:flex-end}
+  .hotel .book{margin-top:8px;background:var(--ink);color:#fff;font-size:12.5px;font-weight:700;padding:7px 16px;border-radius:999px;transition:.2s}
+  .hotel .book:hover{background:var(--coral)}
+
+  /* transport */
+  .trans-grid{display:grid;grid-template-columns:1.15fr 1fr;gap:24px;align-items:stretch}
+  .trans-photo{border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--shadow);min-height:280px}
+  .trans-photo > img{width:100%;height:100%;object-fit:cover}
+  .trans-items{display:grid;gap:14px}
+  .trans-item{
+    display:flex;gap:16px;align-items:center;background:var(--card);
+    border-radius:var(--r-md);padding:16px 18px;box-shadow:var(--shadow-sm);transition:.2s;
+  }
+  .trans-item:hover{transform:translateY(-3px)}
+  .trans-item .emo{
+    width:52px;height:52px;border-radius:16px;display:grid;place-items:center;
+    background:linear-gradient(135deg,#FFF1E8,#FFE3D4);flex:none;
+  }
+  .trans-item .emo img{width:100%;height:100%;object-fit:contain;padding:6px}
+  .trans-item h5{font-size:15.5px;font-weight:800}
+  .trans-item p{font-size:12.8px;color:var(--ink-soft);font-weight:500}
+  .trans-item .go{margin-left:auto;color:var(--coral);font-weight:800;font-size:18px}
+
+  /* how it works */
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+  .step{
+    background:var(--card);border-radius:var(--r-lg);padding:26px 24px;box-shadow:var(--shadow-sm);
+    position:relative;overflow:hidden;
+  }
+  .step .n{
+    width:38px;height:38px;border-radius:12px;display:grid;place-items:center;
+    background:linear-gradient(135deg,var(--coral),var(--gold));color:#fff;font-weight:800;font-size:16px;
+    margin-bottom:14px;box-shadow:0 5px 12px rgba(255,107,74,.35);
+  }
+  .step h4{font-size:16.5px;font-weight:800;margin-bottom:6px}
+  .step p{font-size:13.5px;color:var(--ink-soft)}
+  .step .bg{position:absolute;right:-8px;bottom:-14px;opacity:.16}
+  .step .bg img{width:110px}
+
+  /* footer */
+  footer{margin-top:88px;background:var(--ink);color:#B9BCE0;padding:44px 0 96px}
+  .foot{display:flex;gap:40px;flex-wrap:wrap;font-size:13px}
+  .foot .brand{color:#fff;font-weight:800;font-size:18px;margin-bottom:8px}
+  .foot .col h6{color:#fff;font-size:13px;font-weight:800;margin-bottom:10px}
+  .foot .col a{display:block;padding:3px 0;color:#B9BCE0}
+  .foot .col a:hover{color:#fff}
+  .foot .legal{flex-basis:100%;border-top:1px solid rgba(255,255,255,.12);padding-top:18px;font-size:11.5px;color:#8B8EB8}
+
+  /* mobile bottom nav */
+  .bottom-nav{
+    display:none;position:fixed;left:0;right:0;bottom:0;z-index:60;
+    background:rgba(255,255,255,.92);backdrop-filter:blur(14px);
+    border-top:1px solid var(--line);padding:8px 6px calc(8px + env(safe-area-inset-bottom));
+  }
+  .bottom-nav .bn{
+    flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;
+    font-size:10.5px;font-weight:700;color:var(--ink-soft);
+  }
+  .bottom-nav .bn.on{color:var(--coral)}
+
+  /* reveal on scroll */
+  .rv{opacity:0;transform:translateY(26px);transition:opacity .7s ease,transform .7s ease}
+  .rv.show{opacity:1;transform:none}
+
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+  @keyframes spin-y{0%{transform:rotateY(0)}100%{transform:rotateY(360deg)}}
+  @keyframes drift{0%{transform:translateX(-10vw)}100%{transform:translateX(110vw)}}
+  @keyframes drift-r{0%{transform:translateX(10vw)}100%{transform:translateX(-110vw)}}
+  @keyframes slow-pan{0%{transform:scale(1.02) translateX(0)}100%{transform:scale(1.08) translateX(-1.5%)}}
+
+  /* ---------- responsive ---------- */
+  @media (max-width:960px){
+    .fields{grid-template-columns:1fr 1fr}
+    .search-go{grid-column:1/-1;padding:14px}
+    .dest-grid{grid-template-columns:repeat(2,1fr)}
+    .reward-card{grid-template-columns:1fr;text-align:center;gap:18px}
+    .reward-img{max-width:220px;margin:0 auto}
+    .reward-card p{margin-inline:auto}
+    .trans-grid{grid-template-columns:1fr}
+    .steps{grid-template-columns:1fr}
+  }
+  @media (max-width:640px){
+    .menu{display:none}
+    .nav-right .btn{display:none}
+    .hero{padding-top:16px}
+    .hero-stage{aspect-ratio:4/5;min-height:420px}
+    .hero-copy{bottom:110px}
+    .fields{grid-template-columns:1fr}
+    .dest-grid{grid-template-columns:1fr}
+    .hotel{grid-template-columns:1fr;text-align:left}
+    .hotel .thumb{width:100%;height:120px}
+    .hotel .right{text-align:left;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+    .hotel .right .dali{justify-content:flex-start}
+    .bottom-nav{display:flex}
+    footer{padding-bottom:120px}
+  }
+</style>
 </head>
 <body>
 
-<!-- ============== Header ============== -->
-<header class="app-header">
-  <div class="container row items-center space-between">
-    <a class="brand" href="./">
-      <span class="brand-logo">
-        <img src="./assets/character-logo.png" alt="DallyTrip" onerror="this.style.display='none';this.nextElementSibling.style.display='grid';" />
-        <span class="char-fallback" style="display:none;">💵</span>
-      </span>
-      <span>DallyTrip</span>
+<header>
+  <div class="wrap nav">
+    <a class="logo" href="#">
+      <span class="mark"><img src="icons/icon-plane.webp" alt=""></span>
+      <span>달리트립<small>DallyTrip · Travel & Earn</small></span>
     </a>
-    <nav class="row items-center gap-8" id="topnav">
-      <a class="nav-link nav-desktop" href="#features" data-i18n="nav.about">About</a>
-      <a class="nav-link nav-desktop" href="#how" data-i18n="nav.howItWorks">How it works</a>
-      <a class="nav-link nav-desktop" href="#destinations" data-i18n="nav.destinations">Destinations</a>
-      <a class="nav-link nav-desktop" href="./admin.html" title="Admin Panel" style="opacity:0.6;font-size:13px;">Admin</a>
-      <button class="btn btn-secondary btn-sm nav-desktop" onclick="window.t&&toast?toast(t('toast.tonconnectDemo')):alert('TonConnect (demo)')" data-i18n="btn.connectWallet">Connect Wallet</button>
-      <a class="btn btn-primary btn-sm" href="./app.html" data-i18n="btn.launchApp">Launch App</a>
-      <span data-dt-lang-mount></span>
+    <nav class="menu">
+      <a href="#stay" class="on">호텔·숙소</a>
+      <a href="#stay">항공권</a>
+      <a href="#move">교통</a>
+      <a href="#reward">DALI 리워드</a>
     </nav>
+    <div class="nav-right">
+      <div class="dali-pill"><img class="coin" src="icons/icon-coin.webp" alt=""><span id="daliBal">1,240 DALI</span></div>
+      <button class="btn ghost">로그인</button>
+      <button class="btn">회원가입</button>
+    </div>
   </div>
 </header>
 
-<!-- ============== Hero (premium) ============== -->
-<section class="hero">
-  <!-- Full-screen travel background (Ken Burns slideshow — 8 Asian destinations) -->
-  <div class="hero-bg" aria-hidden="true">
-    <div class="hero-bg-slide s1" style="background-image:url('https://images.unsplash.com/photo-1528127269322-539801943592?w=2000&q=80&auto=format&fit=crop');"></div><!-- Ha Long Bay -->
-    <div class="hero-bg-slide s2" style="background-image:url('https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=2000&q=80&auto=format&fit=crop');"></div><!-- Bali -->
-    <div class="hero-bg-slide s3" style="background-image:url('https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=2000&q=80&auto=format&fit=crop');"></div><!-- Tokyo -->
-    <div class="hero-bg-slide s4" style="background-image:url('https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=2000&q=80&auto=format&fit=crop');"></div><!-- Singapore -->
-    <div class="hero-bg-slide s5" style="background-image:url('https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=2000&q=80&auto=format&fit=crop');"></div><!-- Bangkok -->
-    <div class="hero-bg-slide s6" style="background-image:url('https://images.unsplash.com/photo-1517154421773-0529f29ea451?w=2000&q=80&auto=format&fit=crop');"></div><!-- Seoul -->
-    <div class="hero-bg-slide s7" style="background-image:url('https://images.unsplash.com/photo-1536599018102-9f803c140fc1?w=2000&q=80&auto=format&fit=crop');"></div><!-- Hong Kong -->
-    <div class="hero-bg-slide s8" style="background-image:url('https://images.unsplash.com/photo-1589394815804-964ed0be2eb5?w=2000&q=80&auto=format&fit=crop');"></div><!-- Phuket -->
-  </div>
-  <div class="hero-overlay" aria-hidden="true"></div>
-  <div class="hero-particles" id="heroParticles" aria-hidden="true"></div>
+<main class="wrap">
 
-  <span class="glow g1"></span>
-  <span class="glow g2"></span>
-  <span class="glow g3"></span>
+  <!-- HERO -->
+  <div class="hero">
+    <div class="cloud c1"><svg width="120" height="52" viewBox="0 0 120 52"><g fill="#fff"><ellipse cx="38" cy="34" rx="38" ry="17"/><ellipse cx="72" cy="26" rx="30" ry="15"/><ellipse cx="98" cy="36" rx="22" ry="12"/></g></svg></div>
+    <div class="cloud c2"><svg width="90" height="42" viewBox="0 0 90 42"><g fill="#fff" opacity=".95"><ellipse cx="30" cy="27" rx="30" ry="13"/><ellipse cx="60" cy="21" rx="24" ry="12"/></g></svg></div>
 
-  <div class="container">
-    <div class="glass-panel hero-card hero-premium">
-      <!-- Left: Copy + CTA -->
-      <div style="position:relative; z-index:2;">
-        <span class="feature-pill">
-          <span class="dot" style="width:8px;height:8px;border-radius:50%;background:var(--token-green);box-shadow:0 0 0 4px rgba(38,208,124,0.25);"></span>
-          <span data-i18n="hero.tag">TON Chain · $1 Token Only</span>
-          <span class="badge green" style="margin-left:6px;">LIVE</span>
-        </span>
-        <h1 class="hero-title">
-          <span data-i18n="hero.titleA">Travel </span><span class="grad" data-i18n="hero.titleB">with </span><span class="grad" data-i18n="hero.titleC">$1.</span>
-        </h1>
-        <p class="hero-sub" data-i18n="hero.desc" data-i18n-html>
-          Book hotels, tours and activities with <b>$1 Token</b> on TON Chain.
-          No cards. No banks. Just one token.
-        </p>
+    <div class="hero-stage">
+      <img src="img/hero-halongbay.webp" alt="미니어처 디오라마 하롱베이">
+      <div class="hero-copy">
+        <span class="eyebrow"><img class="ic-xs" src="icons/icon-coin.webp" alt=""> 결제 $1마다 1 DALI 적립</span>
+        <h1>작은 세계를 여행하듯,<br>가볍게 떠나는 진짜 여행</h1>
+        <p>호텔 290만 · 항공 400개 항공사 · 트랜스퍼 165개국 — 예약할수록 쌓이는 토큰 리워드</p>
+      </div>
+    </div>
 
-        <div class="row gap-12 mt-24" style="flex-wrap:wrap;">
-          <a class="btn btn-primary btn-lg" href="./app.html">
-            <span data-i18n="btn.launchDally">Launch DallyTrip</span>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
-          </a>
-          <a class="btn btn-secondary btn-lg" href="#destinations" data-i18n="btn.explore">Explore Trips</a>
-        </div>
-
-        <!-- Quick booking pill -->
-        <div class="glass-card mt-24" style="padding:14px;">
-          <div class="row items-center gap-16" style="flex-wrap:wrap;">
-            <div>
-              <div class="t-small t-muted" style="font-weight:700;" data-i18n="hero.quick.destination">Destination</div>
-              <div style="font-weight:700;" data-i18n="hero.quick.destinationVal">Da Nang, Vietnam</div>
-            </div>
-            <div style="width:1px;height:32px;background:rgba(0,0,0,0.08);"></div>
-            <div>
-              <div class="t-small t-muted" style="font-weight:700;" data-i18n="hero.quick.checkin">Check-in</div>
-              <div style="font-weight:700;" data-i18n="hero.quick.selectDate">Select date</div>
-            </div>
-            <div style="width:1px;height:32px;background:rgba(0,0,0,0.08);"></div>
-            <div>
-              <div class="t-small t-muted" style="font-weight:700;" data-i18n="hero.quick.guests">Guests</div>
-              <div style="font-weight:700;" data-i18n="hero.quick.guestsVal">2 adults</div>
-            </div>
-            <div style="flex:1;"></div>
-            <a class="btn btn-primary" href="./app.html#/search" data-i18n="btn.searchTrips">
-              Search Trips
-            </a>
-          </div>
-        </div>
-
-        <!-- Mini reviewer avatars + rating pill -->
-        <div class="row gap-12 items-center mt-16" style="flex-wrap:wrap;">
-          <div style="display:flex; align-items:center;">
-            <span class="avatar-stack" style="background:linear-gradient(135deg,#FF8A3D,#FFCB57)">A</span>
-            <span class="avatar-stack" style="background:linear-gradient(135deg,#22B8FF,#7C5CFF); margin-left:-10px;">M</span>
-            <span class="avatar-stack" style="background:linear-gradient(135deg,#26D07C,#22B8FF); margin-left:-10px;">K</span>
-            <span class="avatar-stack" style="background:linear-gradient(135deg,#7C5CFF,#FF8A3D); margin-left:-10px;">+</span>
-          </div>
-          <div>
-            <div style="font-weight:800;">★★★★★ <span style="color:var(--text-muted);font-weight:600;">4.9</span></div>
-            <div class="t-small t-muted" style="font-weight:600;">3,240+ travelers booked with $1</div>
-          </div>
-        </div>
-
-        <!-- Trust strip -->
-        <div class="trust-strip">
-          <div class="stat"><b>3.2K+</b><span>Wallets</span></div>
-          <div class="sep"></div>
-          <div class="stat"><b>$184K</b><span>Booked in $1</span></div>
-          <div class="sep"></div>
-          <div class="stat"><b>27</b><span>Cities</span></div>
-          <div class="sep"></div>
-          <div class="stat"><b>4.9★</b><span>Rating</span></div>
-          <div style="flex:1;"></div>
-          <span class="partner">⛓ TON Chain</span>
-          <span class="partner">✦ Cloudflare</span>
-        </div>
-
-        <!-- Marquee of cities -->
-        <div class="marquee">
-          <div class="marquee-track" id="cityMarquee">
-            <!-- filled by JS for i18n-aware city names -->
-          </div>
-        </div>
+    <!-- SEARCH -->
+    <div class="search-card rv show">
+      <div class="tabs" id="tabs">
+        <button class="tab on" data-t="hotel"><img class="ic" src="icons/icon-hotel.webp" alt="">호텔·숙소</button>
+        <button class="tab" data-t="flight"><img class="ic" src="icons/icon-plane.webp" alt="">항공권</button>
+        <button class="tab" data-t="transfer"><img class="ic" src="icons/icon-van.webp" alt="">트랜스퍼</button>
+        <button class="tab" data-t="car"><img class="ic" src="icons/icon-car.webp" alt="">렌터카</button>
       </div>
 
-      <!-- Right: Character stage -->
-      <div class="char-stage" id="charStage">
-        <!-- Multi-layer halo rings -->
-        <span class="char-pulse"></span>
-        <span class="char-orbit"></span>
-
-        <!-- 3 orbiting mini-badges (TON / $1 / ✓) -->
-        <div class="char-orbiter o1"><div class="badge-icon" style="background:radial-gradient(circle at 30% 30%, #80F2BA, #26D07C); color:#fff;">$</div></div>
-        <div class="char-orbiter o2"><div class="badge-icon" style="background:radial-gradient(circle at 30% 30%, #6FD3FF, #22B8FF); color:#fff;">⛓</div></div>
-        <div class="char-orbiter o3"><div class="badge-icon" style="background:radial-gradient(circle at 30% 30%, #B7A4FF, #7C5CFF); color:#fff;">✓</div></div>
-
-        <img class="char-img"
-             src="./assets/character-mascot.png"
-             alt="DallyTrip $1 Token character"
-             onerror="this.style.display='none';document.getElementById('charSvg').style.display='block';" />
-
-        <!-- Fallback SVG mascot (used when character-mascot.png is missing) -->
-        <svg id="charSvg" class="char-svg" viewBox="0 0 220 240" style="display:none;" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <radialGradient id="circBg" cx="0.5" cy="0.45" r="0.55">
-              <stop offset="0%" stop-color="#FFE780"/>
-              <stop offset="100%" stop-color="#FFB400"/>
-            </radialGradient>
-            <linearGradient id="billBody" x1="0" x2="0.5" y1="0" y2="1">
-              <stop offset="0%" stop-color="#7DDB6F"/>
-              <stop offset="100%" stop-color="#2F9A38"/>
-            </linearGradient>
-            <linearGradient id="chainGrad" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#FFE16A"/>
-              <stop offset="100%" stop-color="#C68A1E"/>
-            </linearGradient>
-          </defs>
-
-          <!-- Yellow background circle -->
-          <circle cx="110" cy="110" r="92" fill="url(#circBg)"/>
-
-          <!-- Arms -->
-          <ellipse cx="46" cy="148" rx="14" ry="22" fill="#2F9A38" transform="rotate(-20 46 148)"/>
-          <ellipse cx="174" cy="148" rx="14" ry="22" fill="#2F9A38" transform="rotate(20 174 148)"/>
-
-          <!-- Dollar bill body -->
-          <rect x="44" y="50" width="132" height="158" rx="14" fill="url(#billBody)" stroke="#1f6e2f" stroke-width="3"/>
-          <rect x="52" y="58" width="116" height="142" rx="10" fill="none" stroke="#1f6e2f" stroke-width="1.5" stroke-dasharray="3 4" opacity="0.45"/>
-
-          <!-- Smile -->
-          <path d="M82 110 Q110 126 138 110" stroke="#0e3d1a" stroke-width="4" fill="none" stroke-linecap="round"/>
-          <!-- Tongue tip -->
-          <path d="M104 116 Q110 122 116 116" stroke="#d24d4d" stroke-width="3" fill="#ff6b6b" stroke-linecap="round"/>
-
-          <!-- Sunglasses -->
-          <rect x="58" y="78" width="48" height="22" rx="6" fill="#111"/>
-          <rect x="114" y="78" width="48" height="22" rx="6" fill="#111"/>
-          <rect x="104" y="84" width="14" height="6" fill="#111"/>
-          <!-- Pixel pattern on sunglasses -->
-          <g fill="#fff" opacity="0.95">
-            <rect x="62" y="82" width="6" height="6"/><rect x="74" y="82" width="6" height="6"/><rect x="86" y="82" width="6" height="6"/>
-            <rect x="68" y="88" width="6" height="6"/><rect x="80" y="88" width="6" height="6"/><rect x="92" y="88" width="6" height="6"/>
-            <rect x="118" y="82" width="6" height="6"/><rect x="130" y="82" width="6" height="6"/><rect x="142" y="82" width="6" height="6"/>
-            <rect x="124" y="88" width="6" height="6"/><rect x="136" y="88" width="6" height="6"/><rect x="148" y="88" width="6" height="6"/>
-          </g>
-
-          <!-- Gold chain -->
-          <g fill="url(#chainGrad)" stroke="#7a4d10" stroke-width="0.8">
-            <circle cx="76" cy="138" r="4"/><circle cx="86" cy="142" r="4"/><circle cx="96" cy="145" r="4"/><circle cx="106" cy="147" r="4"/><circle cx="116" cy="145" r="4"/><circle cx="126" cy="142" r="4"/><circle cx="136" cy="138" r="4"/>
-            <!-- Dollar pendant -->
-            <rect x="98" y="156" width="24" height="32" rx="5" fill="url(#chainGrad)" stroke="#7a4d10" stroke-width="1.5"/>
-            <text x="110" y="180" text-anchor="middle" font-family="Inter, sans-serif" font-size="20" font-weight="900" fill="#7a4d10">$</text>
-          </g>
-        </svg>
-
-        <!-- Sparkles -->
-        <span class="spark s1"></span>
-        <span class="spark s2"></span>
-        <span class="spark s3"></span>
-        <span class="spark s4"></span>
-
-        <!-- $1 TOKEN label -->
-        <div class="char-label"><span class="coin">$</span><span>$1 TOKEN</span></div>
-
-        <!-- Floating stat cards around the character -->
-        <div class="float-card f1">
-          <div class="icon green">$</div>
-          <div>
-            <div class="label" data-i18n="hero.wallet.label">Wallet</div>
-            <div class="value">3,240 <span style="color:var(--token-green);">$1</span></div>
-          </div>
+      <form class="fields" id="searchForm" onsubmit="return false">
+        <div class="field">
+          <label id="f1l">목적지</label>
+          <input id="f1" type="text" placeholder="도시, 호텔 이름" value="다낭, 베트남">
         </div>
-        <div class="float-card f2">
-          <div class="icon blue">✓</div>
-          <div>
-            <div class="label" data-i18n="toast.paymentConfirmed">Payment confirmed</div>
-            <div class="value">DT204812 · 240 $1</div>
-          </div>
+        <div class="field">
+          <label id="f2l">체크인</label>
+          <input id="f2" type="date" value="2026-09-12">
         </div>
-        <div class="float-card f3">
-          <div class="icon orange">★</div>
-          <div>
-            <div class="label">Rating</div>
-            <div class="value">4.9 <span class="t-muted t-small" style="font-weight:600;">· 248 reviews</span></div>
-          </div>
+        <div class="field">
+          <label id="f3l">체크아웃</label>
+          <input id="f3" type="date" value="2026-09-16">
         </div>
-        <div class="float-card f4">
-          <div class="icon purple">⛓</div>
-          <div>
-            <div class="label">TON Wallet</div>
-            <div class="value t-mono" style="font-size:12px;">EQB...9xA</div>
-          </div>
+        <div class="field">
+          <label>인원</label>
+          <select><option>성인 2</option><option>성인 2 · 아동 1</option><option>성인 1</option><option>성인 3+</option></select>
         </div>
+        <button class="search-go"><img class="ic" src="icons/icon-magnifier.webp" alt=""> 검색</button>
+      </form>
+
+      <div class="search-note">
+        <b><img class="ic-xs" src="icons/icon-coin.webp" alt=""> 이번 예약 예상 리워드 +386 DALI</b> · 취소 수수료 0원 상품 우선 표시
+        <span class="powered">powered by RateHawk API · ETG</span>
       </div>
     </div>
   </div>
-</section>
 
-<!-- ============== Feature Cards ============== -->
-<section id="features" class="container mt-48">
-  <div class="grid grid-3">
-    <div class="liquid-card">
-      <div class="neu-orb green" style="width:56px;height:56px;border-radius:18px;font-size:18px;">$1</div>
-      <h3 class="h3 mt-16" data-i18n="feat.payment.title">$1 Only Payment</h3>
-      <p class="t-muted mt-8" style="line-height:1.6;" data-i18n="feat.payment.desc">All bookings are paid only with $1 Token. No cards, no banks, no other crypto.</p>
-    </div>
-    <div class="liquid-card">
-      <div class="neu-orb purple" style="width:56px;height:56px;border-radius:18px;font-size:22px;">⛓</div>
-      <h3 class="h3 mt-16" data-i18n="feat.wallet.title">TON Wallet Connect</h3>
-      <p class="t-muted mt-8" style="line-height:1.6;" data-i18n="feat.wallet.desc">Connect your TON wallet via TonConnect and book instantly with one click.</p>
-    </div>
-    <div class="liquid-card">
-      <div class="neu-orb orange" style="width:56px;height:56px;border-radius:18px;font-size:22px;">✈</div>
-      <h3 class="h3 mt-16" data-i18n="feat.travel.title">Web3 Travel</h3>
-      <p class="t-muted mt-8" style="line-height:1.6;" data-i18n="feat.travel.desc">Hotels, tours and activities — booked in one simple Web3 travel app.</p>
+  <!-- REWARD STRIP -->
+  <div class="reward-strip rv" id="reward">
+    <div class="reward-card">
+      <div class="reward-img"><img src="img/reward-coin.webp" alt="DALI 토큰"></div>
+      <div>
+        <h3>결제는 카드로, 리워드는 <b>DALI 토큰</b>으로.</h3>
+        <p>달리트립에서는 토큰으로 결제하지 않아도 됩니다. 결제한 금액 $1마다 1 DALI가 자동 적립되고, 모은 DALI는 다음 여행 할인·업그레이드·제휴 혜택으로 사용할 수 있어요.</p>
+      </div>
+      <div class="reward-stat">
+        <div class="num" id="counter">0</div>
+        <div class="lbl">오늘 적립된 DALI</div>
+      </div>
     </div>
   </div>
-</section>
 
-<!-- ============== How It Works ============== -->
-<section id="how" class="container mt-48">
-  <div class="section-title">
-    <h2 data-i18n="how.title">How it works</h2>
-    <span class="kicker" data-i18n="how.kicker">4 simple steps</span>
-  </div>
-  <div class="grid grid-4">
-    <div class="liquid-card tight">
-      <div class="neu-orb blue" style="width:48px;height:48px;font-size:18px;">1</div>
-      <h4 class="h4 mt-16" data-i18n="how.1.title">Connect TON wallet</h4>
-      <p class="t-muted t-small mt-8" data-i18n="how.1.desc">Tap Connect Wallet and approve via TonConnect.</p>
+  <!-- DESTINATIONS -->
+  <section id="dest" class="rv">
+    <div class="sec-head">
+      <h2>지금 인기 여행지</h2>
+      <p>이번 주 달리트립 예약 TOP</p>
+      <a class="more" href="#">전체 보기 →</a>
     </div>
-    <div class="liquid-card tight">
-      <div class="neu-orb green" style="width:48px;height:48px;font-size:18px;">2</div>
-      <h4 class="h4 mt-16" data-i18n="how.2.title">Pick a trip</h4>
-      <p class="t-muted t-small mt-8" data-i18n="how.2.desc">Choose a hotel, tour or activity from curated lists.</p>
+    <div class="dest-grid">
+      <article class="dest">
+        <div class="ph"><span class="earn"><img class="coin" src="icons/icon-coin.webp" alt="">+32 DALI</span><img src="img/dest-hoian.webp" alt="호이안"></div>
+        <div class="body">
+          <div><h4>호이안, 베트남</h4><div class="sub">랜턴의 도시 · 4일 일정 추천</div></div>
+          <div class="price"><b>$32~</b><span>1박 기준</span></div>
+        </div>
+      </article>
+      <article class="dest">
+        <div class="ph"><span class="earn"><img class="coin" src="icons/icon-coin.webp" alt="">+78 DALI</span><img src="img/dest-seoul.webp" alt="서울"></div>
+        <div class="body">
+          <div><h4>서울, 대한민국</h4><div class="sub">벚꽃 시즌 · 왕복 항공 특가</div></div>
+          <div class="price"><b>$78~</b><span>1박 기준</span></div>
+        </div>
+      </article>
+      <article class="dest">
+        <div class="ph"><span class="earn"><img class="coin" src="icons/icon-coin.webp" alt="">+45 DALI</span><img src="img/dest-bangkok.webp" alt="방콕"></div>
+        <div class="body">
+          <div><h4>방콕, 태국</h4><div class="sub">사원 투어 · 풀빌라 인기</div></div>
+          <div class="price"><b>$45~</b><span>1박 기준</span></div>
+        </div>
+      </article>
     </div>
-    <div class="liquid-card tight">
-      <div class="neu-orb orange" style="width:48px;height:48px;font-size:18px;">3</div>
-      <h4 class="h4 mt-16" data-i18n="how.3.title">Pay with $1</h4>
-      <p class="t-muted t-small mt-8" data-i18n="how.3.desc">Confirm payment with a single $1 token transaction.</p>
-    </div>
-    <div class="liquid-card tight">
-      <div class="neu-orb purple" style="width:48px;height:48px;font-size:18px;">4</div>
-      <h4 class="h4 mt-16" data-i18n="how.4.title">Enjoy your trip</h4>
-      <p class="t-muted t-small mt-8" data-i18n="how.4.desc">Receive booking confirmation and travel — that's it.</p>
-    </div>
-  </div>
-</section>
+  </section>
 
-<!-- ============== Popular Destinations ============== -->
-<section id="destinations" class="container mt-48">
-  <div class="section-title">
-    <h2 data-i18n="dest.title">Popular destinations</h2>
-    <a href="./app.html#/search" data-i18n="btn.viewAll">See all →</a>
-  </div>
-  <div class="grid grid-4" id="destGrid"></div>
-</section>
-
-<!-- ============== Trending Now (LIVE from partners) ============== -->
-<section id="trending" class="container mt-48">
-  <div class="section-title">
-    <div>
-      <span class="kicker">🔥 LIVE · via Travelpayouts</span>
-      <h2 data-i18n="trending.title">Trending now in Asia</h2>
+  <!-- HOTEL RESULTS PREVIEW -->
+  <section id="stay" class="rv">
+    <div class="sec-head">
+      <h2 id="stayTitle">다낭 추천 호텔</h2>
+      <p id="staySub">9월 12일 – 16일 · 성인 2</p>
+      <a class="more" href="#" id="stayMore">120개 결과 →</a>
     </div>
-    <a href="./app.html#/search?cat=Hotels" data-i18n="btn.viewAll">See all →</a>
-  </div>
-  <div class="grid grid-3" id="trendingGrid">
-    <!-- Skeletons -->
-    <div class="liquid-card tight"><div class="shimmer" style="height:180px;border-radius:18px;"></div><div class="shimmer mt-16" style="height:16px;width:65%;border-radius:8px;"></div><div class="shimmer mt-8" style="height:14px;width:40%;border-radius:6px;"></div></div>
-    <div class="liquid-card tight"><div class="shimmer" style="height:180px;border-radius:18px;"></div><div class="shimmer mt-16" style="height:16px;width:65%;border-radius:8px;"></div><div class="shimmer mt-8" style="height:14px;width:40%;border-radius:6px;"></div></div>
-    <div class="liquid-card tight"><div class="shimmer" style="height:180px;border-radius:18px;"></div><div class="shimmer mt-16" style="height:16px;width:65%;border-radius:8px;"></div><div class="shimmer mt-8" style="height:14px;width:40%;border-radius:6px;"></div></div>
-  </div>
-</section>
-
-<!-- ============== CTA Section ============== -->
-<section class="container mt-48">
-  <div class="liquid-card" style="padding:56px 32px; text-align:center; overflow:hidden;">
-    <div style="position:absolute;width:340px;height:340px;border-radius:50%;background:radial-gradient(circle,rgba(34,184,255,0.45),transparent 70%);filter:blur(50px);top:-110px;right:-60px;z-index:0;"></div>
-    <div style="position:absolute;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(38,208,124,0.45),transparent 70%);filter:blur(50px);bottom:-100px;left:-40px;z-index:0;"></div>
-    <div style="position:absolute;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(124,92,255,0.40),transparent 70%);filter:blur(50px);top:40%;left:50%;transform:translate(-50%,-50%);z-index:0;"></div>
-
-    <span class="kicker" data-i18n="cta.kicker">Ready to travel?</span>
-    <h2 class="h2 mt-16" data-i18n="cta.title" data-i18n-html>One token. <br/>Infinite destinations.</h2>
-    <p class="t-muted mt-16" style="max-width:480px;margin:16px auto 0;" data-i18n="cta.desc">
-      Launch DallyTrip and book your next trip with $1 — instantly, on-chain.
-    </p>
-    <div class="row gap-12 mt-24" style="justify-content:center;flex-wrap:wrap;">
-      <a class="btn btn-primary btn-lg" href="./app.html" data-i18n="btn.launchApp">Launch App</a>
+    <div class="hotel-list" id="hotelList">
+      <article class="hotel">
+        <div class="thumb"><img src="icons/thumb-beach-resort.webp" alt=""></div>
+        <div>
+          <h5>다낭 오션 베이 리조트 <span class="stars">★★★★★</span> <span class="rating">9.2</span></h5>
+          <div class="meta">미케 비치 앞 · 수영장 2 · 조식 포함 · 킹룸 오션뷰</div>
+          <div><span class="tag">무료 취소</span><span class="tag">즉시 확정</span><span class="tag warn"><img class="ic-xs" src="icons/icon-coin.webp" alt=""> +512 DALI 적립</span></div>
+        </div>
+        <div class="right">
+          <div class="from">4박 총액</div><b>$512</b>
+          <div class="dali"><img class="coin" src="icons/icon-coin.webp" alt="">512 DALI</div>
+          <button class="book">예약하기</button>
+        </div>
+      </article>
+      <article class="hotel">
+        <div class="thumb"><img src="icons/thumb-city-hotel.webp" alt=""></div>
+        <div>
+          <h5>한 리버 시티 호텔 <span class="stars">★★★★</span> <span class="rating">8.7</span></h5>
+          <div class="meta">한강교 도보 5분 · 루프탑 바 · 디럭스 더블</div>
+          <div><span class="tag">무료 취소</span><span class="tag warn"><img class="ic-xs" src="icons/icon-coin.webp" alt=""> +296 DALI 적립</span></div>
+        </div>
+        <div class="right">
+          <div class="from">4박 총액</div><b>$296</b>
+          <div class="dali"><img class="coin" src="icons/icon-coin.webp" alt="">296 DALI</div>
+          <button class="book">예약하기</button>
+        </div>
+      </article>
+      <article class="hotel">
+        <div class="thumb"><img class="icon" src="icons/icon-house.webp" alt=""></div>
+        <div>
+          <h5>안탕 부티크 스테이 <span class="stars">★★★</span> <span class="rating">9.0</span></h5>
+          <div class="meta">가족 여행 인기 · 주방 포함 아파트 · 공항 15분</div>
+          <div><span class="tag">즉시 확정</span><span class="tag warn"><img class="ic-xs" src="icons/icon-coin.webp" alt=""> +188 DALI 적립</span></div>
+        </div>
+        <div class="right">
+          <div class="from">4박 총액</div><b>$188</b>
+          <div class="dali"><img class="coin" src="icons/icon-coin.webp" alt="">188 DALI</div>
+          <button class="book">예약하기</button>
+        </div>
+      </article>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- ============== Footer ============== -->
-<footer class="app-footer">
-  <div class="container row items-center space-between" style="flex-wrap:wrap; gap:16px;">
-    <div class="row items-center gap-12">
-      <a class="brand" href="./">
-        <span class="brand-logo">D</span>
-        <span>DallyTrip</span>
-      </a>
-      <span class="t-muted t-small" data-i18n="footer.copy">© 2026 DallyTrip · Travel with $1</span>
+  <!-- TRANSPORT -->
+  <section id="move" class="rv">
+    <div class="sec-head">
+      <h2>공항에서 호텔까지, 한 번에</h2>
+      <p>항공 + 숙소 + 교통을 한 예약으로</p>
     </div>
-    <div class="row gap-16 items-center">
-      <a class="t-muted t-small nav-link" href="#" data-i18n="footer.terms">Terms</a>
-      <a class="t-muted t-small nav-link" href="#" data-i18n="footer.privacy">Privacy</a>
-      <a class="t-muted t-small nav-link" href="#" data-i18n="footer.contact">Contact</a>
-      <a class="t-muted t-small nav-link" href="./admin.html" style="opacity:0.7;">Admin</a>
+    <div class="trans-grid">
+      <div class="trans-photo"><img src="img/scene-transport.webp" alt="미니어처 교통 디오라마"></div>
+      <div class="trans-items">
+        <div class="trans-item">
+          <div class="emo"><img src="icons/icon-van.webp" alt=""></div>
+          <div><h5>공항 트랜스퍼</h5><p>165개국 · 픽업 보드 미팅 · 정찰제 요금</p></div>
+          <div class="go">→</div>
+        </div>
+        <div class="trans-item">
+          <div class="emo"><img src="icons/icon-car.webp" alt=""></div>
+          <div><h5>렌터카</h5><p>글로벌 브랜드 비교 · 풀커버 보험 옵션</p></div>
+          <div class="go">→</div>
+        </div>
+        <div class="trans-item">
+          <div class="emo"><img src="icons/icon-train.webp" alt=""></div>
+          <div><h5>기차표</h5><p>유럽 주요 노선 · 좌석 지정 · 모바일 티켓</p></div>
+          <div class="go">→</div>
+        </div>
+        <div class="trans-item">
+          <div class="emo"><img src="icons/icon-plane.webp" alt=""></div>
+          <div><h5>항공권</h5><p>400개 항공사 · 최대 9인 동시 예약</p></div>
+          <div class="go">→</div>
+        </div>
+      </div>
     </div>
+  </section>
+
+  <!-- HOW IT WORKS -->
+  <section class="rv">
+    <div class="sec-head">
+      <h2>DALI 리워드, 이렇게 쌓여요</h2>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="n">1</div>
+        <h4>여행을 예약해요</h4>
+        <p>호텔·항공·교통 무엇이든. 결제는 카드/간편결제로 평소처럼.</p>
+        <div class="bg"><img src="icons/icon-suitcase.webp" alt=""></div>
+      </div>
+      <div class="step">
+        <div class="n">2</div>
+        <h4>$1 = 1 DALI 자동 적립</h4>
+        <p>결제 완료 즉시 지갑에 토큰이 쌓여요. 앱 설치도, 복잡한 지갑 생성도 필요 없어요.</p>
+        <div class="bg"><img src="icons/icon-coin.webp" alt=""></div>
+      </div>
+      <div class="step">
+        <div class="n">3</div>
+        <h4>다음 여행에서 써요</h4>
+        <p>숙박 할인, 룸 업그레이드, 제휴 혜택까지. 여행할수록 다음 여행이 저렴해집니다.</p>
+        <div class="bg"><img src="icons/icon-gift.webp" alt=""></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap foot">
+    <div style="flex:1.4;min-width:220px">
+      <div class="brand">달리트립 DallyTrip</div>
+      <p>여행하고, 리워드 받는 가장 쉬운 방법.<br>Travel more, earn more.</p>
+    </div>
+    <div class="col"><h6>예약</h6><a href="#">호텔·숙소</a><a href="#">항공권</a><a href="#">트랜스퍼</a><a href="#">렌터카</a></div>
+    <div class="col"><h6>리워드</h6><a href="#">DALI 안내</a><a href="#">적립 내역</a><a href="#">제휴 혜택</a></div>
+    <div class="col"><h6>고객센터</h6><a href="#">예약 확인/취소</a><a href="#">자주 묻는 질문</a><a href="#">1:1 문의</a></div>
+    <div class="legal">© 2026 DallyTrip · MonkeyTree Group. 호텔·항공·교통 재고 제공: RateHawk (Emerging Travel Group) API. DALI는 결제 수단이 아닌 리워드 포인트형 토큰입니다.</div>
   </div>
 </footer>
 
+<!-- mobile bottom nav -->
+<nav class="bottom-nav">
+  <a class="bn on" href="#"><img class="ic" src="icons/icon-house.webp" alt="">홈</a>
+  <a class="bn" href="#stay"><img class="ic" src="icons/icon-hotel.webp" alt="">숙소</a>
+  <a class="bn" href="#stay"><img class="ic" src="icons/icon-plane.webp" alt="">항공</a>
+  <a class="bn" href="#move"><img class="ic" src="icons/icon-van.webp" alt="">교통</a>
+  <a class="bn" href="#reward"><img class="ic" src="icons/icon-coin.webp" alt="">리워드</a>
+</nav>
+
 <script>
-// Destinations (city names kept untranslated as proper nouns; country labels translated where possible)
-const COUNTRY_TR = {
-  Vietnam: { ko:'베트남', en:'Vietnam', ja:'ベトナム', zh:'越南' },
-  Thailand:{ ko:'태국',   en:'Thailand',ja:'タイ',     zh:'泰国' },
-  Japan:   { ko:'일본',   en:'Japan',   ja:'日本',    zh:'日本' },
-  Korea:   { ko:'한국',   en:'Korea',   ja:'韓国',    zh:'韩国' },
-  Indonesia:{ ko:'인도네시아', en:'Indonesia', ja:'インドネシア', zh:'印度尼西亚' },
-  Philippines:{ ko:'필리핀', en:'Philippines', ja:'フィリピン', zh:'菲律宾' },
-  China:   { ko:'중국',   en:'China',   ja:'中国',    zh:'中国' },
-  Malaysia:{ ko:'말레이시아', en:'Malaysia', ja:'マレーシア', zh:'马来西亚' },
-  Singapore:{ ko:'싱가포르', en:'Singapore', ja:'シンガポール', zh:'新加坡' },
-};
-const CITY_TR = {
-  'Da Nang':    { ko:'다낭',    en:'Da Nang',    ja:'ダナン',    zh:'岘港' },
-  'Nha Trang':  { ko:'나트랑',  en:'Nha Trang',  ja:'ニャチャン',zh:'芽庄' },
-  'Phu Quoc':   { ko:'푸꾸옥',  en:'Phu Quoc',   ja:'フーコック',zh:'富国岛' },
-  'Ho Chi Minh':{ ko:'호치민',  en:'Ho Chi Minh',ja:'ホーチミン',zh:'胡志明' },
-  'Hanoi':      { ko:'하노이',  en:'Hanoi',      ja:'ハノイ',    zh:'河内' },
-  'Bangkok':    { ko:'방콕',    en:'Bangkok',    ja:'バンコク',  zh:'曼谷' },
-  'Phuket':     { ko:'푸켓',    en:'Phuket',     ja:'プーケット',zh:'普吉' },
-  'Chiang Mai': { ko:'치앙마이',en:'Chiang Mai', ja:'チェンマイ',zh:'清迈' },
-  'Bali':       { ko:'발리',    en:'Bali',       ja:'バリ',     zh:'巴厘岛' },
-  'Jakarta':    { ko:'자카르타',en:'Jakarta',    ja:'ジャカルタ',zh:'雅加达' },
-  'Manila':     { ko:'마닐라',  en:'Manila',     ja:'マニラ',    zh:'马尼拉' },
-  'Cebu':       { ko:'세부',    en:'Cebu',       ja:'セブ',     zh:'宿务' },
-  'Boracay':    { ko:'보라카이',en:'Boracay',    ja:'ボラカイ',  zh:'长滩岛' },
-  'Tokyo':      { ko:'도쿄',    en:'Tokyo',      ja:'東京',     zh:'东京' },
-  'Osaka':      { ko:'오사카',  en:'Osaka',      ja:'大阪',     zh:'大阪' },
-  'Kyoto':      { ko:'교토',    en:'Kyoto',      ja:'京都',     zh:'京都' },
-  'Seoul':      { ko:'서울',    en:'Seoul',      ja:'ソウル',   zh:'首尔' },
-  'Busan':      { ko:'부산',    en:'Busan',      ja:'釜山',     zh:'釜山' },
-  'Jeju':       { ko:'제주',    en:'Jeju',       ja:'済州',     zh:'济州' },
-  'Shanghai':   { ko:'상하이',  en:'Shanghai',   ja:'上海',     zh:'上海' },
-  'Beijing':    { ko:'베이징',  en:'Beijing',    ja:'北京',     zh:'北京' },
-  'Hong Kong':  { ko:'홍콩',    en:'Hong Kong',  ja:'香港',     zh:'香港' },
-  'Kuala Lumpur':{ ko:'쿠알라룸푸르',en:'Kuala Lumpur',ja:'クアラルンプール',zh:'吉隆坡' },
-  'Penang':     { ko:'페낭',    en:'Penang',     ja:'ペナン',    zh:'槟城' },
-  'Singapore':  { ko:'싱가포르',en:'Singapore',  ja:'シンガポール',zh:'新加坡' },
-  'Ha Long Bay':{ ko:'하롱베이',en:'Ha Long Bay',ja:'ハロン湾', zh:'下龙湾' },
-};
-// Full 25-city pool — 5-minute random rotation picks 8 from here.
-// Each city uses a verified Wikimedia / Pexels image URL for stability.
-const DESTS_POOL = [
-  // Vietnam — verified Unsplash images that actually match each city
-  { city:'Da Nang',     country:'Vietnam',   img:'https://images.unsplash.com/photo-1583417319070-4a69db38a482?w=900&q=70&auto=format&fit=crop' },
-  { city:'Nha Trang',   country:'Vietnam',   img:'https://images.unsplash.com/photo-1571175443880-49e1d25b2bc5?w=900&q=70&auto=format&fit=crop' },
-  { city:'Phu Quoc',    country:'Vietnam',   img:'https://images.unsplash.com/photo-1602002418816-5c0aeef426aa?w=900&q=70&auto=format&fit=crop' },
-  { city:'Ho Chi Minh', country:'Vietnam',   img:'https://images.unsplash.com/photo-1502920917128-1aa500764cbd?w=900&q=70&auto=format&fit=crop' },
-  { city:'Hanoi',       country:'Vietnam',   img:'https://images.unsplash.com/photo-1509030450996-dd1a26dda07a?w=900&q=70&auto=format&fit=crop' },
-  { city:'Ha Long Bay', country:'Vietnam',   img:'https://images.unsplash.com/photo-1528127269322-539801943592?w=900&q=70&auto=format&fit=crop' },
-  // Thailand
-  { city:'Bangkok',     country:'Thailand',  img:'https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=900&q=70&auto=format&fit=crop' },
-  { city:'Phuket',      country:'Thailand',  img:'https://images.unsplash.com/photo-1589394815804-964ed0be2eb5?w=900&q=70&auto=format&fit=crop' },
-  { city:'Chiang Mai',  country:'Thailand',  img:'https://images.unsplash.com/photo-1598935898639-81586f7d2129?w=900&q=70&auto=format&fit=crop' },
-  // Indonesia
-  { city:'Bali',        country:'Indonesia', img:'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=900&q=70&auto=format&fit=crop' },
-  { city:'Jakarta',     country:'Indonesia', img:'https://images.unsplash.com/photo-1555899434-94d1368aa7af?w=900&q=70&auto=format&fit=crop' },
-  // Philippines
-  { city:'Manila',      country:'Philippines',img:'https://images.unsplash.com/photo-1518002054494-3a6f94352e9d?w=900&q=70&auto=format&fit=crop' },
-  { city:'Cebu',        country:'Philippines',img:'https://images.unsplash.com/photo-1518002054494-3a6f94352e9d?w=900&q=70&auto=format&fit=crop' },
-  { city:'Boracay',     country:'Philippines',img:'https://images.unsplash.com/photo-1602002418816-5c0aeef426aa?w=900&q=70&auto=format&fit=crop' },
-  // Japan
-  { city:'Tokyo',       country:'Japan',     img:'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=900&q=70&auto=format&fit=crop' },
-  { city:'Osaka',       country:'Japan',     img:'https://images.unsplash.com/photo-1590559899731-a382839e5549?w=900&q=70&auto=format&fit=crop' },
-  { city:'Kyoto',       country:'Japan',     img:'https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=900&q=70&auto=format&fit=crop' },
-  // Korea
-  { city:'Seoul',       country:'Korea',     img:'https://images.unsplash.com/photo-1517154421773-0529f29ea451?w=900&q=70&auto=format&fit=crop' },
-  { city:'Busan',       country:'Korea',     img:'https://images.unsplash.com/photo-1546874177-9e664107314e?w=900&q=70&auto=format&fit=crop' },
-  { city:'Jeju',        country:'Korea',     img:'https://images.unsplash.com/photo-1601850494422-3cf14624b0b3?w=900&q=70&auto=format&fit=crop' },
-  // China / HK
-  { city:'Shanghai',    country:'China',     img:'https://images.unsplash.com/photo-1474181487882-5abf3f0ba6c2?w=900&q=70&auto=format&fit=crop' },
-  { city:'Beijing',     country:'China',     img:'https://images.unsplash.com/photo-1547981609-4b6bfe67ca0b?w=900&q=70&auto=format&fit=crop' },
-  { city:'Hong Kong',   country:'China',     img:'https://images.unsplash.com/photo-1536599018102-9f803c140fc1?w=900&q=70&auto=format&fit=crop' },
-  // Malaysia
-  { city:'Kuala Lumpur',country:'Malaysia',  img:'https://images.unsplash.com/photo-1596422846543-75c6fc197f07?w=900&q=70&auto=format&fit=crop' },
-  // Singapore
-  { city:'Singapore',   country:'Singapore', img:'https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=900&q=70&auto=format&fit=crop' },
-];
-// Currently displayed slice (8 cities, refreshed every 5 minutes)
-let DESTS = pickRandomDests();
-function pickRandomDests() {
-  const arr = DESTS_POOL.slice().sort(() => Math.random() - 0.5);
-  return arr.slice(0, 8);
-}
-// Cache of live activity per city (so the card can show a real local pick)
-const LIVE_PICKS = {};
-// Per-city safe fallback: if the primary URL ever 404s, swap to this.
-// We use a city landscape that we've verified in production.
-const DESTS_FALLBACK_IMG = 'https://images.unsplash.com/photo-1488646953014-85cb44e25828?w=900&q=70&auto=format&fit=crop';
-
-function renderDests() {
-  const lang = (window.__dtLang && window.__dtLang.getLang()) || 'en';
-  const grid = document.getElementById('destGrid');
-  if (grid) {
-    grid.innerHTML = DESTS.map((d, i) => {
-      const pick = LIVE_PICKS[d.city];
-      const slug = encodeURIComponent(d.city);
-      // Use data-img + JS preload so a broken URL flips to fallback instead of
-      // showing an empty card. `background-image` itself can't fire onerror.
-      return `
-      <a class="dest-tile" data-dest-tile data-img="${d.img}" data-fallback="${DESTS_FALLBACK_IMG}"
-         href="./app.html#/search?cat=All&q=${slug}"
-         style="background-image:linear-gradient(135deg,rgba(0,0,0,0.0),rgba(0,0,0,0.25)),url('${d.img}'); text-decoration:none;">
-        <span class="badge" style="position:absolute; top:12px; left:12px; background:rgba(255,255,255,0.75); backdrop-filter:blur(10px); font-weight:700;">🔥 LIVE</span>
-        <div class="overlay">
-          <div class="country">${(COUNTRY_TR[d.country]||{})[lang] || d.country}</div>
-          <div class="city">${(CITY_TR[d.city]||{})[lang] || d.city}</div>
-          ${pick ? `<div class="t-small t-muted" style="margin-top:6px;font-weight:700;line-height:1.3;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;">${escapeH(pick.name)}</div>
-                    <div style="margin-top:4px;font-weight:800;color:var(--token-green);font-size:13px;">${fmtN(usdToTok(pick.price))} <span style="font-size:10px;">$1</span></div>`
-                  : `<div class="t-small t-muted" style="margin-top:6px; opacity:0.7;">Loading…</div>`}
-        </div>
-      </a>
-    `;}).join('');
-
-    // Preload-and-swap: for every tile, fire a hidden Image() and if it errors
-    // out, swap the tile's background-image to the per-city fallback. This is
-    // the only reliable onerror story for CSS background-image.
-    grid.querySelectorAll('[data-dest-tile]').forEach(tile => {
-      const primary = tile.getAttribute('data-img');
-      const fallback = tile.getAttribute('data-fallback');
-      if (!primary || !fallback) return;
-      const probe = new Image();
-      probe.onerror = () => {
-        tile.style.backgroundImage = `linear-gradient(135deg,rgba(0,0,0,0.0),rgba(0,0,0,0.25)),url('${fallback}')`;
-      };
-      probe.src = primary;
-    });
-  }
-  // City marquee in the hero
-  const m = document.getElementById('cityMarquee');
-  if (m) {
-    const items = DESTS.concat(DESTS).map(d =>
-      `<span>${(CITY_TR[d.city]||{})[lang] || d.city}</span><span class="dot">●</span>`
-    ).join('');
-    m.innerHTML = items;
-  }
-}
-
-// Pull live "top pick" (cheapest activity or hotel) for each visible city.
-async function loadLivePicks() {
-  await Promise.all(DESTS.map(async d => {
-    if (LIVE_PICKS[d.city]) return; // already cached
-    const r = await fetchJsonSafeL(`/api/activities/search?city=${encodeURIComponent(d.city)}`);
-    const items = (r && r.results) || [];
-    if (items.length) {
-      const top = items[Math.floor(Math.random() * items.length)];
-      LIVE_PICKS[d.city] = { name: top.name, price: top.price };
-    }
-  }));
-  renderDests();
-}
-
-// Rotate the 8 visible cities every 5 minutes
-setInterval(() => {
-  DESTS = pickRandomDests();
-  // Clear cache so new cities get fresh picks
-  Object.keys(LIVE_PICKS).forEach(k => { if (!DESTS.find(d => d.city === k)) delete LIVE_PICKS[k]; });
-  renderDests();
-  loadLivePicks();
-}, 5 * 60 * 1000);
-
-// Helper for HTML escaping inside renderDests
-function escapeH(s) { return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-function toast(msg){ const wrap=document.createElement('div'); wrap.className='toast'; wrap.innerHTML=`<span class="dot"></span><span>${msg}</span>`;
-  let stack=document.querySelector('.toast-stack'); if(!stack){stack=document.createElement('div');stack.className='toast-stack';document.body.appendChild(stack);}
-  stack.appendChild(wrap); setTimeout(()=>wrap.style.opacity=0,2400); setTimeout(()=>wrap.remove(),2700);
-}
-window.toast = toast;
-window.addEventListener('DOMContentLoaded', () => { renderDests(); loadLivePicks(); });
-window.addEventListener('dt:lang', renderDests);
-
-// ============== Trending Now — live partner data ==============
-const FX_RATE_LANDING = 3;                                    // 1 $1 = 3 USD
-const usdToTok = (u) => (Number(u||0) / FX_RATE_LANDING).toFixed(2);
-const fmtN = (n) => Number(n||0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
-async function fetchJsonSafeL(url) {
-  try {
-    const r = await fetch(url, { headers:{ Accept:'application/json' }});
-    if (!r.ok) return null;
-    // NOTE: Cloudflare Pages sometimes returns Pages Functions responses with
-    // Content-Type: text/html even though our _lib.js sets application/json.
-    // So we always read as text and try JSON.parse — much more forgiving.
-    const txt = await r.text();
-    try { return JSON.parse(txt); } catch { return null; }
-  } catch { return null; }
-}
-
-async function renderTrending() {
-  const grid = document.getElementById('trendingGrid');
-  if (!grid) return;
-  const cities = ['Bali', 'Tokyo', 'Singapore', 'Bangkok', 'Seoul', 'Hong Kong'];
-  const lang = (window.__dtLang && window.__dtLang.getLang()) || 'en';
-
-  // Fan out fetches
-  const responses = await Promise.all(cities.map(c =>
-    fetchJsonSafeL(`/api/hotels/search?city=${encodeURIComponent(c)}`).then(r => ({city:c, r}))
-  ));
-
-  // Pick one top hotel per city (lowest price), build cards
-  const cards = responses.map(({city, r}) => {
-    const list = (r && r.results) || [];
-    if (!list.length) return null;
-    const top = list.slice().sort((a,b) => (a.price||0) - (b.price||0))[0];
-    return { city, hotel: top };
-  }).filter(Boolean);
-
-  if (cards.length === 0) {
-    grid.innerHTML = `<div class="liquid-card" style="grid-column:1/-1;text-align:center;"><p class="t-muted">Loading partner data…</p></div>`;
-    return;
-  }
-
-  const cityTr = (c) => (CITY_TR[c]||{})[lang] || c;
-  const countryTr = (city) => {
-    const map = { 'Bali':'Indonesia', 'Tokyo':'Japan', 'Singapore':'Singapore', 'Bangkok':'Thailand', 'Seoul':'Korea', 'Hong Kong':'China' };
-    const en = map[city] || '';
-    return (COUNTRY_TR[en]||{})[lang] || en;
+  // tab switching — RateHawk API 검색 파라미터 구조에 대응
+  const cfg={
+    hotel:   {f1:['목적지','도시, 호텔 이름','다낭, 베트남'], f2:['체크인','date'], f3:['체크아웃','date']},
+    flight:  {f1:['출발지 → 도착지','ICN → DAD','인천 ICN → 다낭 DAD'], f2:['가는 날','date'], f3:['오는 날','date']},
+    transfer:{f1:['픽업 장소','공항, 호텔','다낭 국제공항 DAD'], f2:['픽업 날짜','date'], f3:['픽업 시간','time']},
+    car:     {f1:['수령 장소','도시, 공항','다낭 시내'], f2:['수령일','date'], f3:['반납일','date']}
   };
-  const cityImg = {
-    'Bali':       'https://images.unsplash.com/photo-1537996194471-e657df975ab4?w=900&q=70&auto=format&fit=crop',
-    'Tokyo':      'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=900&q=70&auto=format&fit=crop',
-    'Singapore':  'https://images.unsplash.com/photo-1525625293386-3f8f99389edd?w=900&q=70&auto=format&fit=crop',
-    'Bangkok':    'https://images.unsplash.com/photo-1508009603885-50cf7c579365?w=900&q=70&auto=format&fit=crop',
-    'Seoul':      'https://images.unsplash.com/photo-1517154421773-0529f29ea451?w=900&q=70&auto=format&fit=crop',
-    'Hong Kong':  'https://images.unsplash.com/photo-1536599018102-9f803c140fc1?w=900&q=70&auto=format&fit=crop',
-  };
-  const escapeH = s => String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  document.getElementById('tabs').addEventListener('click',e=>{
+    const t=e.target.closest('.tab'); if(!t) return;
+    document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===t));
+    const c=cfg[t.dataset.t];
+    const f1=document.getElementById('f1'), f1l=document.getElementById('f1l');
+    f1l.textContent=c.f1[0]; f1.placeholder=c.f1[1]; f1.value=c.f1[2];
+    document.getElementById('f2l').textContent=c.f2[0]; document.getElementById('f2').type=c.f2[1];
+    document.getElementById('f3l').textContent=c.f3[0]; document.getElementById('f3').type=c.f3[1];
+  });
 
-  grid.innerHTML = cards.map(({city, hotel}) => `
-    <a class="liquid-card tight" href="./app.html#/search?cat=Hotels" style="text-decoration:none; color:inherit; padding:14px;">
-      <div style="position:relative; height:200px; border-radius:18px; background:url('${cityImg[city]}') center/cover; overflow:hidden; box-shadow:inset 0 0 0 1px rgba(255,255,255,0.55), 0 12px 24px rgba(15,32,48,0.18);">
-        <span class="badge" style="position:absolute;top:12px;left:12px;background:rgba(255,255,255,0.78);backdrop-filter:blur(10px);font-weight:700;">🔥 LIVE</span>
-        <div style="position:absolute;left:12px;right:12px;bottom:12px;background:linear-gradient(135deg, rgba(255,255,255,0.7), rgba(255,255,255,0.45));backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,0.7);border-radius:14px;padding:10px 12px;color:var(--text-main);box-shadow:inset 0 1px 0 rgba(255,255,255,0.9);">
-          <div class="t-small t-muted" style="font-weight:700;">${escapeH(countryTr(city))}</div>
-          <div style="font-weight:800;font-size:15px;">${escapeH(cityTr(city))}</div>
-        </div>
-      </div>
-      <div style="padding:14px 4px 6px;">
-        <div class="t-small t-muted" style="font-weight:700; letter-spacing:0.04em;">${escapeH(hotel.stars ? '⭐'.repeat(Math.min(5, Math.round(hotel.stars))) : 'Hotel')}</div>
-        <div style="font-weight:800; font-size:15px; line-height:1.3; margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeH(hotel.name)}</div>
-        <div class="row space-between items-center mt-8">
-          <div>
-            <span style="font-size:20px;font-weight:800;color:var(--token-green);">${fmtN(usdToTok(hotel.price))}</span>
-            <span class="t-small t-muted" style="font-weight:700;">$1 / night</span>
-          </div>
-          <span class="btn btn-secondary btn-sm">View →</span>
-        </div>
-      </div>
-    </a>
-  `).join('');
-}
-window.addEventListener('DOMContentLoaded', renderTrending);
-window.addEventListener('dt:lang', renderTrending);
+  // scroll reveal
+  const io=new IntersectionObserver(es=>es.forEach(x=>x.isIntersecting&&x.target.classList.add('show')),{threshold:.12});
+  document.querySelectorAll('.rv').forEach(el=>io.observe(el));
 
-// Smooth scroll
-document.querySelectorAll('a[href^="#"]').forEach(a => {
-  a.addEventListener('click', e => {
-    const id = a.getAttribute('href');
-    if (id.length > 1) {
-      const el = document.querySelector(id);
-      if (el) { e.preventDefault(); el.scrollIntoView({behavior:'smooth', block:'start'}); }
+  // DALI counter
+  const el=document.getElementById('counter'); let started=false;
+  new IntersectionObserver(es=>{
+    if(es[0].isIntersecting&&!started){started=true;
+      const target=48210, t0=performance.now();
+      const tick=t=>{const p=Math.min(1,(t-t0)/1800), e2=1-Math.pow(1-p,3);
+        el.textContent=Math.round(target*e2).toLocaleString(); if(p<1)requestAnimationFrame(tick);};
+      requestAnimationFrame(tick);
     }
-  });
-});
+  },{threshold:.4}).observe(el);
 
-// Hero particle field — 24 drifting sparkles
-(function initParticles() {
-  const layer = document.getElementById('heroParticles');
-  if (!layer) return;
-  const N = 24;
-  const frag = document.createDocumentFragment();
-  for (let i = 0; i < N; i++) {
-    const s = document.createElement('span');
-    const sz = 2 + Math.random() * 4;
-    s.style.left = Math.random() * 100 + '%';
-    s.style.width = s.style.height = sz + 'px';
-    s.style.animationDuration = (12 + Math.random() * 14) + 's';
-    s.style.animationDelay = (-Math.random() * 20) + 's';
-    s.style.opacity = 0.3 + Math.random() * 0.6;
-    frag.appendChild(s);
+  // ── 호텔 검색 → Supabase Edge Function(hotels-search) 연동 ──
+  // 지금은 함수가 샘플 데이터를 돌려주고, RateHawk 키 등록 시 자동으로 실시간 검색으로 전환됨
+  const DT_API={
+    url:'https://hzwxeyxnlpmauyeqscim.supabase.co/functions/v1/hotels-search',
+    key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6d3hleXhubHBtYXV5ZXFzY2ltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYwODM1NzMsImV4cCI6MjEwMTY1OTU3M30.ccyV9CPuAfR1OvvgjIgaDORkKMNjPNeoyiHbLoKQGF4' // 공개용 anon 키 (브라우저 노출 가능)
+  };
+  const nightsBetween=(a,b)=>{const d=(new Date(b)-new Date(a))/86400000;return d>0?Math.round(d):1};
+  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  function hotelCard(h,nights){
+    const stars='★'.repeat(Math.max(0,Math.min(5,Math.round(h.stars||0))));
+    const tags=(h.tags||[]).map(t=>`<span class="tag">${esc(t)}</span>`).join('');
+    const thumb=esc(h.thumb||'icons/icon-hotel.webp');
+    const thumbCls=thumb.includes('/icon-')?'icon':''; // 사진이 아닌 아이콘이면 잘리지 않게
+    return `<article class="hotel">
+      <div class="thumb"><img class="${thumbCls}" src="${thumb}" alt=""></div>
+      <div>
+        <h5>${esc(h.name)} ${stars?`<span class="stars">${stars}</span>`:''} ${h.rating?`<span class="rating">${esc(h.rating)}</span>`:''}</h5>
+        <div class="meta">${esc(h.meta)}</div>
+        <div>${tags}<span class="tag warn"><img class="ic-xs" src="icons/icon-coin.webp" alt=""> +${esc(h.dali)} DALI 적립</span></div>
+      </div>
+      <div class="right">
+        <div class="from">${nights}박 총액</div><b>$${Number(h.total_usd).toLocaleString()}</b>
+        <div class="dali"><img class="coin" src="icons/icon-coin.webp" alt="">${esc(h.dali)} DALI</div>
+        <button class="book">예약하기</button>
+      </div>
+    </article>`;
   }
-  layer.appendChild(frag);
-})();
-
-// Mouse parallax on character stage — only when mouse is over the right (character) half,
-// so it never interferes with CTA button clicks on the left.
-(function initParallax() {
-  const stage = document.getElementById('charStage');
-  if (!stage) return;
-  const img = stage.querySelector('.char-img');
-  // Bind to the stage's parent column only, not the whole hero
-  const host = stage.parentElement || stage;
-
-  host.addEventListener('mousemove', (e) => {
-    const r = stage.getBoundingClientRect();
-    const x = (e.clientX - r.left) / r.width  - 0.5;
-    const y = (e.clientY - r.top)  / r.height - 0.5;
-    const tiltX = -y * 8;
-    const tiltY =  x * 12;
-    stage.style.transform  = `perspective(900px) rotateX(${tiltX}deg) rotateY(${tiltY}deg)`;
-    if (img) img.style.transform = `translate(${x * 14}px, ${y * 10}px)`;
-  });
-  host.addEventListener('mouseleave', () => {
-    stage.style.transform = '';
-    if (img) img.style.transform = '';
-  });
-})();
+  async function runSearch(){
+    const tab=document.querySelector('.tab.on')?.dataset.t;
+    if(tab!=='hotel'){alert('지금은 호텔 검색만 열려 있어요. 항공·교통·렌터카는 오픈 준비 중입니다!');return}
+    const destination=document.getElementById('f1').value.trim();
+    const checkin=document.getElementById('f2').value, checkout=document.getElementById('f3').value;
+    const adults=parseInt((document.querySelector('.field select').value.match(/성인\s*(\d+)/)||[])[1]||'2',10);
+    if(!destination||!checkin||!checkout){alert('목적지와 날짜를 입력해주세요.');return}
+    const go=document.querySelector('.search-go'); const orig=go.innerHTML;
+    go.innerHTML='검색 중…'; go.disabled=true;
+    try{
+      const r=await fetch(DT_API.url,{method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+DT_API.key,'apikey':DT_API.key},
+        body:JSON.stringify({destination,checkin,checkout,adults})});
+      const data=await r.json();
+      if(!r.ok||data.error) throw new Error(data.error||('HTTP '+r.status));
+      const nights=nightsBetween(checkin,checkout);
+      const hotels=data.hotels||[];
+      document.getElementById('hotelList').innerHTML=hotels.length
+        ? hotels.map(h=>hotelCard(h,nights)).join('')
+        : '<p style="color:var(--ink-soft);font-weight:600;padding:8px 4px">조건에 맞는 호텔을 찾지 못했어요. 다른 날짜나 목적지로 검색해보세요.</p>';
+      document.getElementById('stayTitle').textContent=(destination.split(',')[0]||destination)+' 추천 호텔';
+      document.getElementById('staySub').textContent=`${checkin} ~ ${checkout} · 성인 ${adults}`+(data.source==='mock'?' · 샘플 데이터':'');
+      document.getElementById('stayMore').textContent=`${hotels.length}개 결과 →`;
+      document.getElementById('stay').scrollIntoView({behavior:'smooth'});
+    }catch(err){
+      alert('검색에 실패했어요. 잠시 후 다시 시도해주세요.\n('+err.message+')');
+    }finally{go.innerHTML=orig;go.disabled=false}
+  }
+  document.getElementById('searchForm').addEventListener('submit',runSearch);
 </script>
 </body>
 </html>
