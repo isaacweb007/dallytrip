@@ -307,7 +307,7 @@
 <header>
   <div class="wrap nav">
     <a class="logo" href="#">
-      <span class="mark"><img src="icons/icon-plane.webp" alt=""></span>
+      <span class="mark"><img src="icons/dally-face.webp" alt="달리"></span>
       <span>달리트립<small>DallyTrip · Travel & Earn</small></span>
     </a>
     <nav class="menu">
@@ -316,10 +316,10 @@
       <a href="#move">교통</a>
       <a href="#reward">DALI 리워드</a>
     </nav>
-    <div class="nav-right">
-      <div class="dali-pill"><img class="coin" src="icons/icon-coin.webp" alt=""><span id="daliBal">1,240 DALI</span></div>
-      <button class="btn ghost">로그인</button>
-      <button class="btn">회원가입</button>
+    <div class="nav-right" id="navRight">
+      <div class="dali-pill" id="daliPill" style="cursor:pointer"><img class="coin" src="icons/icon-coin.webp" alt=""><span id="daliBal">1,240 DALI</span></div>
+      <button class="btn ghost" id="btnLogin">로그인</button>
+      <button class="btn" id="btnJoin">회원가입</button>
     </div>
   </div>
 </header>
@@ -543,7 +543,7 @@
     <div class="col"><h6>예약</h6><a href="#">호텔·숙소</a><a href="#">항공권</a><a href="#">트랜스퍼</a><a href="#">렌터카</a></div>
     <div class="col"><h6>리워드</h6><a href="#">DALI 안내</a><a href="#">적립 내역</a><a href="#">제휴 혜택</a></div>
     <div class="col"><h6>고객센터</h6><a href="#">예약 확인/취소</a><a href="#">자주 묻는 질문</a><a href="#">1:1 문의</a></div>
-    <div class="legal">© 2026 DallyTrip · MonkeyTree Group. 호텔·항공·교통 재고 제공: RateHawk (Emerging Travel Group) API. DALI는 결제 수단이 아닌 리워드 포인트형 토큰입니다.</div>
+    <div class="legal">© 2026 DallyTrip · MonkeyTree Group. 호텔·항공·교통 재고 제공: RateHawk (Emerging Travel Group) API. DALI는 결제 수단이 아닌 리워드 포인트형 토큰입니다. · v0.3 베타</div>
   </div>
 </footer>
 
@@ -700,6 +700,455 @@
   document.getElementById('hotelList').addEventListener('click',e=>{
     if(e.target.closest('.book')) alert('예약·결제 흐름은 곧 열립니다!\n지금은 실시간 검색까지 지원돼요.');
   });
+</script>
+
+<!-- ═══════════ 마이 달리 — 회원 영역 v0.3 ═══════════ -->
+<style>
+  /* 오버레이 공통 */
+  .md-dim{position:fixed;inset:0;z-index:90;background:rgba(34,37,76,.45);backdrop-filter:blur(5px);
+    display:none;align-items:center;justify-content:center;padding:20px}
+  .md-dim.show{display:flex}
+  /* 로그인 모달 */
+  .md-login{background:var(--card);border-radius:26px;max-width:400px;width:100%;padding:28px 26px 24px;
+    text-align:center;box-shadow:0 24px 60px rgba(34,37,76,.35);position:relative}
+  .md-login img.dally{width:150px;margin:-86px auto 4px;filter:drop-shadow(0 10px 18px rgba(34,37,76,.25))}
+  .md-login h3{font-size:20px;font-weight:800;letter-spacing:-.4px}
+  .md-login p{font-size:13.5px;color:var(--ink-soft);margin-top:6px;line-height:1.6}
+  .md-login .md-btns{display:flex;flex-direction:column;gap:9px;margin-top:18px}
+  .md-lbtn{border-radius:14px;padding:13px;font-weight:800;font-size:14.5px;transition:.15s}
+  .md-lbtn:hover{transform:translateY(-1px)}
+  .md-lbtn.kakao{background:#FEE500;color:#191600}
+  .md-lbtn.google{background:#fff;border:1.5px solid var(--line);color:var(--ink)}
+  .md-lbtn.demo{background:var(--ink);color:#fff}
+  .md-login .note{font-size:11.5px;color:#B9B0A2;margin-top:12px}
+  .md-login .close,.md-page .close{position:absolute;top:14px;right:14px;width:34px;height:34px;border-radius:50%;
+    background:var(--surface-2,#F6F1E8);background:#F6F1E8;color:var(--ink-soft);font-size:15px;font-weight:800}
+  #mdNameWrap{display:none;margin-top:14px;gap:8px}
+  #mdNameWrap.show{display:flex}
+  #mdName{flex:1;border:1.5px solid var(--line);border-radius:12px;padding:11px 13px;font-family:inherit;font-size:14.5px;outline:none}
+  #mdName:focus{border-color:var(--coral)}
+  #mdGo{background:var(--coral);color:#fff;border-radius:12px;padding:0 18px;font-weight:800}
+
+  /* 마이 달리 패널 */
+  .md-page{position:fixed;inset:0;z-index:95;background:var(--cream);display:none;overflow-y:auto;
+    padding:22px 18px calc(30px + env(safe-area-inset-bottom))}
+  .md-page.show{display:block}
+  .md-wrap{max-width:760px;margin:0 auto}
+  .md-head{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+  .md-head img{width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,var(--coral),var(--gold));padding:3px}
+  .md-head h2{font-size:21px;font-weight:800;letter-spacing:-.5px}
+  .md-head .sub{font-size:12.5px;color:var(--ink-soft);font-weight:600}
+  .md-back{display:none;align-items:center;gap:6px;background:none;color:var(--coral);font-weight:800;font-size:14px;margin-bottom:12px}
+  /* 지갑 카드 */
+  .md-wallet{background:linear-gradient(115deg,#2A2D5C,#22254C 55%,#3A2E63);border-radius:20px;color:#fff;
+    padding:20px 22px;display:flex;align-items:center;gap:14px;box-shadow:var(--shadow)}
+  .md-wallet img{width:44px;height:44px}
+  .md-wallet .amt{font-size:26px;font-weight:800;color:var(--gold);font-variant-numeric:tabular-nums;line-height:1.1}
+  .md-wallet .lbl{font-size:12px;color:#C6C9EA;font-weight:600}
+  .md-wallet button{margin-left:auto;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);
+    color:#fff;border-radius:999px;padding:8px 16px;font-weight:700;font-size:12.5px}
+  /* 메뉴 그리드 */
+  .md-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px}
+  .md-cell{background:var(--card);border-radius:16px;padding:14px 6px 12px;text-align:center;
+    box-shadow:var(--shadow-sm);transition:.18s;cursor:pointer;border:1.5px solid transparent}
+  .md-cell:hover{transform:translateY(-3px);border-color:#FFD9CC}
+  .md-cell .e{font-size:22px;line-height:1}
+  .md-cell img{width:30px;height:30px;object-fit:contain;margin:0 auto}
+  .md-cell .t{font-size:12px;font-weight:800;margin-top:6px}
+  .md-cell .c{font-size:10.5px;color:var(--ink-soft);font-weight:600}
+  /* 섹션 공통 */
+  .md-sec{display:none;margin-top:16px}
+  .md-sec.show{display:block}
+  .md-sec h3{font-size:17px;font-weight:800;margin-bottom:12px;letter-spacing:-.3px}
+  .md-card{background:var(--card);border-radius:16px;padding:16px 18px;box-shadow:var(--shadow-sm);margin-bottom:10px}
+  .md-empty{text-align:center;padding:26px 14px 22px;background:var(--card);border-radius:18px;box-shadow:var(--shadow-sm)}
+  .md-empty img{width:110px;margin:0 auto 8px;opacity:.95}
+  .md-empty b{display:block;font-size:15px;margin-bottom:4px}
+  .md-empty p{font-size:13px;color:var(--ink-soft);margin-bottom:12px}
+  .md-empty button{background:var(--coral);color:#fff;border-radius:999px;padding:9px 18px;font-weight:800;font-size:13px}
+  /* 버킷리스트 */
+  .md-addrow{display:flex;gap:8px;margin-bottom:12px}
+  .md-addrow input[type=text]{flex:1;border:1.5px solid var(--line);border-radius:12px;padding:11px 13px;font-family:inherit;font-size:14px;outline:none;background:#fff}
+  .md-addrow input[type=date]{border:1.5px solid var(--line);border-radius:12px;padding:0 10px;font-family:inherit;font-size:13px;background:#fff}
+  .md-addrow button{background:var(--ink);color:#fff;border-radius:12px;padding:0 16px;font-weight:800}
+  .md-item{display:flex;align-items:center;gap:10px;background:var(--card);border-radius:14px;padding:12px 14px;
+    box-shadow:var(--shadow-sm);margin-bottom:8px}
+  .md-item .chk{width:22px;height:22px;border-radius:8px;border:2px solid var(--line);background:#fff;font-size:13px;color:#fff;flex:none}
+  .md-item.done .chk{background:var(--mint);border-color:var(--mint)}
+  .md-item .tx{flex:1;font-weight:600;font-size:14.5px}
+  .md-item.done .tx{text-decoration:line-through;color:var(--ink-soft)}
+  .md-item .dt{font-size:11.5px;color:var(--ink-soft);font-weight:700;background:#F6F1E8;border-radius:999px;padding:3px 9px}
+  .md-item .del{color:#C9553E;font-weight:800;font-size:15px;background:none;padding:4px}
+  /* 캘린더 */
+  .md-cal{background:var(--card);border-radius:18px;padding:16px;box-shadow:var(--shadow-sm)}
+  .md-cal .nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+  .md-cal .nav b{font-size:15.5px}
+  .md-cal .nav button{background:#F6F1E8;border-radius:10px;width:32px;height:32px;font-weight:800;color:var(--ink-soft)}
+  .md-cal table{width:100%;border-collapse:collapse;table-layout:fixed}
+  .md-cal th{font-size:11px;color:var(--ink-soft);padding:6px 0;font-weight:700}
+  .md-cal td{text-align:center;padding:7px 0;font-size:13.5px;font-weight:600;border-radius:10px;position:relative}
+  .md-cal td.today{background:var(--ink);color:#fff}
+  .md-cal td.mark::after{content:"";position:absolute;left:50%;transform:translateX(-50%);bottom:2px;
+    width:5px;height:5px;border-radius:50%;background:var(--coral)}
+  .md-cal .legend{font-size:11.5px;color:var(--ink-soft);margin-top:10px;font-weight:600}
+  /* 즐겨찾기 하트 */
+  .favb{background:#fff;border:1.5px solid var(--line);color:#D0C9BD;border-radius:999px;
+    width:34px;height:34px;font-size:15px;margin-right:6px;transition:.15s;vertical-align:middle}
+  .favb.on{background:#FCEDE8;border-color:#EBB6A4;color:#E8532F}
+  /* 프로필 */
+  .md-prof{display:flex;gap:16px;align-items:center}
+  .md-prof img{width:74px;height:74px;border-radius:22px;background:linear-gradient(135deg,var(--coral),var(--gold));padding:5px}
+  .md-prof input,.md-prof textarea{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;
+    font-family:inherit;font-size:14px;outline:none;background:#fff}
+  .md-tags{display:flex;flex-wrap:wrap;gap:7px;margin-top:10px}
+  .md-tag{border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:7px 13px;font-size:12.5px;font-weight:700;color:var(--ink-soft)}
+  .md-tag.on{background:var(--ink);border-color:var(--ink);color:#fff}
+  .md-save{background:var(--coral);color:#fff;border-radius:999px;padding:10px 20px;font-weight:800;margin-top:12px}
+  /* 원장 */
+  .md-led{display:flex;justify-content:space-between;align-items:center;padding:11px 2px;border-bottom:1px solid var(--line);font-size:13.5px}
+  .md-led:last-child{border-bottom:none}
+  .md-led b{font-variant-numeric:tabular-nums}
+  .md-led .plus{color:#0F8A6D}
+  /* 설정 */
+  .md-set{display:flex;justify-content:space-between;align-items:center;padding:13px 2px;border-bottom:1px solid var(--line)}
+  .md-set:last-child{border-bottom:none}
+  .md-set .k{font-weight:700;font-size:14.5px}
+  .md-set .d{font-size:12px;color:var(--ink-soft)}
+  .md-sw{width:46px;height:26px;border-radius:999px;background:#E5DFD3;position:relative;transition:.2s;flex:none}
+  .md-sw::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.2s;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+  .md-sw.on{background:var(--mint)}
+  .md-sw.on::after{left:23px}
+  .md-danger{color:#C9553E;font-weight:800;background:none;padding:13px 2px;font-size:14px}
+  @media (max-width:640px){ .md-grid{grid-template-columns:repeat(2,1fr)} .md-login img.dally{width:120px;margin-top:-70px} }
+  @media (prefers-reduced-motion:reduce){ .md-cell,.md-lbtn,.favb{transition:none} }
+</style>
+
+<!-- 로그인 모달 -->
+<div class="md-dim" id="mdLoginDim" role="dialog" aria-modal="true" aria-label="로그인">
+  <div class="md-login">
+    <button class="close" id="mdLoginClose" aria-label="닫기">✕</button>
+    <img class="dally" src="icons/dally.webp" alt="달리 캐릭터">
+    <h3>달리와 함께 떠나요!</h3>
+    <p>여행만 해도 DALI가 쌓이는 달리트립.<br>가입 보너스 <b style="color:#8A6400">100 DALI</b>를 바로 드려요.</p>
+    <div class="md-btns">
+      <button class="md-lbtn kakao" data-soon>카카오로 3초 만에 시작</button>
+      <button class="md-lbtn google" data-soon>Google로 시작</button>
+      <button class="md-lbtn demo" id="mdDemoBtn">체험으로 시작하기</button>
+    </div>
+    <div id="mdNameWrap"><input id="mdName" type="text" maxlength="12" placeholder="달리가 부를 이름 (예: 아이작)"><button id="mdGo">시작</button></div>
+    <div class="note">정식 로그인은 오픈 준비 중이에요. 체험 모드의 기록은 이 기기에만 저장됩니다.</div>
+  </div>
+</div>
+
+<!-- 마이 달리 패널 -->
+<div class="md-page" id="mdPage" role="dialog" aria-modal="true" aria-label="마이 달리">
+  <div class="md-wrap" style="position:relative">
+    <button class="close" id="mdPageClose" aria-label="닫기">✕</button>
+    <button class="md-back" id="mdBack">← 마이 달리</button>
+    <div class="md-head">
+      <img src="icons/dally-face.webp" alt="">
+      <div><h2 id="mdHi">마이 달리</h2><div class="sub" id="mdHiSub">오늘도 좋은 여행 준비해요</div></div>
+    </div>
+
+    <!-- 홈 -->
+    <div class="md-sec show" data-sec="home">
+      <div class="md-wallet">
+        <img src="icons/icon-coin.webp" alt="">
+        <div><div class="amt" id="mdWalletAmt">0 DALI</div><div class="lbl">내 리워드 지갑 · $1 결제 = 1 DALI</div></div>
+        <button data-open="payments">내역</button>
+      </div>
+      <div class="md-grid">
+        <div class="md-cell" data-open="bookings"><img src="icons/icon-suitcase.webp" alt=""><div class="t">예약 현황</div><div class="c" id="mdCntBook">0건</div></div>
+        <div class="md-cell" data-open="calendar"><img src="icons/icon-plane.webp" alt=""><div class="t">여행 캘린더</div><div class="c">이번 달</div></div>
+        <div class="md-cell" data-open="bucket"><img src="icons/icon-magnifier.webp" alt=""><div class="t">버킷리스트</div><div class="c" id="mdCntBucket">0개</div></div>
+        <div class="md-cell" data-open="favs"><img src="icons/icon-gift.webp" alt=""><div class="t">즐겨찾기</div><div class="c" id="mdCntFav">0곳</div></div>
+        <div class="md-cell" data-open="payments"><img src="icons/icon-coin.webp" alt=""><div class="t">결제·적립 내역</div><div class="c" id="mdCntLed">0건</div></div>
+        <div class="md-cell" data-open="history"><img src="icons/icon-train.webp" alt=""><div class="t">지난 여행</div><div class="c">0회</div></div>
+        <div class="md-cell" data-open="profile"><img src="icons/dally-face.webp" alt=""><div class="t">프로필 편집</div><div class="c">취향 설정</div></div>
+        <div class="md-cell" data-open="settings"><img src="icons/icon-house.webp" alt=""><div class="t">내 설정</div><div class="c">알림·계정</div></div>
+      </div>
+    </div>
+
+    <!-- 예약 현황 -->
+    <div class="md-sec" data-sec="bookings"><h3>예약 현황</h3>
+      <div class="md-empty"><img src="icons/dally.webp" alt=""><b>아직 예약이 없어요</b>
+        <p>첫 예약을 하면 여기서 일정·바우처를 한눈에 봐요.<br>결제 금액만큼 DALI도 바로 쌓이고요!</p>
+        <button id="mdGoSearch">호텔 찾으러 가기</button></div>
+    </div>
+
+    <!-- 캘린더 -->
+    <div class="md-sec" data-sec="calendar"><h3>여행 캘린더</h3>
+      <div class="md-cal">
+        <div class="nav"><button id="calPrev" aria-label="이전 달">‹</button><b id="calTitle"></b><button id="calNext" aria-label="다음 달">›</button></div>
+        <table><thead><tr><th>일</th><th>월</th><th>화</th><th>수</th><th>목</th><th>금</th><th>토</th></tr></thead><tbody id="calBody"></tbody></table>
+        <div class="legend">● 버킷리스트에 적어둔 날짜예요. 예약이 생기면 함께 표시됩니다.</div>
+      </div>
+    </div>
+
+    <!-- 버킷리스트 -->
+    <div class="md-sec" data-sec="bucket"><h3>여행 버킷리스트</h3>
+      <div class="md-addrow">
+        <input type="text" id="bkText" maxlength="40" placeholder="예: 다낭에서 미케비치 일출 보기">
+        <input type="date" id="bkDate" aria-label="예정일(선택)">
+        <button id="bkAdd">추가</button>
+      </div>
+      <div id="bkList"></div>
+    </div>
+
+    <!-- 즐겨찾기 -->
+    <div class="md-sec" data-sec="favs"><h3>즐겨찾기</h3><div id="favList"></div></div>
+
+    <!-- 결제·적립 -->
+    <div class="md-sec" data-sec="payments"><h3>결제·적립 내역</h3><div class="md-card" id="ledList"></div></div>
+
+    <!-- 지난 여행 -->
+    <div class="md-sec" data-sec="history"><h3>지난 여행</h3>
+      <div class="md-empty"><img src="icons/dally.webp" alt=""><b>여행 기록이 아직 비어 있어요</b>
+        <p>다녀온 여행이 쌓이면 달리가 연도별 앨범으로 정리해 드려요.</p>
+        <button id="mdGoSearch2">첫 여행 계획하기</button></div>
+    </div>
+
+    <!-- 프로필 -->
+    <div class="md-sec" data-sec="profile"><h3>프로필 편집</h3>
+      <div class="md-card">
+        <div class="md-prof">
+          <img src="icons/dally.webp" alt="프로필 아바타">
+          <div style="flex:1;display:flex;flex-direction:column;gap:8px">
+            <input id="pfName" type="text" maxlength="12" placeholder="이름">
+            <input id="pfBio" type="text" maxlength="30" placeholder="한 줄 소개 (예: 휴양지 수집가)">
+          </div>
+        </div>
+        <div class="md-tags" id="pfTags"></div>
+        <button class="md-save" id="pfSave">저장</button>
+        <span id="pfSaved" style="display:none;margin-left:10px;color:#0F8A6D;font-weight:700;font-size:13px">저장됐어요 ✓</span>
+      </div>
+    </div>
+
+    <!-- 설정 -->
+    <div class="md-sec" data-sec="settings"><h3>내 설정</h3>
+      <div class="md-card">
+        <div class="md-set"><div><div class="k">특가 알림</div><div class="d">찜한 여행지의 가격이 내려가면 알려드려요</div></div><button class="md-sw" data-set="notiDeal" aria-label="특가 알림"></button></div>
+        <div class="md-set"><div><div class="k">DALI 적립 알림</div><div class="d">적립될 때마다 알림을 받아요</div></div><button class="md-sw" data-set="notiDali" aria-label="적립 알림"></button></div>
+        <div class="md-set"><div><div class="k">마케팅 수신</div><div class="d">이벤트·프로모션 소식</div></div><button class="md-sw" data-set="notiMkt" aria-label="마케팅 수신"></button></div>
+      </div>
+      <div class="md-card">
+        <button class="md-danger" id="mdLogout">로그아웃</button><br>
+        <button class="md-danger" id="mdReset" style="opacity:.7;font-size:12.5px">체험 데이터 모두 지우기</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+(()=>{
+  // ── 상태 ──────────────────────────────────────────────
+  const KEY='dallytrip_v03';
+  const load=()=>{try{return JSON.parse(localStorage.getItem(KEY))||{}}catch{return{}}};
+  const save=s=>localStorage.setItem(KEY,JSON.stringify(s));
+  let S=load();
+  const loggedIn=()=>!!S.user;
+
+  const $=id=>document.getElementById(id);
+  const dim=$('mdLoginDim'), page=$('mdPage');
+
+  // ── 헤더 상태 반영 ────────────────────────────────────
+  function paintHeader(){
+    if(loggedIn()){
+      $('btnLogin').style.display='none';
+      $('btnJoin').textContent='마이 달리';
+      $('btnJoin').style.display='';
+      $('daliBal').textContent=S.dali.toLocaleString()+' DALI';
+    }else{
+      $('btnLogin').style.display='';
+      $('btnJoin').textContent='회원가입';
+      $('daliBal').textContent='1,240 DALI';
+    }
+  }
+
+  // ── 모달/페이지 열닫 ──────────────────────────────────
+  const openLogin=()=>{dim.classList.add('show')};
+  const closeLogin=()=>{dim.classList.remove('show');$('mdNameWrap').classList.remove('show')};
+  const openPage=()=>{paintPage();page.classList.add('show');document.body.style.overflow='hidden'};
+  const closePage=()=>{page.classList.remove('show');document.body.style.overflow='';showSec('home')};
+  $('btnLogin').onclick=openLogin;
+  $('btnJoin').onclick=()=>loggedIn()?openPage():openLogin();
+  $('daliPill').onclick=()=>loggedIn()?(openPage(),showSec('payments')):openLogin();
+  $('mdLoginClose').onclick=closeLogin;
+  $('mdPageClose').onclick=closePage;
+  dim.addEventListener('click',e=>{if(e.target===dim)closeLogin()});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeLogin();closePage()}});
+  dim.querySelectorAll('[data-soon]').forEach(b=>b.onclick=()=>alert('카카오·Google 로그인은 오픈 준비 중이에요!\n지금은 "체험으로 시작하기"를 눌러보세요.'));
+
+  // ── 체험 로그인 ───────────────────────────────────────
+  $('mdDemoBtn').onclick=()=>{$('mdNameWrap').classList.add('show');$('mdName').focus()};
+  const start=()=>{
+    const name=$('mdName').value.trim()||'여행자';
+    S={user:{name,bio:'',tags:[],joined:new Date().toISOString().slice(0,10)},
+       dali:100,ledger:[{d:new Date().toISOString().slice(0,10),why:'가입 보너스',amt:100}],
+       favs:[],bucket:[],set:{notiDeal:true,notiDali:true,notiMkt:false}};
+    save(S);paintHeader();closeLogin();openPage();
+  };
+  $('mdGo').onclick=start;
+  $('mdName').addEventListener('keydown',e=>{if(e.key==='Enter')start()});
+
+  // ── 섹션 전환 ─────────────────────────────────────────
+  function showSec(name){
+    page.querySelectorAll('.md-sec').forEach(s=>s.classList.toggle('show',s.dataset.sec===name));
+    $('mdBack').style.display=name==='home'?'none':'inline-flex';
+    if(name==='calendar')drawCal();
+    if(name==='bucket')drawBucket();
+    if(name==='favs')drawFavs();
+    if(name==='payments')drawLedger();
+    if(name==='profile')drawProfile();
+    if(name==='settings')drawSettings();
+  }
+  page.addEventListener('click',e=>{const c=e.target.closest('[data-open]');if(c)showSec(c.dataset.open)});
+  $('mdBack').onclick=()=>showSec('home');
+  const goSearch=()=>{closePage();document.querySelector('.search-card').scrollIntoView({behavior:'smooth'})};
+  $('mdGoSearch').onclick=goSearch; $('mdGoSearch2').onclick=goSearch;
+
+  // ── 홈 요약 ───────────────────────────────────────────
+  function paintPage(){
+    $('mdHi').textContent=S.user.name+' 님의 마이 달리';
+    $('mdHiSub').textContent=(S.user.bio||'오늘도 좋은 여행 준비해요')+' · '+S.user.joined+' 가입';
+    $('mdWalletAmt').textContent=S.dali.toLocaleString()+' DALI';
+    $('mdCntBook').textContent='0건';
+    $('mdCntBucket').textContent=S.bucket.length+'개';
+    $('mdCntFav').textContent=S.favs.length+'곳';
+    $('mdCntLed').textContent=S.ledger.length+'건';
+  }
+
+  // ── 캘린더 ────────────────────────────────────────────
+  let calY,calM;
+  function drawCal(){
+    const now=new Date();
+    if(calY===undefined){calY=now.getFullYear();calM=now.getMonth()}
+    $('calTitle').textContent=`${calY}년 ${calM+1}월`;
+    const first=new Date(calY,calM,1).getDay(), days=new Date(calY,calM+1,0).getDate();
+    const marks=new Set(S.bucket.filter(b=>b.date).map(b=>b.date));
+    const today=now.toISOString().slice(0,10);
+    let html='<tr>',cell=0;
+    for(let i=0;i<first;i++){html+='<td></td>';cell++}
+    for(let d=1;d<=days;d++){
+      const iso=`${calY}-${String(calM+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+      html+=`<td class="${iso===today?'today':''} ${marks.has(iso)?'mark':''}">${d}</td>`;
+      if(++cell%7===0)html+='</tr><tr>';
+    }
+    $('calBody').innerHTML=html+'</tr>';
+  }
+  $('calPrev').onclick=()=>{calM--;if(calM<0){calM=11;calY--}drawCal()};
+  $('calNext').onclick=()=>{calM++;if(calM>11){calM=0;calY++}drawCal()};
+
+  // ── 버킷리스트 ────────────────────────────────────────
+  function drawBucket(){
+    $('bkList').innerHTML=S.bucket.length?S.bucket.map((b,i)=>`
+      <div class="md-item ${b.done?'done':''}">
+        <button class="chk" data-bk-done="${i}" aria-label="완료">${b.done?'✓':''}</button>
+        <span class="tx">${esc(b.text)}</span>
+        ${b.date?`<span class="dt">${b.date.slice(5).replace('-','/')}</span>`:''}
+        <button class="del" data-bk-del="${i}" aria-label="삭제">✕</button>
+      </div>`).join('')
+      :'<div class="md-empty"><img src="icons/dally.webp" alt=""><b>버킷리스트가 비어 있어요</b><p>이번 여행에서 꼭 하고 싶은 것들을 적어보세요.<br>날짜를 붙이면 캘린더에도 표시돼요.</p></div>';
+  }
+  $('bkAdd').onclick=()=>{
+    const t=$('bkText').value.trim();if(!t)return $('bkText').focus();
+    S.bucket.push({text:t,date:$('bkDate').value||null,done:false});
+    save(S);$('bkText').value='';$('bkDate').value='';drawBucket();paintPage();
+  };
+  $('bkText').addEventListener('keydown',e=>{if(e.key==='Enter')$('bkAdd').click()});
+  $('bkList').addEventListener('click',e=>{
+    const d=e.target.closest('[data-bk-done]'),x=e.target.closest('[data-bk-del]');
+    if(d){S.bucket[+d.dataset.bkDone].done=!S.bucket[+d.dataset.bkDone].done}
+    if(x){S.bucket.splice(+x.dataset.bkDel,1)}
+    if(d||x){save(S);drawBucket();paintPage()}
+  });
+
+  // ── 즐겨찾기 ──────────────────────────────────────────
+  window.mdToggleFav=(item)=>{
+    if(!loggedIn()){openLogin();return false}
+    const i=S.favs.findIndex(f=>f.id===item.id);
+    i>=0?S.favs.splice(i,1):S.favs.push(item);
+    save(S);paintHeader();return i<0;
+  };
+  window.mdIsFav=id=>loggedIn()&&S.favs.some(f=>f.id===id);
+  function drawFavs(){
+    $('favList').innerHTML=S.favs.length?S.favs.map(f=>`
+      <div class="md-item"><span style="font-size:17px">${f.type==='flight'?'✈️':'🏨'}</span>
+        <span class="tx">${esc(f.name)}<br><small style="color:var(--ink-soft);font-weight:600">${esc(f.sub||'')}</small></span>
+        <b style="font-variant-numeric:tabular-nums">$${Number(f.price).toLocaleString()}</b>
+        <button class="del" data-fav-del="${esc(f.id)}" aria-label="삭제">✕</button></div>`).join('')
+      :'<div class="md-empty"><img src="icons/dally.webp" alt=""><b>아직 찜한 곳이 없어요</b><p>검색 결과에서 ♥ 를 누르면 여기에 모여요.<br>특가 알림도 이 목록 기준으로 보내드릴 거예요.</p><button id="mdGoSearch3">둘러보러 가기</button></div>';
+    const g=$('mdGoSearch3');if(g)g.onclick=goSearch;
+  }
+  $('favList').addEventListener('click',e=>{
+    const x=e.target.closest('[data-fav-del]');
+    if(x){S.favs=S.favs.filter(f=>f.id!==x.dataset.favDel);save(S);drawFavs();paintPage()}
+  });
+
+  // ── 결제·적립 ─────────────────────────────────────────
+  function drawLedger(){
+    $('ledList').innerHTML=S.ledger.map(l=>`
+      <div class="md-led"><span>${l.d} · ${esc(l.why)}</span><b class="${l.amt>0?'plus':''}">${l.amt>0?'+':''}${l.amt} DALI</b></div>`).join('')
+      +`<div class="md-led"><span><b>잔액</b></span><b>${S.dali.toLocaleString()} DALI</b></div>`;
+  }
+
+  // ── 프로필 ────────────────────────────────────────────
+  const TAGS=['휴양','미식','액티비티','가족여행','호캉스','배낭','사진','쇼핑'];
+  function drawProfile(){
+    $('pfName').value=S.user.name;$('pfBio').value=S.user.bio||'';
+    $('pfTags').innerHTML=TAGS.map(t=>`<button class="md-tag ${S.user.tags.includes(t)?'on':''}" data-tag="${t}">${t}</button>`).join('');
+  }
+  $('pfTags').addEventListener('click',e=>{
+    const b=e.target.closest('[data-tag]');if(!b)return;
+    const t=b.dataset.tag,i=S.user.tags.indexOf(t);
+    i>=0?S.user.tags.splice(i,1):S.user.tags.push(t);
+    b.classList.toggle('on');
+  });
+  $('pfSave').onclick=()=>{
+    S.user.name=$('pfName').value.trim()||S.user.name;
+    S.user.bio=$('pfBio').value.trim();
+    save(S);paintHeader();paintPage();
+    $('pfSaved').style.display='inline';setTimeout(()=>$('pfSaved').style.display='none',1600);
+  };
+
+  // ── 설정 ──────────────────────────────────────────────
+  function drawSettings(){
+    page.querySelectorAll('.md-sw').forEach(sw=>sw.classList.toggle('on',!!S.set[sw.dataset.set]));
+  }
+  page.addEventListener('click',e=>{
+    const sw=e.target.closest('.md-sw');if(!sw)return;
+    S.set[sw.dataset.set]=!S.set[sw.dataset.set];save(S);drawSettings();
+  });
+  $('mdLogout').onclick=()=>{if(confirm('로그아웃할까요? (체험 기록은 이 기기에 남아있어요)')){const k=S;S={};save(S);paintHeader();closePage()}};
+  $('mdReset').onclick=()=>{if(confirm('체험 데이터를 모두 지울까요? 되돌릴 수 없어요.')){localStorage.removeItem(KEY);S={};paintHeader();closePage()}};
+
+  // ── 검색 카드에 ♥ 심기 (결과가 새로 그려질 때마다) ──
+  const list=document.getElementById('hotelList');
+  function injectHearts(){
+    list.querySelectorAll('.hotel').forEach(card=>{
+      if(card.querySelector('.favb'))return;
+      const name=card.querySelector('h5')?.childNodes[0]?.textContent.trim()||'이름 없음';
+      const sub=card.querySelector('.meta')?.textContent.trim().slice(0,40)||'';
+      const price=(card.querySelector('.right b')?.textContent||'$0').replace(/[$,]/g,'');
+      const isFlight=!!card.querySelector('.fl-num');
+      const id=(isFlight?'f_':'h_')+name;
+      const btn=document.createElement('button');
+      btn.className='favb'+(window.mdIsFav(id)?' on':'');btn.textContent='♥';btn.setAttribute('aria-label','즐겨찾기');
+      btn.onclick=()=>{const on=window.mdToggleFav({id,type:isFlight?'flight':'hotel',name,sub,price});if(on!==false)btn.classList.toggle('on',on)};
+      const book=card.querySelector('.book');book.parentNode.insertBefore(btn,book);
+    });
+  }
+  new MutationObserver(injectHearts).observe(list,{childList:true});
+  injectHearts();
+
+  // ── 모바일 하단바: 리워드 → 마이 ──────────────────────
+  const bn=document.querySelector('.bottom-nav .bn:last-child');
+  if(bn){bn.innerHTML='<img class="ic" src="icons/dally-face.webp" alt="">마이';
+    bn.addEventListener('click',e=>{e.preventDefault();loggedIn()?openPage():openLogin()})}
+
+  paintHeader();
+})();
 </script>
 </body>
 </html>
