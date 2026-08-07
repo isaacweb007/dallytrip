@@ -791,9 +791,11 @@
   .md-cal td.mark::after{content:"";position:absolute;left:50%;transform:translateX(-50%);bottom:2px;
     width:5px;height:5px;border-radius:50%;background:var(--coral)}
   .md-cal .legend{font-size:11.5px;color:var(--ink-soft);margin-top:10px;font-weight:600}
-  /* 즐겨찾기 하트 */
+  /* 즐겨찾기 하트 — 이모지 대신 SVG (기기별 이모지 렌더링 방지) */
   .favb{background:#fff;border:1.5px solid var(--line);color:#D0C9BD;border-radius:999px;
-    width:34px;height:34px;font-size:15px;margin-right:6px;transition:.15s;vertical-align:middle}
+    width:34px;height:34px;margin-right:6px;transition:.15s;vertical-align:middle;
+    display:inline-grid;place-items:center;padding:0}
+  .favb svg{width:16px;height:16px;fill:currentColor}
   .favb.on{background:#FCEDE8;border-color:#EBB6A4;color:#E8532F}
   /* 프로필 */
   .md-prof{display:flex;gap:16px;align-items:center}
@@ -1074,7 +1076,7 @@
   window.mdIsFav=id=>loggedIn()&&S.favs.some(f=>f.id===id);
   function drawFavs(){
     $('favList').innerHTML=S.favs.length?S.favs.map(f=>`
-      <div class="md-item"><span style="font-size:17px">${f.type==='flight'?'✈️':'🏨'}</span>
+      <div class="md-item"><img class="ic" src="icons/${f.type==='flight'?'icon-plane':'icon-hotel'}.webp" alt="">
         <span class="tx">${esc(f.name)}<br><small style="color:var(--ink-soft);font-weight:600">${esc(f.sub||'')}</small></span>
         <b style="font-variant-numeric:tabular-nums">$${Number(f.price).toLocaleString()}</b>
         <button class="del" data-fav-del="${esc(f.id)}" aria-label="삭제">✕</button></div>`).join('')
@@ -1134,7 +1136,8 @@
       const isFlight=!!card.querySelector('.fl-num');
       const id=(isFlight?'f_':'h_')+name;
       const btn=document.createElement('button');
-      btn.className='favb'+(window.mdIsFav(id)?' on':'');btn.textContent='♥';btn.setAttribute('aria-label','즐겨찾기');
+      btn.className='favb'+(window.mdIsFav(id)?' on':'');btn.setAttribute('aria-label','즐겨찾기');
+      btn.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>';
       btn.onclick=()=>{const on=window.mdToggleFav({id,type:isFlight?'flight':'hotel',name,sub,price});if(on!==false)btn.classList.toggle('on',on)};
       const book=card.querySelector('.book');book.parentNode.insertBefore(btn,book);
     });
@@ -1148,6 +1151,202 @@
     bn.addEventListener('click',e=>{e.preventDefault();loggedIn()?openPage():openLogin()})}
 
   paintHeader();
+})();
+</script>
+
+<!-- ═══════════ AI 달리 컨시어지 v0.4 ═══════════ -->
+<style>
+  .dc-fab{position:fixed;right:18px;bottom:calc(74px + env(safe-area-inset-bottom));z-index:70;
+    display:flex;align-items:center;gap:9px;background:var(--ink);color:#fff;
+    border-radius:999px;padding:9px 18px 9px 9px;font-weight:800;font-size:14px;
+    box-shadow:0 10px 26px rgba(34,37,76,.4);transition:.2s}
+  .dc-fab:hover{transform:translateY(-2px)}
+  .dc-fab img{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--coral),var(--gold));padding:2px}
+  @media (min-width:641px){ .dc-fab{bottom:24px} }
+  .dc-dim{position:fixed;inset:0;z-index:96;background:rgba(34,37,76,.45);backdrop-filter:blur(5px);
+    display:none;align-items:flex-end;justify-content:center;padding:0}
+  .dc-dim.show{display:flex}
+  .dc-panel{background:var(--cream);width:100%;max-width:520px;height:min(86vh,720px);
+    border-radius:26px 26px 0 0;display:flex;flex-direction:column;overflow:hidden;
+    box-shadow:0 -20px 60px rgba(34,37,76,.35)}
+  @media (min-width:641px){ .dc-dim{align-items:center;padding:20px} .dc-panel{border-radius:26px;height:min(80vh,680px)} }
+  .dc-head{display:flex;align-items:center;gap:11px;padding:14px 16px;background:var(--card);border-bottom:1px solid var(--line)}
+  .dc-head img{width:40px;height:40px;border-radius:14px;background:linear-gradient(135deg,var(--coral),var(--gold));padding:3px}
+  .dc-head b{font-size:16px;letter-spacing:-.3px}
+  .dc-head .st{font-size:11.5px;color:var(--ink-soft);font-weight:600}
+  .dc-head .close{margin-left:auto;width:34px;height:34px;border-radius:50%;background:#F6F1E8;color:var(--ink-soft);font-weight:800}
+  .dc-log{flex:1;overflow-y:auto;padding:16px 14px;display:flex;flex-direction:column;gap:10px}
+  .dc-msg{max-width:82%;padding:10px 14px;border-radius:16px;font-size:14.5px;line-height:1.55;white-space:pre-line}
+  .dc-msg.dally{background:var(--card);border:1px solid var(--line);border-radius:16px 16px 16px 6px;align-self:flex-start;box-shadow:var(--shadow-sm)}
+  .dc-msg.me{background:var(--ink);color:#fff;border-radius:16px 16px 6px 16px;align-self:flex-end}
+  .dc-msg.think{color:var(--ink-soft);font-weight:600;font-size:13px;background:none;border:none;box-shadow:none;padding:2px 6px}
+  .dc-chips{display:flex;flex-wrap:wrap;gap:7px;align-self:flex-start;max-width:92%}
+  .dc-chip{background:#fff;border:1.5px solid var(--line);border-radius:999px;padding:8px 14px;font-size:13px;font-weight:700;color:var(--ink);transition:.15s}
+  .dc-chip:hover{border-color:var(--coral);color:var(--coral-deep)}
+  /* 플랜 카드 */
+  .dc-plan{align-self:stretch;background:var(--card);border:1.5px solid var(--line);border-radius:16px;padding:13px 15px;box-shadow:var(--shadow-sm)}
+  .dc-plan .tt{display:flex;align-items:baseline;gap:8px;margin-bottom:7px}
+  .dc-plan .tt b{font-size:14.5px}
+  .dc-plan .tt .fit{font-size:11px;font-weight:800;border-radius:999px;padding:2px 9px}
+  .dc-plan .tt .fit.ok{background:#EFFAF6;color:#0F8A6D}
+  .dc-plan .tt .fit.over{background:#FCEDE8;color:#C9553E}
+  .dc-plan .row{display:flex;align-items:center;gap:8px;font-size:13px;padding:4px 0;color:var(--ink)}
+  .dc-plan .row img{width:18px;height:18px;object-fit:contain;flex:none}
+  .dc-plan .row .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+  .dc-plan .row b{font-variant-numeric:tabular-nums}
+  .dc-plan .sum{display:flex;align-items:center;gap:8px;border-top:1px dashed var(--line);margin-top:6px;padding-top:8px}
+  .dc-plan .sum b{font-size:16px}
+  .dc-plan .sum .dali{margin-left:auto;display:flex;align-items:center;gap:5px;color:#8A6400;font-weight:800;font-size:12.5px}
+  .dc-plan .sum .dali img{width:16px;height:16px}
+  .dc-plan .go{margin-top:9px;width:100%;background:var(--coral);color:#fff;border-radius:12px;padding:10px;font-weight:800;font-size:13.5px}
+  .dc-input{display:flex;gap:8px;padding:12px 14px calc(12px + env(safe-area-inset-bottom));background:var(--card);border-top:1px solid var(--line)}
+  .dc-input input{flex:1;border:1.5px solid var(--line);border-radius:999px;padding:11px 16px;font-family:inherit;font-size:14.5px;outline:none;background:var(--cream)}
+  .dc-input input:focus{border-color:var(--coral)}
+  .dc-input button{background:var(--ink);color:#fff;border-radius:999px;padding:0 20px;font-weight:800;font-size:14px}
+  @media (prefers-reduced-motion:reduce){ .dc-fab{transition:none} }
+</style>
+
+<button class="dc-fab" id="dcFab"><img src="icons/dally-face.webp" alt="">달리에게 맡기기</button>
+
+<div class="dc-dim" id="dcDim" role="dialog" aria-modal="true" aria-label="달리 컨시어지">
+  <div class="dc-panel">
+    <div class="dc-head">
+      <img src="icons/dally-face.webp" alt="">
+      <div><b>달리 컨시어지</b><div class="st" id="dcSt">호텔+항공 플랜을 한 번에 짜드려요</div></div>
+      <button class="close" id="dcClose" aria-label="닫기">✕</button>
+    </div>
+    <div class="dc-log" id="dcLog"></div>
+    <div class="dc-input">
+      <input id="dcText" type="text" maxlength="120" placeholder="예: 9월에 다낭 4박, 둘이서 200만원">
+      <button id="dcSend">보내기</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(()=>{
+  const $=id=>document.getElementById(id);
+  const log=$('dcLog'), input=$('dcText');
+  const CITY={다낭:'DAD',나트랑:'CXR',푸꾸옥:'PQC',하노이:'HAN',호치민:'SGN',방콕:'BKK',세부:'CEB',발리:'DPS',도쿄:'NRT',오사카:'KIX',서울:'GMP'};
+  const FLIGHT_API=/^https?:\/\/(localhost|127\.0\.0\.1)/.test(location.origin)?'https://dallytrip.com':'';
+  const CONCIERGE_URL='https://hzwxeyxnlpmauyeqscim.supabase.co/functions/v1/dally-concierge';
+  let history=[], pending={};
+
+  // ── 말풍선 ──────────────────────────────────────────────
+  const scroll=()=>{log.scrollTop=log.scrollHeight};
+  function say(text,who='dally'){const d=document.createElement('div');d.className='dc-msg '+who;d.textContent=text;log.appendChild(d);scroll();return d}
+  function chips(list){
+    const w=document.createElement('div');w.className='dc-chips';
+    list.forEach(t=>{const b=document.createElement('button');b.className='dc-chip';b.textContent=t;
+      b.onclick=()=>{w.remove();send(t)};w.appendChild(b)});
+    log.appendChild(w);scroll();
+  }
+
+  // ── 열기/닫기 ───────────────────────────────────────────
+  const open=()=>{$('dcDim').classList.add('show');document.body.style.overflow='hidden';
+    if(!log.children.length){
+      say('안녕하세요, 달리예요. 어디로 떠나고 싶으세요?\n도시·날짜·인원·예산을 한 번에 말씀하셔도 돼요.');
+      chips(['9월에 다낭 4박, 둘이서','방콕 3박 혼자','10월 푸꾸옥 가족여행 300만원']);
+    }
+    input.focus()};
+  const close=()=>{$('dcDim').classList.remove('show');document.body.style.overflow=''};
+  $('dcFab').onclick=open; $('dcClose').onclick=close;
+  $('dcDim').addEventListener('click',e=>{if(e.target===$('dcDim'))close()});
+
+  // ── 내장 규칙 파서 (AI 키 없을 때의 달리) ────────────────
+  function parseKo(t){
+    const out={};
+    for(const c in CITY) if(t.includes(c)){out.city=c;out.iata=CITY[c];break}
+    const nights=/(\d+)\s*박/.exec(t); if(nights)out.nights=+nights[1];
+    const md=/(\d{1,2})\s*월\s*(\d{1,2})\s*일/.exec(t), m=/(\d{1,2})\s*월/.exec(t);
+    const year=new Date().getFullYear(), month=md?+md[1]:(m?+m[1]:null);
+    if(month){const day=md?+md[2]:15;
+      let y=year; const now=new Date();
+      if(month<now.getMonth()+1||(month===now.getMonth()+1&&day<=now.getDate()))y++;
+      out.checkin=`${y}-${String(month).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+      out.assumedDay=!md}
+    const ad=/성인\s*(\d+)/.exec(t);
+    out.adults=ad?+ad[1]:(/(혼자|1명|한\s*명)/.test(t)?1:(/(둘|커플|2명|두\s*명)/.test(t)?2:(/가족/.test(t)?2:null)));
+    const bg=/(\d+)\s*만\s*원|(\d+(?:\.\d+)?)\s*백만\s*원/.exec(t);
+    if(bg)out.budget=bg[1]?+bg[1]:Math.round(+bg[2]*100);
+    return out;
+  }
+  function rulesTurn(t){
+    Object.assign(pending,parseKo(t));
+    const p=pending;
+    if(!p.city){say('좋아요! 어느 도시로 갈까요?');chips(Object.keys(CITY).slice(0,6).map(c=>c+' 갈래요'));return}
+    if(!p.checkin){say(`${p.city} 좋죠! 언제 출발하세요? "9월 12일"처럼 말씀해주세요.`);return}
+    const nights=p.nights||3, ci=p.checkin;
+    const co=new Date(ci);co.setDate(co.getDate()+nights);
+    const checkout=co.toISOString().slice(0,10);
+    const note=p.assumedDay?` 날짜는 ${ci} 기준으로 잡았어요(바꾸려면 말씀해주세요).`:'';
+    say(`정리해볼게요 — ${p.city} ${nights}박, ${ci} 출발, 성인 ${p.adults||2}명${p.budget?`, 예산 ${p.budget}만원`:''}.${note}\n플랜을 찾아볼게요!`);
+    plans({city:p.city,iata:p.iata,checkin:ci,checkout,adults:p.adults||2,budget_manwon:p.budget||null});
+    pending={};
+  }
+
+  // ── 플랜 조립: 실제 호텔+항공 검색 ──────────────────────
+  async function plans(q){
+    const t=say('실시간 가격을 모으는 중...','think');
+    try{
+      const [hRes,fRes]=await Promise.all([
+        fetch(DT_API.url,{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+DT_API.key,'apikey':DT_API.key},
+          body:JSON.stringify({destination:q.city,checkin:q.checkin,checkout:q.checkout,adults:q.adults})}).then(r=>r.json()),
+        fetch(`${FLIGHT_API}/api/flights/search?from=ICN&to=${q.iata}&date=${q.checkin}&adults=${q.adults}`).then(r=>r.json()).catch(()=>({results:[]})),
+      ]);
+      t.remove();
+      const hotels=(hRes.hotels||[]).slice().sort((a,b)=>a.total_usd-b.total_usd);
+      const flight=(fRes.results||[])[0]||null;
+      if(!hotels.length){say('이 조건으로는 호텔을 찾지 못했어요. 날짜를 바꿔볼까요?');return}
+      const picks=[['알뜰',hotels[0]],['균형',hotels[Math.floor((hotels.length-1)/2)]],['프리미엄',hotels[hotels.length-1]]]
+        .filter((v,i,arr)=>arr.findIndex(x=>x[1].name===v[1].name)===i);
+      say(`${q.city} ${hRes.source==='mock'?'(지금은 샘플 호텔이에요) ':''}플랜 ${picks.length}개를 찾았어요!`);
+      picks.forEach(([label,h])=>{
+        const total=h.total_usd+(flight?flight.price:0);
+        const dali=Math.round(total);
+        const krw=Math.round(total*1350/10000); // 만원 환산(약식)
+        const fit=q.budget_manwon?(krw<=q.budget_manwon?`예산 안 ${krw}만원대`:`예산 초과 ${krw}만원대`):null;
+        const card=document.createElement('div');card.className='dc-plan';
+        card.innerHTML=`
+          <div class="tt"><b>${esc(label)} 플랜</b>${fit?`<span class="fit ${krw<=q.budget_manwon?'ok':'over'}">${esc(fit)}</span>`:''}</div>
+          <div class="row"><img src="icons/icon-hotel.webp" alt=""><span class="nm">${esc(h.name)}</span><b>$${Number(h.total_usd).toLocaleString()}</b></div>
+          ${flight?`<div class="row"><img src="icons/icon-plane.webp" alt=""><span class="nm">${esc(flight.airlineName||flight.airline)} ${esc(flight.flightNumber||'')} (편도)</span><b>$${Number(flight.price).toLocaleString()}</b></div>`:''}
+          <div class="sum"><span style="font-size:12.5px;color:var(--ink-soft);font-weight:700">합계</span><b>$${Math.round(total).toLocaleString()}</b>
+            <span class="dali"><img src="icons/icon-coin.webp" alt="">+${dali} DALI</span></div>
+          <button class="go">이 조건으로 호텔 검색 결과 보기</button>`;
+        card.querySelector('.go').onclick=()=>{
+          close();
+          document.querySelector('.tab[data-t="hotel"]').click();
+          $('f1').value=q.city; $('f2').value=q.checkin; $('f3').value=q.checkout;
+          document.querySelector('.search-go').click();
+        };
+        log.appendChild(card);
+      });
+      scroll();
+    }catch(err){t.remove();say('검색 중에 문제가 생겼어요. 잠시 후 다시 시도해주세요.')}
+  }
+
+  // ── 전송: AI 우선, 실패하면 규칙 모드 ───────────────────
+  let busy=false;
+  async function send(text){
+    text=(text||input.value).trim(); if(!text||busy)return;
+    input.value=''; say(text,'me'); history.push({role:'user',content:text});
+    busy=true; const t=say('달리가 생각하는 중...','think');
+    try{
+      const r=await fetch(CONCIERGE_URL,{method:'POST',
+        headers:{'Content-Type':'application/json','Authorization':'Bearer '+DT_API.key,'apikey':DT_API.key},
+        body:JSON.stringify({messages:history})});
+      const d=await r.json(); t.remove();
+      if(d.mode==='ai'){
+        say(d.reply); history.push({role:'assistant',content:d.reply});
+        if(d.search)plans(d.search);
+      }else{ rulesTurn(text) }
+    }catch(err){ t.remove(); rulesTurn(text) }
+    finally{ busy=false }
+  }
+  $('dcSend').onclick=()=>send();
+  input.addEventListener('keydown',e=>{if(e.key==='Enter')send()});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
 })();
 </script>
 </body>
