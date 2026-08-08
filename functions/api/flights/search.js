@@ -1,233 +1,197 @@
 // =========================================================
 // GET /api/flights/search
-//   ?from=ICN&to=DAD&date=2026-07-15&adults=2&children=0&infants=0&cabin=economy
+//   ?from=ICN&to=DAD&date=2026-09-15&adults=2&children=0&infants=0
 //
-// Priority:
-//   1. DUFFEL_API_KEY  → real-time Duffel flights (live inventory + booking)
-//   2. TRAVELPAYOUTS_TOKEN → affiliate price calendar (redirect)
-//   3. mock fallback
+// 백엔드: Atlas (atriptech) — LCC 140여 개를 한 API로. 베트남 법인도 셀프 가입 가능해
+// Duffel(베트남 법인 불가) 대신 채택했다.
 //
-// Required env:
-//   DUFFEL_API_KEY      — Duffel live token (duffel_live_... or duffel_test_...)
-//   TRAVELPAYOUTS_TOKEN — Aviasales/TP affiliate token (fallback)
-//   TRAVELPAYOUTS_MARKER — TP affiliate marker
+// 동작 모드:
+//   · ATLAS_CLIENT_ID/SECRET 없음 → 빈 결과 + 안내 (프론트는 "결과 없음"으로 표시)
+//   · 키 있음                     → 실시간 검색
+//
+// 필요한 환경변수 (Cloudflare Pages → Settings → Variables and Secrets):
+//   ATLAS_CLIENT_ID       x-atlas-client-id
+//   ATLAS_CLIENT_SECRET   x-atlas-client-secret
+//   ATLAS_BASE            운영 전환 시 운영 검색 주소. 미설정 시 샌드박스.
+//                         ⚠️ 샌드박스 운임은 실제 운임이 아니다(테스트 데이터).
+//   FLIGHT_MARKUP_PERCENT 항공 마진율(%). 미설정 시 0.
+//                         항공은 가격 비교가 투명해 2~3% 이상은 잘 안 팔린다.
 // =========================================================
-import { json, corsPreflight, withMarker, fallback } from '../_lib.js';
+import { json, corsPreflight } from '../_lib.js';
 
 export const onRequestOptions = corsPreflight;
 
+const SANDBOX = 'https://sandbox.atriptech.com';
+
+// Atlas 검색 응답은 항공사 코드만 주고 이름을 주지 않는다 (airlineName은 예약 후 조회에만 존재).
+// 우리 노선에 실제로 뜨는 항공사만 담았고, 없으면 코드를 그대로 보여준다.
+const AIRLINES = {
+  KE: '대한항공', OZ: '아시아나항공', '7C': '제주항공', LJ: '진에어', TW: '티웨이항공',
+  BX: '에어부산', RS: '에어서울', YP: '에어프레미아', ZE: '이스타항공',
+  VN: '베트남항공', VJ: '비엣젯항공', QH: '뱀부항공', BL: '퍼시픽항공', VZ: '타이비엣젯',
+  AK: '에어아시아', D7: '에어아시아 X', FD: '타이에어아시아', QZ: '인도네시아에어아시아',
+  TR: '스쿠트', SQ: '싱가포르항공', MI: '실크에어', TG: '타이항공', PG: '방콕에어웨이스',
+  SL: '타이라이온에어', DD: '녹에어', JT: '라이온에어', QG: '시티링크', GA: '가루다인도네시아',
+  PR: '필리핀항공', '5J': '세부퍼시픽', Z2: '필리핀에어아시아', MH: '말레이시아항공',
+  JL: '일본항공', NH: '전일본공수', MM: '피치항공', GK: '젯스타재팬', '7G': '스타플라이어',
+  CI: '중화항공', BR: '에바항공', IT: '타이거에어대만',
+  CA: '중국국제항공', MU: '중국동방항공', CZ: '중국남방항공', HO: '준야오항공',
+  CX: '캐세이퍼시픽', HX: '홍콩항공', UO: '홍콩익스프레스',
+  '6E': '인디고', AI: '에어인디아', U2: '이지젯', FR: '라이언에어', W6: '위즈에어',
+};
+
 export async function onRequestGet({ request, env }) {
   const url = new URL(request.url);
-  const from    = (url.searchParams.get('from')     || 'ICN').toUpperCase();
-  const to      = (url.searchParams.get('to')       || 'DAD').toUpperCase();
-  const date    = url.searchParams.get('date')    || tomorrowISO(30);
-  const adults  = parseInt(url.searchParams.get('adults')   || '1', 10);
-  const children= parseInt(url.searchParams.get('children') || '0', 10);
-  const infants = parseInt(url.searchParams.get('infants')  || '0', 10);
-  const cabin   = url.searchParams.get('cabin')   || 'economy';
+  const from     = (url.searchParams.get('from') || 'ICN').toUpperCase();
+  const to       = (url.searchParams.get('to')   || 'DAD').toUpperCase();
+  const date     = url.searchParams.get('date') || isoInDays(30);
+  const adults   = clamp(parseInt(url.searchParams.get('adults')   || '1', 10), 1, 9);
+  const children = clamp(parseInt(url.searchParams.get('children') || '0', 10), 0, 8);
+  const infants  = clamp(parseInt(url.searchParams.get('infants')  || '0', 10), 0, adults);
 
-  // ── 1. Duffel (real-time) ─────────────────────────────
-  if (env.DUFFEL_API_KEY) {
-    return searchDuffel({ from, to, date, adults, children, infants, cabin, env });
+  if (!env.ATLAS_CLIENT_ID || !env.ATLAS_CLIENT_SECRET) {
+    return json({
+      provider: 'atlas',
+      note: 'ATLAS_CLIENT_ID / ATLAS_CLIENT_SECRET 를 Cloudflare Pages 환경변수에 등록하면 실검색이 켜집니다.',
+      results: [],
+    });
   }
 
-  // ── 2. Travelpayouts affiliate ────────────────────────
-  if (env.TRAVELPAYOUTS_TOKEN) {
-    return searchTravelpayouts({ from, to, date, adults, env });
-  }
-
-  // ── 3. Mock ───────────────────────────────────────────
-  return fallback('flights', { from, to, date, adults });
-}
-
-// ─────────────────────────────────────────────────────────
-// Duffel Integration
-// Docs: https://duffel.com/docs/api/overview/request-and-response-bodies
-// ─────────────────────────────────────────────────────────
-async function searchDuffel({ from, to, date, adults, children, infants, cabin, env }) {
-  const BASE = 'https://api.duffel.com';
-  const headers = {
-    'Authorization': `Bearer ${env.DUFFEL_API_KEY}`,
-    'Content-Type':  'application/json',
-    'Duffel-Version': 'v2',
-    'Accept':         'application/json',
-  };
+  const base = env.ATLAS_BASE || SANDBOX;
+  const markup = parseFloat(env.FLIGHT_MARKUP_PERCENT || '0');
 
   try {
-    // Step 1 — Create offer request
-    const passengers = buildPassengers(adults, children, infants);
-    const offerReqBody = {
-      data: {
-        slices: [{ origin: from, destination: to, departure_date: date }],
-        passengers,
-        cabin_class: cabin,
-        return_offers: false,
-      },
-    };
-
-    const reqRes = await fetch(`${BASE}/air/offer_requests`, {
+    const res = await fetch(`${base}/search.do`, {
       method: 'POST',
-      headers,
-      body: JSON.stringify(offerReqBody),
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'x-atlas-client-id': env.ATLAS_CLIENT_ID,
+        'x-atlas-client-secret': env.ATLAS_CLIENT_SECRET,
+      },
+      body: JSON.stringify({
+        tripType: '1',              // 1=편도. 왕복은 retDate와 함께 '2'
+        adultNum: adults,
+        childNum: children,
+        infantNum: infants,
+        fromCity: from,
+        toCity: to,
+        fromDate: date.replace(/-/g, ''),   // Atlas는 YYYYMMDD
+        currency: 'USD',
+      }),
     });
 
-    if (!reqRes.ok) {
-      const err = await reqRes.json().catch(() => ({}));
-      return json({ provider: 'duffel', error: err?.errors?.[0]?.message || reqRes.statusText, results: [] }, reqRes.status);
+    // 호출량 초과 응답은 형태가 다르다 (status 필드가 없다) → 먼저 걸러낸다
+    if (res.status === 429) {
+      const r = await res.json().catch(() => ({}));
+      return json({ provider: 'atlas', error: '검색 요청이 몰리고 있어요. 잠시 후 다시 시도해주세요.', retryAfter: r.retryAfter ?? 1, results: [] }, 429);
     }
 
-    const reqData = await reqRes.json();
-    const offerRequestId = reqData?.data?.id;
-    if (!offerRequestId) throw new Error('No offer_request_id returned from Duffel');
-
-    // Step 2 — Fetch offers (paginated, take top 15)
-    const offersRes = await fetch(
-      `${BASE}/air/offers?offer_request_id=${offerRequestId}&limit=15&sort=total_amount`,
-      { headers }
-    );
-
-    if (!offersRes.ok) {
-      const err = await offersRes.json().catch(() => ({}));
-      return json({ provider: 'duffel', error: err?.errors?.[0]?.message || offersRes.statusText, results: [] }, offersRes.status);
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || data.status !== 0) {
+      return json({ provider: 'atlas', error: data.msg || `Atlas HTTP ${res.status}`, results: [] }, res.ok ? 502 : res.status);
     }
 
-    const offersData = await offersRes.json();
-    const offers = offersData?.data || [];
+    const results = (data.routings || [])
+      .map((r) => toCard(r, { from, to, adults, markup }))
+      .filter(Boolean)
+      .sort((a, b) => a.price - b.price)
+      .slice(0, 15);
 
-    const results = offers.map(o => {
-      const slice   = o.slices?.[0];
-      const seg     = slice?.segments?.[0];
-      const lastSeg = slice?.segments?.[slice.segments.length - 1];
-      const stops   = Math.max(0, (slice?.segments?.length || 1) - 1);
-
-      return {
-        id:           o.id,
-        provider:     'duffel',
-        from:         slice?.origin?.iata_code || from,
-        to:           slice?.destination?.iata_code || to,
-        depart:       seg?.departing_at?.slice(0, 10),
-        departTime:   seg?.departing_at?.slice(11, 16),
-        arriveTime:   lastSeg?.arriving_at?.slice(11, 16),
-        airline:      seg?.marketing_carrier?.iata_code || '',
-        airlineName:  seg?.marketing_carrier?.name || '',
-        airlineLogo:  seg?.marketing_carrier?.logo_symbol_url || null,
-        flightNumber: seg ? `${seg.marketing_carrier?.iata_code}${seg.marketing_carrier_flight_number}` : '',
-        stops,
-        duration:     slice?.duration || null,      // ISO 8601 e.g. "PT2H30M"
-        price:        parseFloat(o.total_amount),
-        currency:     o.total_currency,
-        baggageInfo:  formatBaggage(o),
-        expiresAt:    o.expires_at,
-        offerId:      o.id,                         // used for booking step
-        // booking handled by /api/flights/book?offerId=...
-        bookingUrl:   null,                         // in-app booking, no redirect needed
-      };
-    });
-
-    return json({
-      provider: 'duffel',
-      from, to, date,
-      count: results.length,
-      offerRequestId,
-      results,
-    });
+    return json({ provider: 'atlas', from, to, date, count: results.length, results });
   } catch (e) {
-    return json({ provider: 'duffel', error: e.message, results: [] }, 502);
+    return json({ provider: 'atlas', error: e.message, results: [] }, 502);
   }
 }
 
-// ─────────────────────────────────────────────────────────
-// Travelpayouts / Aviasales (affiliate fallback)
-// ─────────────────────────────────────────────────────────
-async function searchTravelpayouts({ from, to, date, adults, env }) {
-  const TOKEN  = env.TRAVELPAYOUTS_TOKEN;
-  const MARKER = env.TRAVELPAYOUTS_MARKER || env.TRAVELPAYOUTS_TRS || '';
+// ── 응답 → 화면 카드 ────────────────────────────────────────────────────
+// 순수 함수로 분리해 tests/flights.test.mjs 에서 검증한다.
+export function toCard(r, { from, to, adults, markup = 0 }) {
+  const segs = r.fromSegments || [];
+  if (!segs.length) return null;
 
-  try {
-    const api = new URL('https://api.travelpayouts.com/v1/prices/cheap');
-    api.searchParams.set('origin', from);
-    api.searchParams.set('destination', to);
-    api.searchParams.set('currency', 'usd');
-    if (date) api.searchParams.set('depart_date', date.slice(0, 7));
-    api.searchParams.set('token', TOKEN);
+  const first = segs[0];
+  const last = segs[segs.length - 1];
+  const carrier = first.carrier || '';
+  const price = Math.ceil(totalPrice(r, adults, segs.length) * (1 + markup / 100));
 
-    const r = await fetch(api.toString());
-    const data = await r.json();
+  return {
+    id: r.routingIdentifier,
+    provider: 'atlas',
+    from: first.depAirport || from,
+    to: last.arrAirport || to,
+    depart: hhmm(first.depTime).date,
+    departTime: hhmm(first.depTime).time,
+    arriveTime: hhmm(last.arrTime).time,
+    airline: carrier,
+    airlineName: AIRLINES[carrier] || carrier,
+    airlineLogo: null,                          // Atlas는 로고를 주지 않는다 → 화면이 기본 아이콘 사용
+    flightNumber: first.flightNumber || '',
+    stops: segs.length - 1,
+    duration: isoDuration(segs.reduce((sum, s) => sum + (Number(s.duration) || 0), 0)),
+    price,
+    currency: r.currency || 'USD',
+    baggageInfo: baggage(r),
+    expiresAt: r.expireTime,
+    offerId: r.routingIdentifier,               // 예약 단계(verify.do)에서 그대로 사용, 6시간 유효
+    bookingUrl: null,
+  };
+}
 
-    const offersMap = data?.data?.[to] || {};
-    const results = Object.entries(offersMap).slice(0, 12).map(([key, o]) => ({
-      id: `tpf_${key}_${o.airline}${o.flight_number}`,
-      provider: 'travelpayouts',
-      from, to,
-      depart:       o.departure_at?.slice(0, 10),
-      departTime:   o.departure_at?.slice(11, 16) || '',
-      arriveTime:   '',
-      airline:      o.airline || 'Multiple',
-      airlineName:  o.airline || '',
-      airlineLogo:  null,
-      flightNumber: o.airline && o.flight_number ? `${o.airline}${o.flight_number}` : '',
-      stops:        o.transfers ?? 0,
-      duration:     null,
-      price:        Math.round(o.price),
-      currency:     'USD',
-      baggageInfo:  null,
-      expiresAt:    o.expires_at,
-      offerId:      null,
-      bookingUrl:   withMarker(buildAviasalesUrl(from, to, date, String(adults)), MARKER),
-    }));
+// 총액 = (성인운임 + 세금) × 인원 + 거래수수료(부과 방식별)
+export function totalPrice(r, adults, segments) {
+  const perPax = (Number(r.adultPrice) || 0) + (Number(r.adultTax) || 0);
+  const fee = Number(r.transactionFee) || 0;
+  const mode = r.transactionFeeMode;
 
-    return json({
-      provider: 'travelpayouts',
-      currency: data.currency || 'USD',
-      from, to,
-      count: results.length,
-      results,
-    });
-  } catch (e) {
-    return json({ provider: 'error', message: e.message, results: [] }, 502);
+  let feeTotal;
+  if (mode === 'PER_BOOKING') feeTotal = fee;
+  else if (mode === 'PER_SEGMENT') feeTotal = fee * adults * segments;
+  else feeTotal = fee * adults;              // PER_PAX · PER_TICKET · 미지정
+
+  return perPax * adults + feeTotal;
+}
+
+// Atlas 시각은 "yyyyMMddHHmm" 현지시각. 문서에는 YYYYMMDD로 잘못 적혀 있어 길이를 확인하고 쓴다.
+export function hhmm(v) {
+  const s = String(v ?? '');
+  if (!/^\d{12}$/.test(s)) return { date: s.slice(0, 8) || '', time: '' };
+  return {
+    date: `${s.slice(0, 4)}-${s.slice(4, 6)}-${s.slice(6, 8)}`,
+    time: `${s.slice(8, 10)}:${s.slice(10, 12)}`,
+  };
+}
+
+// ponytail: 경유편은 대기시간을 뺀 순수 비행시간만 합산한다.
+// 정확한 총 소요시간은 공항별 시간대가 필요한데 Atlas가 주지 않는다.
+export function isoDuration(minutes) {
+  if (!minutes) return null;
+  const h = Math.floor(minutes / 60), m = minutes % 60;
+  return `PT${h ? h + 'H' : ''}${m ? m + 'M' : ''}`;
+}
+
+// 무료 수하물만 표기한다 (유료 추가분은 ancillaryProductElements 쪽이라 예약 단계에서 노출)
+export function baggage(r) {
+  if (r?.rule?.hasBaggage !== 1) return null;
+  const parts = [];
+  for (const b of r.rule.baggageElements || []) {
+    if (b.passengerType !== 0 && b.passengerType != null) continue;   // 성인 기준만
+    const label = /Cabin/i.test(b.baggageType || '') ? '기내' : '위탁';
+    if (parts.some((p) => p.startsWith(label))) continue;             // 구간별 중복 제거
+    const w = Number(b.baggageWeight) || 0;
+    const pc = Number(b.baggagePiece) || 0;
+    if (w > 0) parts.push(`${label} ${w}kg`);
+    else if (w === -1) parts.push(`${label} 무제한`);
+    else if (pc > 0) parts.push(`${label} ${pc}개`);
   }
+  return parts.join(' · ') || null;
 }
 
-// ─────────────────────────────────────────────────────────
-// Helpers
-// ─────────────────────────────────────────────────────────
-function buildPassengers(adults, children, infants) {
-  const pax = [];
-  for (let i = 0; i < adults;   i++) pax.push({ type: 'adult' });
-  for (let i = 0; i < children; i++) pax.push({ type: 'child' });
-  for (let i = 0; i < infants;  i++) pax.push({ type: 'infant_without_seat' });
-  return pax;
-}
+// ── 잡다한 것들 ─────────────────────────────────────────────────────────
+const clamp = (n, lo, hi) => Math.min(hi, Math.max(lo, Number.isFinite(n) ? n : lo));
 
-function formatBaggage(offer) {
-  try {
-    const cond = offer.slices?.[0]?.segments?.[0]?.passengers?.[0]?.baggages;
-    if (!cond || !cond.length) return null;
-    const checked = cond.find(b => b.type === 'checked');
-    const carry   = cond.find(b => b.type === 'carry_on');
-    const parts   = [];
-    if (carry   && carry.quantity   > 0) parts.push(`기내 수하물 ${carry.quantity}개`);
-    if (checked && checked.quantity > 0) parts.push(`위탁 수하물 ${checked.quantity}개`);
-    return parts.join(', ') || null;
-  } catch { return null; }
-}
-
-function tomorrowISO(plusDays = 1) {
+function isoInDays(days) {
   const d = new Date();
-  d.setDate(d.getDate() + plusDays);
+  d.setDate(d.getDate() + days);
   return d.toISOString().slice(0, 10);
-}
-
-function buildAviasalesUrl(from, to, isoDate, adults) {
-  let departCode = '';
-  if (isoDate && /^\d{4}-\d{2}-\d{2}$/.test(isoDate)) {
-    const [, mm, dd] = isoDate.split('-');
-    departCode = dd + mm;
-  } else {
-    const d = new Date(); d.setMonth(d.getMonth() + 1);
-    const dd = String(d.getDate()).padStart(2, '0');
-    const mm = String(d.getMonth() + 1).padStart(2, '0');
-    departCode = dd + mm;
-  }
-  return `https://www.aviasales.com/search/${from}${departCode}${to}${adults}`;
 }

@@ -23,28 +23,3 @@ export const corsPreflight = () =>
       'Access-Control-Max-Age': '86400',
     },
   });
-
-// Default marker (Travelpayouts) — overridable via env TRAVELPAYOUTS_MARKER
-export const DEFAULT_MARKER = '532633';
-
-// Append affiliate marker to any partner URL
-export const withMarker = (url, marker) => {
-  const m = marker || DEFAULT_MARKER;
-  const u = new URL(url);
-  if (!u.searchParams.has('marker')) u.searchParams.set('marker', m);
-  return u.toString();
-};
-
-// Standard "no key configured" fallback so the frontend still works
-export const fallback = (category, params) =>
-  json(
-    {
-      provider: 'mock',
-      note:
-        'No API key configured yet. Add TRAVELPAYOUTS_TOKEN (+ TRAVELPAYOUTS_MARKER) ' +
-        'to Cloudflare Pages env to enable live data.',
-      params,
-      results: [],
-    },
-    503
-  );
