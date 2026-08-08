@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="icons/favicon.png">
+<title>호텔 상세 — 달리트립 DallyTrip</title>
+<style>
+  /* 달리트립 본 사이트와 같은 토큰. 다른 제품처럼 보이면 안 된다. */
+  :root{
+    --ink:#22254C; --ink-soft:#5A5E86; --cream:#FFF8F0; --card:#FFFFFF;
+    --coral:#FF6B4A; --coral-deep:#E8532F; --gold:#F5B301; --mint:#3ECFB2;
+    --sky:#EAF4FF; --line:#F0E7DB; --warn:#C0553B;
+    --r-lg:24px; --r-md:16px; --r-sm:10px;
+    --shadow:0 10px 30px rgba(34,37,76,.10);
+    --shadow-sm:0 4px 14px rgba(34,37,76,.08);
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--cream);color:var(--ink);
+    font-family:'Pretendard Variable',Pretendard,-apple-system,BlinkMacSystemFont,'Noto Sans KR','Segoe UI',sans-serif;
+    -webkit-font-smoothing:antialiased}
+  button{font-family:inherit;cursor:pointer;border:none}
+  a{color:inherit;text-decoration:none}
+  img{display:block;max-width:100%}
+  :focus-visible{outline:2.5px solid var(--coral);outline-offset:2px;border-radius:6px}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+  /* ── 상단바 ── */
+  .topbar{position:sticky;top:0;z-index:40;background:rgba(255,248,240,.92);
+    backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+  .topbar .in{max-width:1180px;margin:0 auto;padding:12px 20px;display:flex;align-items:center;gap:14px}
+  .back{display:inline-flex;align-items:center;gap:7px;font-weight:700;font-size:14.5px;color:var(--ink-soft);
+    padding:8px 12px;border-radius:999px;background:none;transition:background .15s,color .15s}
+  .back:hover{background:rgba(34,37,76,.05);color:var(--ink)}
+  .brand{margin-left:auto;display:flex;align-items:center;gap:8px;font-weight:800;font-size:17px;letter-spacing:-.3px}
+  .brand img{width:30px;height:30px;border-radius:9px}
+
+  /* ── 갤러리 ── */
+  .gallery{max-width:1180px;margin:20px auto 0;padding:0 20px}
+  .mosaic{display:grid;grid-template-columns:2fr 1fr 1fr;grid-template-rows:150px 150px;
+    gap:8px;border-radius:var(--r-lg);overflow:hidden}
+  .mosaic button{padding:0;background:var(--line);position:relative;overflow:hidden;display:block}
+  .mosaic button:first-child{grid-row:span 2}
+  .mosaic img{width:100%;height:100%;object-fit:cover;transition:transform .5s cubic-bezier(.2,.7,.3,1)}
+  .mosaic button:hover img{transform:scale(1.045)}
+  .mosaic .rest{position:absolute;inset:0;background:rgba(34,37,76,.55);color:#fff;
+    display:grid;place-items:center;font-weight:800;font-size:15px;letter-spacing:-.2px}
+
+  /* ── 레이아웃 ── */
+  .wrap{max-width:1180px;margin:0 auto;padding:26px 20px 120px;
+    display:grid;grid-template-columns:minmax(0,1fr) 348px;gap:36px;align-items:start}
+  .col-book{position:sticky;top:78px}
+
+  h1{margin:0 0 8px;font-size:31px;font-weight:800;letter-spacing:-.9px;line-height:1.22}
+  .stars{color:var(--gold);font-size:16px;letter-spacing:1px;vertical-align:3px}
+  .addr{color:var(--ink-soft);font-weight:600;font-size:14.5px;line-height:1.55;margin:0 0 26px}
+
+  section{margin-bottom:34px}
+  .eyebrow{font-size:11.5px;font-weight:800;letter-spacing:.9px;color:var(--coral);
+    text-transform:uppercase;margin:0 0 9px}
+  h2{margin:0 0 16px;font-size:20px;font-weight:800;letter-spacing:-.5px}
+
+  /* ── 평가: 이 페이지의 축. 점수마다 손님이 쓴 문장이 붙는다 ── */
+  .verdict{background:var(--card);border-radius:var(--r-lg);padding:24px 26px;box-shadow:var(--shadow-sm)}
+  .vhead{display:flex;align-items:baseline;gap:14px;padding-bottom:18px;border-bottom:1px solid var(--line)}
+  .vscore{font-size:46px;font-weight:800;letter-spacing:-2px;line-height:1;font-variant-numeric:tabular-nums}
+  .vword{font-size:17px;font-weight:800}
+  .vcount{color:var(--ink-soft);font-weight:600;font-size:13.5px;margin-left:auto}
+  .cat{display:grid;grid-template-columns:74px 1fr;gap:16px;padding:15px 0;border-bottom:1px solid var(--line)}
+  .cat:last-child{border-bottom:0;padding-bottom:0}
+  .cat b{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.8px;line-height:1.1}
+  .cat .cn{display:block;font-size:11.5px;font-weight:700;color:var(--ink-soft);margin-top:2px}
+  .cat q{display:block;font-size:14.5px;font-weight:500;line-height:1.65;color:var(--ink-soft);
+    border-left:2.5px solid var(--coral);padding-left:13px;quotes:none}
+
+  /* ── 좋았던 점 / 아쉬웠던 점 ── */
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .pane{background:var(--card);border-radius:var(--r-md);padding:18px 20px;box-shadow:var(--shadow-sm)}
+  .pane h3{margin:0 0 12px;font-size:14px;font-weight:800}
+  .pane.good h3{color:#1F8F76}
+  .pane.bad h3{color:var(--warn)}
+  .pane li{list-style:none;font-size:14px;font-weight:600;color:var(--ink-soft);
+    line-height:1.5;padding:6px 0 6px 16px;position:relative}
+  .pane ul{margin:0;padding:0}
+  .pane li::before{content:'';position:absolute;left:0;top:14px;width:6px;height:6px;border-radius:50%}
+  .pane.good li::before{background:var(--mint)}
+  .pane.bad li::before{background:#E9A38F}
+
+  /* ── 객실 ── */
+  .room{background:var(--card);border-radius:var(--r-md);padding:18px 20px;margin-bottom:11px;
+    display:flex;gap:18px;align-items:center;box-shadow:var(--shadow-sm);
+    border:1.5px solid transparent;transition:border-color .18s,transform .18s}
+  .room:hover{border-color:#F6D9CE;transform:translateY(-1px)}
+  .room .rl{flex:1;min-width:0}
+  .room h3{margin:0 0 6px;font-size:15.5px;font-weight:800;line-height:1.35}
+  .tags{display:flex;flex-wrap:wrap;gap:6px}
+  .tag{font-size:11.5px;font-weight:700;padding:4px 9px;border-radius:7px;
+    background:rgba(34,37,76,.055);color:var(--ink-soft)}
+  .tag.ok{background:rgba(62,207,178,.15);color:#16806A}
+  .tag.no{background:rgba(192,85,59,.1);color:var(--warn)}
+  .room .rr{text-align:right;flex:0 0 auto}
+  .room .amt{font-size:21px;font-weight:800;letter-spacing:-.6px;font-variant-numeric:tabular-nums}
+  .room .per{font-size:11.5px;font-weight:600;color:var(--ink-soft);margin-top:1px}
+  .dali{display:inline-flex;align-items:center;gap:4px;font-size:11.5px;font-weight:800;color:#9A6B00;
+    background:rgba(245,179,1,.14);border-radius:6px;padding:3px 7px;margin-top:6px}
+  .pick{margin-top:9px;background:var(--coral);color:#fff;border-radius:11px;
+    padding:9px 18px;font-size:14px;font-weight:800;transition:background .15s}
+  .pick:hover{background:var(--coral-deep)}
+
+  /* ── 소개·시설 ── */
+  .about{background:var(--card);border-radius:var(--r-lg);padding:24px 26px;box-shadow:var(--shadow-sm)}
+  .times{display:flex;gap:26px;padding-bottom:16px;margin-bottom:16px;border-bottom:1px solid var(--line)}
+  .times div{font-size:13.5px;font-weight:700}
+  .times span{display:block;font-size:11.5px;font-weight:700;color:var(--ink-soft);margin-bottom:3px}
+  .chips{display:flex;flex-wrap:wrap;gap:7px}
+  .chips span{font-size:12.5px;font-weight:700;color:var(--ink-soft);
+    background:rgba(34,37,76,.05);border-radius:8px;padding:6px 11px}
+  .desc{margin-top:16px;font-size:14.5px;line-height:1.78;color:var(--ink-soft);
+    font-weight:500;white-space:pre-line}
+  .more{margin-top:6px;background:none;color:var(--coral);font-weight:800;font-size:13.5px;padding:4px 0}
+
+  /* ── 리뷰 ── */
+  .filters{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:16px}
+  .filters button{font-size:13px;font-weight:700;padding:8px 14px;border-radius:999px;
+    background:var(--card);color:var(--ink-soft);border:1.5px solid var(--line);transition:all .15s}
+  .filters button[aria-pressed="true"]{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .rev{background:var(--card);border-radius:var(--r-md);padding:18px 20px;margin-bottom:11px;box-shadow:var(--shadow-sm)}
+  .rev header{display:flex;align-items:center;gap:10px;margin-bottom:11px}
+  .badge{background:var(--ink);color:#fff;border-radius:9px;padding:5px 9px;
+    font-size:14px;font-weight:800;font-variant-numeric:tabular-nums}
+  .who{font-size:13.5px;font-weight:800}
+  .who span{display:block;font-size:11.5px;font-weight:600;color:var(--ink-soft);margin-top:2px}
+  .when{margin-left:auto;font-size:12px;font-weight:600;color:var(--ink-soft)}
+  .rev h4{margin:0 0 8px;font-size:15px;font-weight:800;line-height:1.4}
+  .rev p{margin:5px 0;font-size:14px;line-height:1.65;font-weight:500;color:var(--ink-soft);
+    padding-left:15px;position:relative}
+  .rev p::before{position:absolute;left:0;font-weight:800}
+  .rev p.p::before{content:'+';color:var(--mint)}
+  .rev p.c::before{content:'−';color:#E9A38F}
+
+  /* ── 예약 카드 ── */
+  .bookcard{background:var(--card);border-radius:var(--r-lg);padding:22px 24px;box-shadow:var(--shadow)}
+  .bookcard .when2{font-size:13px;font-weight:700;color:var(--ink-soft);margin-bottom:14px;line-height:1.6}
+  .bookcard .from{font-size:12px;font-weight:700;color:var(--ink-soft)}
+  .bookcard .big{font-size:32px;font-weight:800;letter-spacing:-1.3px;font-variant-numeric:tabular-nums;line-height:1.15}
+  .bookcard .nights{font-size:12.5px;font-weight:600;color:var(--ink-soft);margin-top:3px}
+  .cta{width:100%;margin-top:16px;background:var(--coral);color:#fff;border-radius:14px;
+    padding:14px;font-size:16px;font-weight:800;transition:background .15s}
+  .cta:hover{background:var(--coral-deep)}
+  .note{font-size:11.5px;font-weight:600;color:var(--ink-soft);line-height:1.6;margin-top:11px;text-align:center}
+
+  /* ── 라이트박스 ── */
+  .lb{position:fixed;inset:0;z-index:100;background:rgba(20,22,44,.94);display:none;
+    align-items:center;justify-content:center;padding:24px}
+  .lb.show{display:flex}
+  .lb img{max-width:min(1100px,94vw);max-height:88vh;object-fit:contain;border-radius:12px}
+  .lb .x,.lb .nav{position:absolute;background:rgba(255,255,255,.14);color:#fff;border-radius:999px;
+    width:46px;height:46px;font-size:22px;font-weight:700;display:grid;place-items:center;transition:background .15s}
+  .lb .x:hover,.lb .nav:hover{background:rgba(255,255,255,.28)}
+  .lb .x{top:20px;right:20px}
+  .lb .nav.prev{left:20px;top:50%;transform:translateY(-50%)}
+  .lb .nav.next{right:20px;top:50%;transform:translateY(-50%)}
+  .lb .count{position:absolute;bottom:22px;left:50%;transform:translateX(-50%);color:#fff;
+    font-size:13px;font-weight:700;background:rgba(0,0,0,.4);border-radius:999px;padding:6px 14px}
+
+  /* ── 모바일 하단 예약바 ── */
+  .mbar{position:fixed;left:0;right:0;bottom:0;z-index:50;display:none;
+    background:rgba(255,255,255,.97);backdrop-filter:blur(12px);border-top:1px solid var(--line);
+    padding:12px 18px calc(12px + env(safe-area-inset-bottom));align-items:center;gap:14px}
+  .mbar .amt{font-size:19px;font-weight:800;letter-spacing:-.6px;line-height:1.2}
+  .mbar .sub{font-size:11.5px;font-weight:600;color:var(--ink-soft)}
+  .mbar button{margin-left:auto;background:var(--coral);color:#fff;border-radius:12px;
+    padding:12px 26px;font-size:15px;font-weight:800}
+
+  .skel{background:linear-gradient(100deg,rgba(34,37,76,.05) 30%,rgba(34,37,76,.09) 50%,rgba(34,37,76,.05) 70%);
+    background-size:220% 100%;animation:sh 1.3s linear infinite;border-radius:var(--r-md)}
+  @keyframes sh{to{background-position:-220% 0}}
+  .msg{max-width:560px;margin:70px auto;text-align:center;padding:0 20px}
+  .msg h2{font-size:19px}.msg p{color:var(--ink-soft);font-weight:600;line-height:1.7}
+
+  @media (max-width:960px){
+    .wrap{grid-template-columns:1fr;gap:0;padding-bottom:96px}
+    .col-book{display:none}
+    .mbar{display:flex}
+    h1{font-size:25px}
+    .mosaic{grid-template-columns:1fr 1fr;grid-template-rows:132px 132px}
+    .mosaic button:first-child{grid-column:span 2;grid-row:auto}
+    .split{grid-template-columns:1fr}
+    .verdict,.about{padding:20px}
+    .room{flex-direction:column;align-items:stretch;gap:12px}
+    .room .rr{text-align:left;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+    .pick{margin-top:0;margin-left:auto}
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar"><div class="in">
+  <button class="back" id="back">← 검색 결과로</button>
+  <a class="brand" href="/"><img src="icons/dally-face.webp" alt="">달리트립</a>
+</div></div>
+
+<div id="app"><div class="gallery"><div class="mosaic">
+  <div class="skel" style="grid-row:span 2"></div><div class="skel"></div>
+  <div class="skel"></div><div class="skel"></div><div class="skel"></div>
+</div></div></div>
+
+<div class="lb" id="lb">
+  <button class="x" id="lbX" aria-label="닫기">✕</button>
+  <button class="nav prev" id="lbP" aria-label="이전 사진">‹</button>
+  <img id="lbImg" src="" alt="">
+  <button class="nav next" id="lbN" aria-label="다음 사진">›</button>
+  <div class="count" id="lbC"></div>
+</div>
+
+<script src="js/hotel.js?v=1" defer></script>
+<script src="js/booking.js?v=6" defer></script>
+</body>
+</html>

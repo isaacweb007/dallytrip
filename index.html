@@ -697,8 +697,18 @@
   }
   document.getElementById('searchForm').addEventListener('submit',runSearch);
   // 예약 버튼 — 결제 흐름은 다음 단계에서 연결
+  // 호텔 카드는 상세 페이지로 보낸다 (항공권 카드는 아직 예약 흐름이 없다)
   document.getElementById('hotelList').addEventListener('click',e=>{
-    if(e.target.closest('.book')) alert('예약·결제 흐름은 곧 열립니다!\n지금은 실시간 검색까지 지원돼요.');
+    if(e.target.closest('.favb'))return;                       // 즐겨찾기 하트는 그대로
+    const card=e.target.closest('.hotel[data-hotel]');
+    if(card){
+      const p=new URLSearchParams({id:card.dataset.hotel,
+        checkin:document.getElementById('f2').value,
+        checkout:document.getElementById('f3').value,
+        adults:String((document.querySelector('.field select').value.match(/성인\s*(\d+)/)||[])[1]||2)});
+      location.href='hotel.html?'+p;return;
+    }
+    if(e.target.closest('.book')) alert('항공권 예약은 곧 열립니다!');
   });
 </script>
 
@@ -1349,8 +1359,5 @@
   document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
 })();
 </script>
-<!-- 예약 스크립트를 고치면 v 값을 반드시 올릴 것. Cloudflare가 .js를 4시간 캐시해서
-     주소가 그대로면 손님에게 옛 결제 코드가 그동안 계속 나간다. -->
-<script src="js/booking.js?v=5" defer></script>
 </body>
 </html>

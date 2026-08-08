@@ -13,15 +13,13 @@
  * 별도 파일인 이유: index.html은 디자인 작업으로 통째로 재생성되는 일이 있어서,
  * 예약 로직이 그 안에 있으면 같이 날아간다.
  *
- * index.html 쪽 의존 (재생성 시 확인):
- *   ① 호텔 카드 .book 버튼에 data-offer="<offerId>"
- *   ② </body> 앞 <script src="js/booking.js?v=N" defer></script>
- *      ↑ 이 파일을 고치면 N을 반드시 올릴 것. Cloudflare가 .js를 4시간 캐시해서
- *        주소가 그대로면 손님에게 옛 결제 코드가 계속 나간다.
+ * 예약 버튼은 [data-book-offer]로 찾는다 — 지금은 hotel.html의 객실 카드가 그 주인이다.
+ *
+ * ⚠️ 이 파일을 고치면 hotel.html의 <script src="js/booking.js?v=N">에서 N을 반드시 올릴 것.
+ *    Cloudflare가 .js를 4시간 캐시해서, 주소가 그대로면 손님에게 옛 결제 코드가 계속 나간다.
  */
 (() => {
   const API = 'https://hzwxeyxnlpmauyeqscim.supabase.co/functions/v1/hotels-book';
-  const DETAIL_API = 'https://hzwxeyxnlpmauyeqscim.supabase.co/functions/v1/hotel-detail';
   const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6d3hleXhubHBtYXV5ZXFzY2ltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYwODM1NzMsImV4cCI6MjEwMTY1OTU3M30.ccyV9CPuAfR1OvvgjIgaDORkKMNjPNeoyiHbLoKQGF4';
   const SDK = 'https://payment-wrapper.liteapi.travel/dist/liteAPIPayment.js?v=a1';
   const PENDING = 'dally_pending_booking';
@@ -32,20 +30,13 @@
   // 202.4 를 그대로 쓰면 "$202.4"라 돈으로 안 읽힌다
   const money = (n) => '$' + Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-  const post = (url, body) => fetch(url, {
+  const call = (body) => fetch(API, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + KEY, apikey: KEY },
     body: JSON.stringify(body),
   }).then((r) => r.json());
 
-  const call = (body) => post(API, body);
 
-  // 검색폼에 손님이 넣은 날짜·인원. 상세와 예약이 같은 조건을 봐야 가격이 어긋나지 않는다.
-  const stay = () => ({
-    checkin: document.getElementById('f2')?.value || '',
-    checkout: document.getElementById('f3')?.value || '',
-    adults: parseInt((document.querySelector('.field select')?.value.match(/성인\s*(\d+)/) || [])[1] || '2', 10),
-  });
 
   // ── 화면 ────────────────────────────────────────────────────────────
   const style = document.createElement('style');
@@ -80,28 +71,7 @@
     .bk .test{background:rgba(34,37,76,.06);color:var(--ink-soft,#6b6f9c);border-radius:10px;padding:8px 12px;
       font-size:12px;font-weight:700;margin-bottom:14px}
     .bk .pay{margin-top:16px;min-height:40px}
-    .bk .paying{text-align:center;color:var(--ink-soft,#6b6f9c);font-weight:700;font-size:14px;padding:18px 0}
-    /* 상세 */
-    .bk.wide{max-width:560px}
-    .bk .shots{display:flex;gap:8px;overflow-x:auto;margin:0 -24px 14px;padding:0 24px 4px}
-    .bk .shots img{width:180px;height:120px;object-fit:cover;border-radius:14px;flex:0 0 auto;background:rgba(34,37,76,.06)}
-    .bk .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
-    .bk .chips span{background:rgba(34,37,76,.06);color:var(--ink-soft,#6b6f9c);border-radius:8px;
-      padding:5px 9px;font-size:12px;font-weight:700}
-    .bk .desc{font-size:13px;line-height:1.7;color:var(--ink-soft,#6b6f9c);font-weight:500;
-      margin-top:12px;white-space:pre-line}
-    .bk .more{border:0;background:none;color:#f4785a;font-weight:800;font-size:13px;font-family:inherit;
-      padding:6px 0;cursor:pointer}
-    .bk h5{margin:20px 0 8px;font-size:15px;font-weight:800;color:var(--ink,#22254c)}
-    .bk .room{display:flex;align-items:center;gap:12px;border:1.5px solid rgba(34,37,76,.1);
-      border-radius:14px;padding:12px 14px;margin-bottom:8px}
-    .bk .room .rn{flex:1;min-width:0}
-    .bk .room .rt{font-size:14px;font-weight:800;color:var(--ink,#22254c);line-height:1.35}
-    .bk .room .rs{font-size:12px;font-weight:600;color:var(--ink-soft,#6b6f9c);margin-top:3px}
-    .bk .room .rp{text-align:right;flex:0 0 auto}
-    .bk .room .rp b{font-size:16px;font-weight:800;color:var(--ink,#22254c);display:block}
-    .bk .room .pick{margin-top:6px;border:0;border-radius:10px;padding:8px 12px;font-size:13px;font-weight:800;
-      font-family:inherit;color:#fff;background:#f4785a;cursor:pointer;white-space:nowrap}`;
+    .bk .paying{text-align:center;color:var(--ink-soft,#6b6f9c);font-weight:700;font-size:14px;padding:18px 0}`;
   document.head.appendChild(style);
 
   const dim = document.createElement('div');
@@ -118,82 +88,8 @@
   const testBadge = (sandbox) => sandbox
     ? '<div class="test">테스트 모드 — 실제 결제와 투숙이 발생하지 않습니다.</div>' : '';
 
-  // ── ⓪ 호텔 상세 — 사진·설명·시설·객실 선택 ──────────────────────────
-  async function showHotel(hotelId, fallbackName) {
-    box.parentElement.querySelector('.bk').classList.add('wide');
-    box.innerHTML = `<div class="paying">호텔 정보를 불러오는 중…</div>`;
-    open();
-
-    const s = stay();
-    const r = await post(DETAIL_API, { hotelId, ...s }).catch(() => ({ error: '연결에 실패했어요.' }));
-    if (r.error || !r.hotel) {
-      box.innerHTML = `<h4>${esc(fallbackName || '호텔')}</h4>
-        <div class="sub">호텔 정보를 불러오지 못했어요.</div>
-        <button class="go" id="bkClose2">닫기</button>`;
-      box.querySelector('#bkClose2').onclick = close;
-      return;
-    }
-
-    const h = r.hotel;
-    const stars = '★'.repeat(Math.max(0, Math.min(5, Math.round(h.stars || 0))));
-    const nights = nightsBetween(s.checkin, s.checkout);
-
-    const shots = (h.images || []).length
-      // 처음 세 장은 바로 띄운다 — 가로 스크롤이라 lazy면 첫 화면이 빈 채로 보인다
-      ? `<div class="shots">${h.images.map((u, i) =>
-          `<img src="${esc(u)}" alt=""${i < 3 ? '' : ' loading="lazy"'}>`).join('')}</div>` : '';
-
-    const rooms = (r.rooms || []).length
-      ? (r.rooms.map((rm) => `
-          <div class="room">
-            <div class="rn">
-              <div class="rt">${esc(rm.name)}</div>
-              <div class="rs">${[rm.board, rm.refundable ? '무료 취소' : '환불 불가'].filter(Boolean).map(esc).join(' · ')}</div>
-            </div>
-            <div class="rp">
-              <b>${money(rm.total_usd)}</b>
-              <div class="rs">${nights}박 · ${rm.dali} DALI</div>
-              <button class="pick" data-offer="${esc(rm.offerId)}">선택</button>
-            </div>
-          </div>`).join(''))
-      : `<div class="sub">이 날짜에 예약 가능한 객실이 없어요. 다른 날짜로 검색해보세요.</div>`;
-
-    const desc = h.description || '';
-    const shortDesc = desc.length > 260 ? desc.slice(0, 260) + '…' : desc;
-
-    box.innerHTML = `
-      <h4>${esc(h.name || fallbackName || '호텔')} ${stars ? `<span style="color:#f5b301">${stars}</span>` : ''}</h4>
-      <div class="sub">${esc(h.address || '')}${h.rating ? ` · 평점 ${esc(h.rating)}${h.reviews ? ` (${esc(h.reviews)}건)` : ''}` : ''}</div>
-      ${shots}
-      ${h.checkin || h.checkout ? `<div class="rs">체크인 ${esc(h.checkin || '-')} · 체크아웃 ${esc(h.checkout || '-')}</div>` : ''}
-      ${(h.facilities || []).length ? `<div class="chips">${h.facilities.map((f) => `<span>${esc(f)}</span>`).join('')}</div>` : ''}
-      ${desc ? `<div class="desc" id="bkDesc">${esc(shortDesc)}</div>${
-        desc.length > 260 ? '<button class="more" id="bkMore">더 보기</button>' : ''}` : ''}
-      <h5>객실 선택 · ${s.checkin} ~ ${s.checkout}</h5>
-      ${rooms}
-      <button class="cancel" id="bkClose3">닫기</button>`;
-
-    box.querySelector('#bkClose3').onclick = close;
-    const more = box.querySelector('#bkMore');
-    if (more) more.onclick = () => { box.querySelector('#bkDesc').textContent = desc; more.remove(); };
-
-    box.querySelectorAll('.pick').forEach((b) => {
-      b.onclick = () => askDetails({
-        offerId: b.dataset.offer,
-        name: h.name || fallbackName || '호텔',
-        meta: [h.address, b.closest('.room').querySelector('.rt')?.textContent].filter(Boolean).join(' · '),
-      });
-    });
-  }
-
-  const nightsBetween = (a, b) => {
-    const n = (new Date(b) - new Date(a)) / 86400000;
-    return n > 0 ? Math.round(n) : 1;
-  };
-
   // ── ① 예약자 정보 ───────────────────────────────────────────────────
   function askDetails(hotel) {
-    box.parentElement.querySelector('.bk').classList.remove('wide');
     box.innerHTML = `
       <h4>${esc(hotel.name)}</h4>
       <div class="sub">${esc(hotel.meta)}</div>
@@ -403,19 +299,18 @@
   }
 
   // ── 진입점 ──────────────────────────────────────────────────────────
-  // 카드는 검색할 때마다 새로 그려지므로 문서에 위임해서 듣는다.
+  // 상세 페이지의 객실 "선택" 버튼. 목록 카드는 상세 페이지로 이동하므로 여기 오지 않는다.
   document.addEventListener('click', (e) => {
-    if (e.target.closest('.favb')) return;      // 즐겨찾기 하트는 원래 동작대로
-
-    const card = e.target.closest('#hotelList .hotel[data-hotel]');
-    if (!card) return;                          // 항공권 카드 등은 기존 동작에 맡긴다
-
+    const btn = e.target.closest('[data-book-offer]');
+    if (!btn) return;
     e.preventDefault();
-    e.stopImmediatePropagation();               // index.html의 "곧 열립니다" 알림을 대체한다
-
-    // 카드 어디를 눌러도 상세로 간다 — 객실은 거기서 고른다
-    showHotel(card.dataset.hotel, card.querySelector('h5')?.textContent.trim());
-  }, true);                                     // 캡처 단계 — 기존 리스너보다 먼저 잡는다
+    askDetails({
+      offerId: btn.dataset.bookOffer,
+      name: btn.dataset.bookName || document.querySelector('h1')?.textContent.trim() || '호텔',
+      meta: btn.dataset.bookMeta || '',
+    });
+    open();
+  });
 
   resume();
 })();
