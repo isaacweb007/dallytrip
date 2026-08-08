@@ -139,7 +139,9 @@
     const nights = nightsBetween(s.checkin, s.checkout);
 
     const shots = (h.images || []).length
-      ? `<div class="shots">${h.images.map((u) => `<img src="${esc(u)}" alt="" loading="lazy">`).join('')}</div>` : '';
+      // 처음 세 장은 바로 띄운다 — 가로 스크롤이라 lazy면 첫 화면이 빈 채로 보인다
+      ? `<div class="shots">${h.images.map((u, i) =>
+          `<img src="${esc(u)}" alt=""${i < 3 ? '' : ' loading="lazy"'}>`).join('')}</div>` : '';
 
     const rooms = (r.rooms || []).length
       ? (r.rooms.map((rm) => `
