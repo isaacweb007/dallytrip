@@ -602,7 +602,7 @@
     const tags=(h.tags||[]).map(t=>`<span class="tag">${esc(t)}</span>`).join('');
     const thumb=esc(h.thumb||'icons/icon-hotel.webp');
     const thumbCls=thumb.includes('/icon-')?'icon':''; // 사진이 아닌 아이콘이면 잘리지 않게
-    return `<article class="hotel">
+    return `<article class="hotel" data-hotel="${esc(h.id||'')}" style="cursor:pointer">
       <div class="thumb"><img class="${thumbCls}" src="${thumb}" alt=""></div>
       <div>
         <h5>${esc(h.name)} ${stars?`<span class="stars">${stars}</span>`:''} ${h.rating?`<span class="rating">${esc(h.rating)}</span>`:''}</h5>
@@ -1351,6 +1351,6 @@
 </script>
 <!-- 예약 스크립트를 고치면 v 값을 반드시 올릴 것. Cloudflare가 .js를 4시간 캐시해서
      주소가 그대로면 손님에게 옛 결제 코드가 그동안 계속 나간다. -->
-<script src="js/booking.js?v=3" defer></script>
+<script src="js/booking.js?v=4" defer></script>
 </body>
 </html>
