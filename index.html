@@ -612,7 +612,7 @@
       <div class="right">
         <div class="from">${nights}박 총액</div><b>$${Number(h.total_usd).toLocaleString()}</b>
         <div class="dali"><img class="coin" src="icons/icon-coin.webp" alt="">${esc(h.dali)} DALI</div>
-        <button class="book">예약하기</button>
+        <button class="book" data-offer="${esc(h.offerId||'')}">예약하기</button>
       </div>
     </article>`;
   }
@@ -1349,5 +1349,6 @@
   document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
 })();
 </script>
+<script src="booking.js" defer></script>
 </body>
 </html>
