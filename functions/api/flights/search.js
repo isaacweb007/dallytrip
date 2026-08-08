@@ -25,7 +25,8 @@ import { json, corsPreflight } from '../_lib.js';
 
 export const onRequestOptions = corsPreflight;
 
-const SEARCH_BASE = 'https://search-sg.atriptech.com';
+const SEARCH_BASE = 'https://search-sg.atriptech.com';   // 운영 검색 (예약·결제는 api-sg)
+const SANDBOX_BASE = 'https://sandbox.atriptech.com';    // UAT는 샌드박스 주문으로 검증한다
 
 // Atlas는 Core UAT를 통과해야 API를 열어준다(2026-08-08 현재 미통과).
 // 그때까지 모든 검색이 막히므로 손님에게는 이 문구만 보인다.
@@ -57,15 +58,21 @@ export async function onRequestGet({ request, env }) {
   const children = clamp(parseInt(url.searchParams.get('children') || '0', 10), 0, 8);
   const infants  = clamp(parseInt(url.searchParams.get('infants')  || '0', 10), 0, adults);
 
-  // 대시보드에서 붙여넣을 때 딸려오는 공백·줄바꿈은 그대로 두면 인증이 깨진다
-  const clientId = (env.ATLAS_CLIENT_ID || '').trim();
-  const clientSecret = (env.ATLAS_CLIENT_SECRET || '').trim();
+  // UAT 기간에는 샌드박스 키로 돈다. 운영 시크릿은 발급 때 한 번만 보이고 다시 못 보므로
+  // 절대 덮어쓰지 않고 따로 둔다 — UAT를 통과하면 샌드박스 변수 2개만 지우면 운영으로 돌아온다.
+  // 대시보드에서 붙여넣을 때 딸려오는 공백·줄바꿈은 그대로 두면 인증이 깨진다.
+  const sandboxId = (env.ATLAS_SANDBOX_ID || '').trim();
+  const sandboxSecret = (env.ATLAS_SANDBOX_SECRET || '').trim();
+  const useSandbox = Boolean(sandboxId && sandboxSecret);
+
+  const clientId = useSandbox ? sandboxId : (env.ATLAS_CLIENT_ID || '').trim();
+  const clientSecret = useSandbox ? sandboxSecret : (env.ATLAS_CLIENT_SECRET || '').trim();
 
   if (!clientId || !clientSecret) {
     return json({ provider: 'atlas', error: UNAVAILABLE, results: [] });
   }
 
-  const base = (env.ATLAS_BASE || SEARCH_BASE).replace(/\/+$/, '');
+  const base = (env.ATLAS_BASE || (useSandbox ? SANDBOX_BASE : SEARCH_BASE)).replace(/\/+$/, '');
   const markup = parseFloat(env.FLIGHT_MARKUP_PERCENT || '0');
 
   // ?debug=1 — 응답을 가공하지 않고 Atlas 원문 상태만 돌려준다 (장애 원인 격리용)
@@ -103,7 +110,8 @@ export async function onRequestGet({ request, env }) {
       let parsed = null;
       try { parsed = JSON.parse(text); } catch { /* 원문만 본다 */ }
       return json({
-        debug: true, base, httpStatus: res.status, bodyLen: text.length,
+        debug: true, base, mode: useSandbox ? 'sandbox' : 'production',
+        httpStatus: res.status, bodyLen: text.length,
         // 값은 절대 노출하지 않고, 잘려 들어갔는지만 알 수 있게 길이와 형태만 본다
         credShape: { idLen: clientId.length, secretLen: clientSecret.length,
                      idLooksUuid: /^[0-9a-f-]{20,}$/i.test(clientId) },
