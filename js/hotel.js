@@ -125,9 +125,10 @@
     if (!imgs.length) return '';
     const cells = imgs.slice(0, 5).map((im, i) => {
       const rest = i === 4 && imgs.length > 5 ? `<div class="rest">사진 ${imgs.length}장 모두 보기</div>` : '';
-      // 첫 화면 사진은 바로 띄운다. 프록시가 죽으면 원본으로 되돌린다.
+      // 모자이크 다섯 장은 전부 첫 화면에 있다 — lazy로 두면 오히려 늦게 뜬다.
+      // 프록시가 죽으면 원본으로 되돌린다.
       return `<button data-i="${i}" aria-label="사진 크게 보기">
-        <img src="${esc(im.thumb)}" alt=""${i ? ' loading="lazy"' : ''}
+        <img src="${esc(im.thumb)}" alt="" decoding="async"
              onerror="this.onerror=null;this.src='${esc(im.full)}'">${rest}</button>`;
     }).join('');
     return `<div class="gallery"><div class="mosaic">${cells}</div></div>`;
