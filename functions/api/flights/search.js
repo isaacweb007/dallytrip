@@ -27,6 +27,10 @@ export const onRequestOptions = corsPreflight;
 
 const SEARCH_BASE = 'https://search-sg.atriptech.com';
 
+// Atlas는 Core UAT를 통과해야 API를 열어준다(2026-08-08 현재 미통과).
+// 그때까지 모든 검색이 막히므로 손님에게는 이 문구만 보인다.
+const UNAVAILABLE = '항공권 검색은 준비 중이에요. 호텔·숙소를 먼저 이용해주세요.';
+
 // Atlas 검색 응답은 항공사 코드만 주고 이름을 주지 않는다 (airlineName은 예약 후 조회에만 존재).
 // 우리 노선에 실제로 뜨는 항공사만 담았고, 없으면 코드를 그대로 보여준다.
 const AIRLINES = {
@@ -58,11 +62,7 @@ export async function onRequestGet({ request, env }) {
   const clientSecret = (env.ATLAS_CLIENT_SECRET || '').trim();
 
   if (!clientId || !clientSecret) {
-    return json({
-      provider: 'atlas',
-      note: 'ATLAS_CLIENT_ID / ATLAS_CLIENT_SECRET 를 Cloudflare Pages 환경변수에 등록하면 실검색이 켜집니다.',
-      results: [],
-    });
+    return json({ provider: 'atlas', error: UNAVAILABLE, results: [] });
   }
 
   const base = (env.ATLAS_BASE || SEARCH_BASE).replace(/\/+$/, '');
@@ -115,9 +115,10 @@ export async function onRequestGet({ request, env }) {
 
     const data = await res.json().catch(() => ({}));
     if (!res.ok || data.status !== 0) {
-      // 5xx로 돌려주면 Cloudflare가 본문을 자기 오류 페이지로 갈아치워 원인이 사라진다.
-      // 화면은 data.error만 보므로 200으로 내려 메시지를 살린다.
-      return json({ provider: 'atlas', error: data.msg || `Atlas HTTP ${res.status}`, atlasStatus: data.status, results: [] });
+      // 업스트림 원문("Auth failed: check apiKey…")은 손님에게 보여줄 말이 아니다.
+      // 원인은 ?debug=1 로만 확인하고, 화면에는 사람 말을 내보낸다.
+      // 5xx로 내리면 Cloudflare가 본문을 자기 오류 페이지로 갈아치우므로 200을 쓴다.
+      return json({ provider: 'atlas', error: UNAVAILABLE, atlasStatus: data.status, results: [] });
     }
 
     const results = (data.routings || [])
@@ -128,7 +129,7 @@ export async function onRequestGet({ request, env }) {
 
     return json({ provider: 'atlas', from, to, date, count: results.length, results });
   } catch (e) {
-    return json({ provider: 'atlas', error: e.message, results: [] });
+    return json({ provider: 'atlas', error: UNAVAILABLE, detail: debug ? e.message : undefined, results: [] });
   }
 }
 
