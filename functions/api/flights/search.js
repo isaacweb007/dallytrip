@@ -60,6 +60,9 @@ export async function onRequestGet({ request, env }) {
   const base = env.ATLAS_BASE || SANDBOX;
   const markup = parseFloat(env.FLIGHT_MARKUP_PERCENT || '0');
 
+  // ?debug=1 — 응답을 가공하지 않고 Atlas 원문 상태만 돌려준다 (장애 원인 격리용)
+  const debug = url.searchParams.get('debug') === '1';
+
   try {
     const res = await fetch(`${base}/search.do`, {
       method: 'POST',
@@ -85,6 +88,18 @@ export async function onRequestGet({ request, env }) {
     if (res.status === 429) {
       const r = await res.json().catch(() => ({}));
       return json({ provider: 'atlas', error: '검색 요청이 몰리고 있어요. 잠시 후 다시 시도해주세요.', retryAfter: r.retryAfter ?? 1, results: [] }, 429);
+    }
+
+    if (debug) {
+      const text = await res.text();
+      let parsed = null;
+      try { parsed = JSON.parse(text); } catch { /* 원문만 본다 */ }
+      return json({
+        debug: true, base, httpStatus: res.status, bodyLen: text.length,
+        atlasStatus: parsed?.status, atlasMsg: parsed?.msg,
+        routings: parsed?.routings?.length ?? null,
+        head: text.slice(0, 400),
+      });
     }
 
     const data = await res.json().catch(() => ({}));

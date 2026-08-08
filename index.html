@@ -590,7 +590,7 @@
   },{threshold:.4}).observe(el);
 
   // ── 호텔 검색 → Supabase Edge Function(hotels-search) 연동 ──
-  // 지금은 함수가 샘플 데이터를 돌려주고, RateHawk 키 등록 시 자동으로 실시간 검색으로 전환됨
+  // 함수가 liteAPI로 실시간 검색한다. LITEAPI_KEY 미등록 시에만 샘플 데이터로 내려온다
   const DT_API={
     url:'https://hzwxeyxnlpmauyeqscim.supabase.co/functions/v1/hotels-search',
     key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6d3hleXhubHBtYXV5ZXFzY2ltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYwODM1NzMsImV4cCI6MjEwMTY1OTU3M30.ccyV9CPuAfR1OvvgjIgaDORkKMNjPNeoyiHbLoKQGF4' // 공개용 anon 키 (브라우저 노출 가능)
@@ -616,7 +616,7 @@
       </div>
     </article>`;
   }
-  // 항공권 카드 (Duffel — 같은 도메인의 /api/flights/search 가 응답)
+  // 항공권 카드 (Atlas — 같은 도메인의 /api/flights/search 가 응답)
   const parseDur=iso=>{const m=/PT(?:(\d+)H)?(?:(\d+)M)?/.exec(iso||'');if(!m||(!m[1]&&!m[2]))return '';
     return [m[1]?m[1]+'시간':'',m[2]?m[2]+'분':''].filter(Boolean).join(' ')};
   function flightCard(f){
