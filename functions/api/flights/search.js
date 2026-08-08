@@ -49,7 +49,11 @@ export async function onRequestGet({ request, env }) {
   const children = clamp(parseInt(url.searchParams.get('children') || '0', 10), 0, 8);
   const infants  = clamp(parseInt(url.searchParams.get('infants')  || '0', 10), 0, adults);
 
-  if (!env.ATLAS_CLIENT_ID || !env.ATLAS_CLIENT_SECRET) {
+  // 대시보드에서 붙여넣을 때 딸려오는 공백·줄바꿈은 그대로 두면 인증이 깨진다
+  const clientId = (env.ATLAS_CLIENT_ID || '').trim();
+  const clientSecret = (env.ATLAS_CLIENT_SECRET || '').trim();
+
+  if (!clientId || !clientSecret) {
     return json({
       provider: 'atlas',
       note: 'ATLAS_CLIENT_ID / ATLAS_CLIENT_SECRET 를 Cloudflare Pages 환경변수에 등록하면 실검색이 켜집니다.',
@@ -69,8 +73,8 @@ export async function onRequestGet({ request, env }) {
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
-        'x-atlas-client-id': env.ATLAS_CLIENT_ID,
-        'x-atlas-client-secret': env.ATLAS_CLIENT_SECRET,
+        'x-atlas-client-id': clientId,
+        'x-atlas-client-secret': clientSecret,
       },
       body: JSON.stringify({
         tripType: '1',              // 1=편도. 왕복은 retDate와 함께 '2'
@@ -104,7 +108,9 @@ export async function onRequestGet({ request, env }) {
 
     const data = await res.json().catch(() => ({}));
     if (!res.ok || data.status !== 0) {
-      return json({ provider: 'atlas', error: data.msg || `Atlas HTTP ${res.status}`, results: [] }, res.ok ? 502 : res.status);
+      // 5xx로 돌려주면 Cloudflare가 본문을 자기 오류 페이지로 갈아치워 원인이 사라진다.
+      // 화면은 data.error만 보므로 200으로 내려 메시지를 살린다.
+      return json({ provider: 'atlas', error: data.msg || `Atlas HTTP ${res.status}`, atlasStatus: data.status, results: [] });
     }
 
     const results = (data.routings || [])
@@ -115,7 +121,7 @@ export async function onRequestGet({ request, env }) {
 
     return json({ provider: 'atlas', from, to, date, count: results.length, results });
   } catch (e) {
-    return json({ provider: 'atlas', error: e.message, results: [] }, 502);
+    return json({ provider: 'atlas', error: e.message, results: [] });
   }
 }
 
