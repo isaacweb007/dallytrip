@@ -189,15 +189,23 @@
       returnUrl: back,
     }).handlePayment();
 
-    // SDK는 내부 오류를 전부 삼켜서(catch 비어 있음) 실패해도 화면이 그대로 멈춘다.
-    // 결제 폼이 그려졌는지 직접 확인해서 손님이 빈 화면을 보고 있지 않게 한다.
+    // SDK는 결제 폼을 mount 안에 덧붙이기만 해서 "여는 중" 문구가 폼 위에 남는다.
+    // 또 내부 오류를 전부 삼켜서(catch 비어 있음) 실패하면 문구만 남은 채 멈춘다.
+    // 폼(iframe)이 뜨면 문구를 치우고, 끝내 안 뜨면 손님에게 알린다.
     const mount = box.querySelector('#bkPay');
-    setTimeout(() => {
-      if (mount && mount.querySelector('.paying') && !mount.querySelector('iframe')) {
-        mount.innerHTML = '';
+    const spinner = mount.querySelector('.paying');
+    const started = Date.now();
+    const watch = setInterval(() => {
+      if (!document.body.contains(mount)) return clearInterval(watch);
+      if (mount.querySelector('iframe')) {
+        spinner?.remove();
+        clearInterval(watch);
+      } else if (Date.now() - started > 12000) {
+        clearInterval(watch);
+        spinner?.remove();
         err.textContent = '결제창을 여는 데 실패했어요. 잠시 후 다시 시도해주세요.';
       }
-    }, 9000);
+    }, 400);
   }
 
   let sdkLoad = null;
