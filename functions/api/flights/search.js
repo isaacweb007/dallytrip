@@ -12,16 +12,20 @@
 // 필요한 환경변수 (Cloudflare Pages → Settings → Variables and Secrets):
 //   ATLAS_CLIENT_ID       x-atlas-client-id
 //   ATLAS_CLIENT_SECRET   x-atlas-client-secret
-//   ATLAS_BASE            운영 전환 시 운영 검색 주소. 미설정 시 샌드박스.
-//                         ⚠️ 샌드박스 운임은 실제 운임이 아니다(테스트 데이터).
 //   FLIGHT_MARKUP_PERCENT 항공 마진율(%). 미설정 시 0.
 //                         항공은 가격 비교가 투명해 2~3% 이상은 잘 안 팔린다.
+//   ATLAS_BASE            검색 주소 덮어쓰기(선택). 샌드박스로 돌릴 때만 쓴다.
+//
+// 우리 계정에는 프로덕션 키만 있고 샌드박스 키는 만든 적이 없다.
+// 샌드박스 주소로 프로덕션 키를 보내면 Atlas가 status 900(인증 실패)로 막는다.
+// 검색은 조회일 뿐이라 발권되지 않으므로 프로덕션을 기본으로 둔다.
+// 예약·결제는 다른 주소(https://api-sg.atriptech.com)를 쓴다 — 붙일 때 확인할 것.
 // =========================================================
 import { json, corsPreflight } from '../_lib.js';
 
 export const onRequestOptions = corsPreflight;
 
-const SANDBOX = 'https://sandbox.atriptech.com';
+const SEARCH_BASE = 'https://search-sg.atriptech.com';
 
 // Atlas 검색 응답은 항공사 코드만 주고 이름을 주지 않는다 (airlineName은 예약 후 조회에만 존재).
 // 우리 노선에 실제로 뜨는 항공사만 담았고, 없으면 코드를 그대로 보여준다.
@@ -61,7 +65,7 @@ export async function onRequestGet({ request, env }) {
     });
   }
 
-  const base = env.ATLAS_BASE || SANDBOX;
+  const base = (env.ATLAS_BASE || SEARCH_BASE).replace(/\/+$/, '');
   const markup = parseFloat(env.FLIGHT_MARKUP_PERCENT || '0');
 
   // ?debug=1 — 응답을 가공하지 않고 Atlas 원문 상태만 돌려준다 (장애 원인 격리용)
