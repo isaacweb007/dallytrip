@@ -8,7 +8,6 @@
  *   ② </body> 앞에 <script src="booking.js" defer></script>
  */
 (() => {
-  const BUILD = '2026-08-08a';   // 배포 반영 확인용
   const API = 'https://hzwxeyxnlpmauyeqscim.supabase.co/functions/v1/hotels-book';
   const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6d3hleXhubHBtYXV5ZXFzY2ltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYwODM1NzMsImV4cCI6MjEwMTY1OTU3M30.ccyV9CPuAfR1OvvgjIgaDORkKMNjPNeoyiHbLoKQGF4';
 
