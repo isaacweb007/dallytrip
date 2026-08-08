@@ -706,7 +706,7 @@
         checkin:document.getElementById('f2').value,
         checkout:document.getElementById('f3').value,
         adults:String((document.querySelector('.field select').value.match(/성인\s*(\d+)/)||[])[1]||2)});
-      location.href='hotel.html?'+p;return;
+      location.href='hotel?'+p;return;   // Pages가 .html을 확장자 없는 주소로 넘긴다
     }
     if(e.target.closest('.book')) alert('항공권 예약은 곧 열립니다!');
   });
