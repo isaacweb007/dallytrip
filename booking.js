@@ -14,6 +14,9 @@
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) =>
     ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
+  // 202.4 를 그대로 쓰면 "$202.4"라 돈으로 안 읽힌다
+  const money = (n) => '$' + Number(n || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
   const call = (body) => fetch(API, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + KEY, apikey: KEY },
@@ -123,7 +126,7 @@
       <div class="sub">${esc(holder.lastName)} ${esc(holder.firstName)} · ${esc(holder.email)}</div>
       ${changed}
       <div class="sum">
-        <div class="line"><span>결제 금액</span><span class="big">$${Number(pre.total).toLocaleString()}</span></div>
+        <div class="line"><span>결제 금액</span><span class="big">${money(pre.total)}</span></div>
         <div class="line"><span>적립 예정</span><span>${pre.dali} DALI</span></div>
       </div>
       ${cancelNote}${atProperty}
@@ -155,7 +158,7 @@
         <div class="code">${esc(r.bookingId)}</div>
         <div class="sub">예약번호</div>
         <div class="sum">
-          <div class="line"><span>결제 금액</span><span class="big">$${Number(r.total).toLocaleString()}</span></div>
+          <div class="line"><span>결제 금액</span><span class="big">${money(r.total)}</span></div>
           <div class="line"><span>적립 DALI</span><span>${r.dali} DALI</span></div>
         </div>
         <div class="note">확인서를 이메일로 보내드렸어요. 예약번호는 문의하실 때 필요해요.</div>
