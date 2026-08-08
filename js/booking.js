@@ -1,15 +1,29 @@
-/* 달리트립 호텔 예약 흐름 — 검색 카드의 "예약하기" → 정보 입력 → 가격 재확인 → 확정
+/* 달리트립 호텔 예약 — 검색 카드의 "예약하기" → 정보 입력 → 결제 → 예약 확정
  *
- * 별도 파일로 둔 이유: index.html은 디자인 작업으로 통째로 재생성되는 일이 있어서,
- * 예약 로직이 그 안에 있으면 같이 날아간다. 여기 두면 <script src> 한 줄만 확인하면 된다.
+ * 결제는 liteAPI 결제 SDK(내부적으로 Stripe)로 손님이 직접 카드 결제한다.
+ * 우리 서버도 이 스크립트도 카드번호를 만지지 않는다.
  *
- * index.html 쪽에 필요한 것 두 가지 (재생성 시 확인):
- *   ① 호텔 카드의 .book 버튼에 data-offer="<offerId>"
- *   ② </body> 앞에 <script src="booking.js" defer></script>
+ * 흐름:
+ *   ① prebook(usePaymentSdk:true) → 최종가 + 결제 토큰(secretKey)
+ *   ② SDK가 결제 폼을 그리고, 결제되면 returnUrl 로 되돌아온다
+ *   ③ 돌아온 화면에서 book(transactionId) 호출 → 예약 확정
+ *
+ * ②→③ 사이에 페이지가 통째로 바뀌므로 예약자 정보는 sessionStorage에 맡긴다.
+ *
+ * 별도 파일인 이유: index.html은 디자인 작업으로 통째로 재생성되는 일이 있어서,
+ * 예약 로직이 그 안에 있으면 같이 날아간다.
+ *
+ * index.html 쪽 의존 (재생성 시 확인):
+ *   ① 호텔 카드 .book 버튼에 data-offer="<offerId>"
+ *   ② </body> 앞 <script src="js/booking.js?v=N" defer></script>
+ *      ↑ 이 파일을 고치면 N을 반드시 올릴 것. Cloudflare가 .js를 4시간 캐시해서
+ *        주소가 그대로면 손님에게 옛 결제 코드가 계속 나간다.
  */
 (() => {
   const API = 'https://hzwxeyxnlpmauyeqscim.supabase.co/functions/v1/hotels-book';
   const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh6d3hleXhubHBtYXV5ZXFzY2ltIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODYwODM1NzMsImV4cCI6MjEwMTY1OTU3M30.ccyV9CPuAfR1OvvgjIgaDORkKMNjPNeoyiHbLoKQGF4';
+  const SDK = 'https://payment-wrapper.liteapi.travel/dist/liteAPIPayment.js?v=a1';
+  const PENDING = 'dally_pending_booking';
 
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) =>
     ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -54,7 +68,9 @@
     .bk .ok{text-align:center;padding:8px 0}
     .bk .ok .code{font-size:22px;font-weight:800;letter-spacing:.5px;margin:10px 0 2px;color:var(--ink,#22254c)}
     .bk .test{background:rgba(34,37,76,.06);color:var(--ink-soft,#6b6f9c);border-radius:10px;padding:8px 12px;
-      font-size:12px;font-weight:700;margin-bottom:14px}`;
+      font-size:12px;font-weight:700;margin-bottom:14px}
+    .bk .pay{margin-top:16px;min-height:40px}
+    .bk .paying{text-align:center;color:var(--ink-soft,#6b6f9c);font-weight:700;font-size:14px;padding:18px 0}`;
   document.head.appendChild(style);
 
   const dim = document.createElement('div');
@@ -65,7 +81,11 @@
 
   const open = () => dim.classList.add('show');
   const close = () => { dim.classList.remove('show'); box.innerHTML = ''; };
-  dim.addEventListener('click', (e) => { if (e.target === dim) close(); });
+  // 결제 폼이 떠 있는 동안 배경 클릭으로 닫히면 결제가 중간에 끊긴다
+  dim.addEventListener('click', (e) => { if (e.target === dim && !box.querySelector('.pay')) close(); });
+
+  const testBadge = (sandbox) => sandbox
+    ? '<div class="test">테스트 모드 — 실제 결제와 투숙이 발생하지 않습니다.</div>' : '';
 
   // ── ① 예약자 정보 ───────────────────────────────────────────────────
   function askDetails(hotel) {
@@ -80,7 +100,7 @@
       <label>이메일</label><input id="bkEmail" type="email" placeholder="you@example.com" autocomplete="email">
       <div class="hint">예약 확인서를 여기로 보내드려요.</div>
       <label>휴대폰</label><input id="bkPhone" type="tel" placeholder="010-1234-5678" autocomplete="tel">
-      <button class="go" id="bkNext">다음 — 최종 금액 확인</button>
+      <button class="go" id="bkNext">다음 — 결제하기</button>
       <button class="cancel" id="bkClose">닫기</button>
       <div class="err" id="bkErr"></div>`;
 
@@ -97,61 +117,163 @@
         err.textContent = '모든 항목을 입력해주세요.'; return;
       }
       const btn = box.querySelector('#bkNext');
-      btn.disabled = true; btn.textContent = '금액 확인 중…'; err.textContent = '';
+      btn.disabled = true; btn.textContent = '최종 금액 확인 중…'; err.textContent = '';
 
-      const r = await call({ action: 'prebook', offerId: hotel.offerId }).catch(() => ({ error: '연결에 실패했어요.' }));
-      if (r.error) { btn.disabled = false; btn.textContent = '다음 — 최종 금액 확인'; err.textContent = r.error; return; }
-      confirmStep(hotel, holder, r);
+      const r = await call({ action: 'prebook', offerId: hotel.offerId, usePaymentSdk: true })
+        .catch(() => ({ error: '연결에 실패했어요.' }));
+      if (r.error) { btn.disabled = false; btn.textContent = '다음 — 결제하기'; err.textContent = r.error; return; }
+      payStep(hotel, holder, r);
     };
   }
 
-  // ── ② 최종 확인 ─────────────────────────────────────────────────────
-  function confirmStep(hotel, holder, pre) {
-    // 취소 조건을 여기서 분명히 보여주지 않으면, 환불 불가 요금을 취소하고 전액 청구되는 사고가 난다
+  // ── ② 최종 확인 + 결제 ──────────────────────────────────────────────
+  async function payStep(hotel, holder, pre) {
+    // 취소 조건을 분명히 보여주지 않으면, 환불 불가 요금을 취소하고 전액 청구되는 사고가 난다
     const cancelNote = pre.refundable && pre.freeCancelUntil
       ? `<div class="note">${esc(pre.freeCancelUntil)} 까지 무료 취소할 수 있어요.</div>`
-      : `<div class="warn">이 요금은 <b>환불되지 않습니다.</b> 예약 후 취소하시면 결제 금액이 돌아오지 않아요.</div>`;
+      : `<div class="warn">이 요금은 <b>환불되지 않습니다.</b> 결제 후 취소하셔도 금액이 돌아오지 않아요.</div>`;
 
     const atProperty = (pre.payAtProperty || []).length
       ? `<div class="note">현지에서 따로 내셔야 하는 금액이 있어요 — ${
           pre.payAtProperty.map((t) => `${esc(t.label)} ${t.amount} ${esc(t.currency)}`).join(', ')}</div>`
       : '';
 
-    const changed = pre.changed
-      ? `<div class="warn">조건이 조금 바뀌었어요. 아래 최종 금액을 확인해주세요.</div>` : '';
-
     box.innerHTML = `
-      ${pre.sandbox ? '<div class="test">테스트 모드 — 실제 결제와 투숙이 발생하지 않습니다.</div>' : ''}
+      ${testBadge(pre.sandbox)}
       <h4>${esc(hotel.name)}</h4>
       <div class="sub">${esc(holder.lastName)} ${esc(holder.firstName)} · ${esc(holder.email)}</div>
-      ${changed}
+      ${pre.changed ? '<div class="warn">조건이 조금 바뀌었어요. 아래 최종 금액을 확인해주세요.</div>' : ''}
       <div class="sum">
         <div class="line"><span>결제 금액</span><span class="big">${money(pre.total)}</span></div>
         <div class="line"><span>적립 예정</span><span>${pre.dali} DALI</span></div>
       </div>
       ${cancelNote}${atProperty}
-      <button class="go" id="bkPay">예약 확정하기</button>
+      ${pre.sandbox ? '<div class="note">테스트 카드: 4242 4242 4242 4242 · 유효기간은 미래 아무 값 · CVC 아무 3자리</div>' : ''}
+      <div class="pay" id="bkPay"><div class="paying">결제창을 여는 중…</div></div>
       <button class="cancel" id="bkBack">뒤로</button>
       <div class="err" id="bkErr2"></div>`;
 
     box.querySelector('#bkBack').onclick = () => askDetails(hotel);
-    const pay = box.querySelector('#bkPay');
-    pay.onclick = async () => {
-      pay.disabled = true; pay.textContent = '예약 중…';       // 더블클릭 1차 차단(서버에도 멱등키가 있다)
-      const r = await call({ action: 'book', prebookId: pre.prebookId, holder })
-        .catch(() => ({ error: '연결에 실패했어요.' }));
-      if (r.error) {
-        pay.disabled = false; pay.textContent = '예약 확정하기';
-        box.querySelector('#bkErr2').textContent = r.error; return;
+    const err = box.querySelector('#bkErr2');
+
+    if (!pre.payment?.secretKey) {
+      box.querySelector('#bkPay').innerHTML = '';
+      err.textContent = '결제창을 준비하지 못했어요. 잠시 후 다시 시도해주세요.';
+      return;
+    }
+
+    // 결제가 끝나면 페이지가 통째로 바뀌므로, 예약에 필요한 값을 미리 넘겨둔다
+    sessionStorage.setItem(PENDING, JSON.stringify({
+      prebookId: pre.prebookId, holder, hotel: hotel.name, total: pre.total, sandbox: pre.sandbox,
+    }));
+
+    try {
+      await loadSdk();
+    } catch {
+      box.querySelector('#bkPay').innerHTML = '';
+      err.textContent = '결제 모듈을 불러오지 못했어요. 잠시 후 다시 시도해주세요.';
+      return;
+    }
+
+    const back = `${location.origin}${location.pathname}?pay=1`
+      + `&tid=${encodeURIComponent(pre.payment.transactionId)}`
+      + `&pid=${encodeURIComponent(pre.prebookId)}`;
+
+    new window.LiteAPIPayment({
+      publicKey: pre.sandbox ? 'sandbox' : 'live',   // API 키 환경과 반드시 같아야 한다
+      appearance: { theme: 'flat' },
+      options: { business: { name: 'DallyTrip' } },
+      submitButton: { text: `${money(pre.total)} 결제하기` },
+      targetElement: '#bkPay',
+      secretKey: pre.payment.secretKey,
+      returnUrl: back,
+    }).handlePayment();
+
+    // SDK는 내부 오류를 전부 삼켜서(catch 비어 있음) 실패해도 화면이 그대로 멈춘다.
+    // 결제 폼이 그려졌는지 직접 확인해서 손님이 빈 화면을 보고 있지 않게 한다.
+    const mount = box.querySelector('#bkPay');
+    setTimeout(() => {
+      if (mount && mount.querySelector('.paying') && !mount.querySelector('iframe')) {
+        mount.innerHTML = '';
+        err.textContent = '결제창을 여는 데 실패했어요. 잠시 후 다시 시도해주세요.';
       }
-      done(r);
-    };
+    }, 9000);
   }
 
-  // ── ③ 완료 ──────────────────────────────────────────────────────────
+  let sdkLoad = null;
+  function loadSdk() {
+    if (window.LiteAPIPayment) return Promise.resolve();
+    if (!sdkLoad) {
+      sdkLoad = new Promise((res, rej) => {
+        const s = document.createElement('script');
+        s.src = SDK; s.onload = res; s.onerror = () => { sdkLoad = null; rej(new Error('sdk')); };
+        document.head.appendChild(s);
+      });
+    }
+    return sdkLoad;
+  }
+
+  // ── ③ 결제 후 돌아왔을 때 — 예약 확정 ───────────────────────────────
+  async function resume() {
+    const p = new URLSearchParams(location.search);
+    if (p.get('pay') !== '1') return;
+
+    const tid = p.get('tid');
+    const pid = p.get('pid');
+    const status = p.get('redirect_status');           // Stripe가 붙여준다
+    const raw = sessionStorage.getItem(PENDING);
+
+    // 주소를 먼저 정리한다 — 새로고침으로 예약이 한 번 더 시도되면 안 된다
+    history.replaceState(null, '', location.pathname);
+    open();
+
+    if (status && status !== 'succeeded') {
+      box.innerHTML = `<h4>결제가 완료되지 않았어요</h4>
+        <div class="sub">카드 승인이 이루어지지 않았습니다. 다시 시도해주세요.</div>
+        <button class="go" id="bkDone">확인</button>`;
+      box.querySelector('#bkDone').onclick = close;
+      return;
+    }
+
+    const pending = raw ? JSON.parse(raw) : null;
+    if (!tid || !pid || !pending) {
+      box.innerHTML = `<h4>예약 정보를 찾지 못했어요</h4>
+        <div class="sub">결제가 되었는데 이 화면이 보인다면 고객센터로 연락해주세요.</div>
+        ${tid ? `<div class="note">결제번호: ${esc(tid)}</div>` : ''}
+        <button class="go" id="bkDone">확인</button>`;
+      box.querySelector('#bkDone').onclick = close;
+      return;
+    }
+
+    box.innerHTML = `${testBadge(pending.sandbox)}
+      <div class="paying">결제가 완료됐어요. 예약을 확정하는 중입니다…</div>`;
+
+    const r = await call({
+      action: 'book', prebookId: pid, holder: pending.holder, transactionId: tid,
+    }).catch(() => ({ error: '연결에 실패했어요.' }));
+
+    sessionStorage.removeItem(PENDING);
+
+    if (r.error) {
+      // 최악의 경우 — 돈은 나갔는데 예약이 안 잡혔다. 손님이 스스로 재시도하면 이중결제가 되므로
+      // 재시도 버튼을 주지 않고, 사람이 처리할 수 있게 번호를 남긴다.
+      box.innerHTML = `${testBadge(pending.sandbox)}
+        <h4>예약 확정이 지연되고 있어요</h4>
+        <div class="sub">결제는 완료됐습니다. 다시 결제하지 마세요.</div>
+        <div class="warn">${esc(r.error)}</div>
+        <div class="note">아래 번호로 고객센터에 문의해주시면 바로 확인해드립니다.<br>
+          결제번호 ${esc(tid)}<br>예약참조 ${esc(pid)}</div>
+        <button class="go" id="bkDone">확인</button>`;
+      box.querySelector('#bkDone').onclick = close;
+      return;
+    }
+    done(r);
+  }
+
+  // ── 완료 ────────────────────────────────────────────────────────────
   function done(r) {
     box.innerHTML = `
-      ${r.sandbox ? '<div class="test">테스트 모드 — 실제 결제와 투숙이 발생하지 않습니다.</div>' : ''}
+      ${testBadge(r.sandbox)}
       <div class="ok">
         <h4>예약이 확정됐어요</h4>
         <div class="sub">${esc(r.hotel || '')}</div>
@@ -164,11 +286,11 @@
         <div class="note">확인서를 이메일로 보내드렸어요. 예약번호는 문의하실 때 필요해요.</div>
       </div>
       <button class="go" id="bkDone">확인</button>`;
-    box.querySelector('#bkDone').onclick = () => { close(); location.reload(); };
+    box.querySelector('#bkDone').onclick = close;
   }
 
   // ── 진입점 ──────────────────────────────────────────────────────────
-  // 카드는 검색할 때마다 새로 그려지므로 목록에 위임해서 듣는다.
+  // 카드는 검색할 때마다 새로 그려지므로 문서에 위임해서 듣는다.
   document.addEventListener('click', (e) => {
     const btn = e.target.closest('#hotelList .book');
     if (!btn) return;
@@ -186,4 +308,6 @@
     });
     open();
   }, true);                                     // 캡처 단계 — 기존 리스너보다 먼저 잡는다
+
+  resume();
 })();
