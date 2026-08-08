@@ -100,6 +100,9 @@ export async function onRequestGet({ request, env }) {
       try { parsed = JSON.parse(text); } catch { /* 원문만 본다 */ }
       return json({
         debug: true, base, httpStatus: res.status, bodyLen: text.length,
+        // 값은 절대 노출하지 않고, 잘려 들어갔는지만 알 수 있게 길이와 형태만 본다
+        credShape: { idLen: clientId.length, secretLen: clientSecret.length,
+                     idLooksUuid: /^[0-9a-f-]{20,}$/i.test(clientId) },
         atlasStatus: parsed?.status, atlasMsg: parsed?.msg,
         routings: parsed?.routings?.length ?? null,
         head: text.slice(0, 400),
