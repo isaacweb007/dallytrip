@@ -75,8 +75,54 @@
     body: JSON.stringify(q),
   })
     .then((r) => r.json())
-    .then((d) => (d.error || !d.hotel ? failed('호텔 정보를 불러오지 못했어요') : render(d)))
+    .then((d) => {
+      if (d.error || !d.hotel) return failed('호텔 정보를 불러오지 못했어요');
+      render(d);
+      translateInPlace(d);   // 영어로 먼저 띄우고, 한국어가 오면 갈아 끼운다
+    })
     .catch(() => failed('연결에 실패했어요'));
+
+  // ── 한국어로 바꾸기 ─────────────────────────────────────────────────
+  // liteAPI는 29개 언어를 주는데 한국어만 없다. 그래서 우리가 번역해 보여준다.
+  // 번역을 기다리느라 화면이 비어 있는 것보다, 영어로 먼저 보여주고 바꾸는 편이 낫다.
+  const TRANSLATE = 'https://hzwxeyxnlpmauyeqscim.supabase.co/functions/v1/translate-ko';
+
+  // 중요한 것부터 담는다 — 서버가 앞에서부터 자른다
+  function collect(d) {
+    const h = d.hotel, s = d.sentiment || {};
+    const slots = [];
+    const add = (obj, key) => { if (obj && typeof obj[key] === 'string' && obj[key].trim()) slots.push([obj, key]); };
+
+    (d.rooms || []).forEach((r) => { add(r, 'name'); add(r, 'board'); });
+    (h.facilities || []).forEach((_, i) => slots.push([h.facilities, i]));
+    (s.pros || []).forEach((_, i) => slots.push([s.pros, i]));
+    (s.cons || []).forEach((_, i) => slots.push([s.cons, i]));
+    (s.categories || []).forEach((c) => add(c, 'description'));
+    add(h, 'description');
+    (d.reviews || []).forEach((v) => { add(v, 'headline'); add(v, 'pros'); add(v, 'cons'); });
+    return slots;
+  }
+
+  async function translateInPlace(d) {
+    const slots = collect(d);
+    const texts = slots.map(([o, k]) => o[k]);
+    if (!texts.length) return;
+
+    let ko;
+    try {
+      const r = await fetch(TRANSLATE, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + KEY, apikey: KEY },
+        body: JSON.stringify({ texts }),
+      });
+      ko = (await r.json()).texts;
+    } catch { return; }                                  // 번역이 안 되면 영어로 둔다
+    if (!Array.isArray(ko) || ko.length !== texts.length) return;
+    if (ko.every((t, i) => t === texts[i])) return;      // 바뀐 게 없으면 다시 그리지 않는다
+
+    slots.forEach(([o, k], i) => { o[k] = ko[i]; });
+    render(d);
+  }
 
   // ── 그리기 ──────────────────────────────────────────────────────────
   let photos = [];
