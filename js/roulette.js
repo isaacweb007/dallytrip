@@ -212,12 +212,17 @@
   // 매 프레임 직접 그린다. CSS transition 하나로는 감아뒀다 튕겨 나가는 맛이 안 난다.
   const tween = (to, ms, ease) => new Promise((res) => {
     const from = angle, delta = to - from, t0 = performance.now();
+    let over = false;
+    const finish = () => { if (over) return; over = true; setAngle(to); res(); };
     const step = (now) => {
+      if (over) return;
       const t = Math.min(1, (now - t0) / ms);
       setAngle(from + delta * ease(t));
-      if (t < 1) requestAnimationFrame(step); else res();
+      if (t < 1) requestAnimationFrame(step); else finish();
     };
     requestAnimationFrame(step);
+    // 배경 탭 등에서 rAF가 멈추면 화면이 '돌리는 중…'에서 영영 멎는다
+    setTimeout(finish, ms + 500);
   });
 
   const easeOut2 = (t) => 1 - (1 - t) * (1 - t);
@@ -257,7 +262,12 @@
     const jitter = (Math.random() - 0.5) * (STEP * 0.5);
     const final = 360 * 7 - (targetIndex * STEP + STEP / 2) + jitter;
 
-    if (REDUCED) { setAngle(final); return; }
+    // '동작 줄이기'를 켠 손님에게도 룰렛은 돌아야 한다 — 돌아가는 게 이 기능의 전부다.
+    // 대신 반동·되돌아옴을 빼고 짧게 한 바퀴만 돌린다.
+    if (REDUCED) {
+      await tween(final, 1500, launch);
+      return;
+    }
 
     watchTicks();
     await tween(-16, 420, easeOut2);          // ① 뒤로 살짝 감았다가
