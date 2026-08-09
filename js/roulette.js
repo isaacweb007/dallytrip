@@ -36,6 +36,15 @@
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) =>
     ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
+  // 받침이 없거나 ㄹ이면 '로', 아니면 '으로' (발리로 / 다낭으로)
+  const ro = (word) => {
+    const last = String(word || '').trim().slice(-1);
+    const code = last.charCodeAt(0) - 0xAC00;
+    if (code < 0 || code > 11171) return '로';
+    const jong = code % 28;
+    return (jong === 0 || jong === 8) ? '로' : '으로';
+  };
+
   const forced = new URLSearchParams(location.search).get('roulette') === '1';
   const state = load();
   if (!forced && state.last === todayKST()) return;    // 오늘 몫은 이미 돌렸다
@@ -203,7 +212,7 @@
         out.innerHTML = `<div class="rl-res">
           <img src="${ICON[seg.kind]}" alt="">
           <b>${esc(seg.title)} 당첨</b>
-          <p>${esc(seg.place)}(으)로 떠날 준비가 됐어요.<br>아래 번호를 예약할 때 보여주세요.</p>
+          <p>${esc(seg.place)}${ro(seg.place)} 떠날 준비가 됐어요.<br>아래 번호를 예약할 때 보여주세요.</p>
           <div class="rl-code">${esc(prize.code)}</div></div>`;
         go.textContent = '확인';
       } else {
@@ -226,6 +235,7 @@
   // 페이지가 먼저 그려진 뒤에 띄운다
   setTimeout(() => {
     document.body.appendChild(dim);
-    requestAnimationFrame(() => dim.classList.add('in'));
+    // rAF는 배경 탭에서 멈춘다 — 그러면 모달이 투명한 채로 남는다
+    setTimeout(() => dim.classList.add('in'), 20);
   }, forced ? 200 : 1400);
 })();
