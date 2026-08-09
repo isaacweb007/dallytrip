@@ -56,8 +56,16 @@
     return rec.memberId;
   }
 
-  const forced = new URLSearchParams(location.search).get('roulette') === '1';
+  // ⚠️ 개발 중 스위치 — 새로고침할 때마다 룰렛이 열린다.
+  //    오픈 전에 반드시 false로 되돌릴 것. 안 그러면 손님이 하루에 몇 번이든 돌린다.
+  const DEV_ALWAYS_OPEN = true;
+
+  const forced = DEV_ALWAYS_OPEN || new URLSearchParams(location.search).get('roulette') === '1';
   if (!forced && load().last === todayKST()) return;    // 오늘 몫은 이미 돌렸다
+
+  if (DEV_ALWAYS_OPEN) {
+    console.warn('[달리트립] 룰렛이 개발 모드입니다 — 새로고침마다 열립니다. 오픈 전에 js/roulette.js의 DEV_ALWAYS_OPEN을 false로 바꾸세요.');
+  }
 
   const REDUCED = matchMedia('(prefers-reduced-motion:reduce)').matches;
 
@@ -405,5 +413,5 @@
   setTimeout(() => {
     document.body.appendChild(dim);
     setTimeout(() => dim.classList.add('in'), 20);
-  }, forced ? 200 : 1400);
+  }, DEV_ALWAYS_OPEN ? 400 : (forced ? 200 : 1400));
 })();
