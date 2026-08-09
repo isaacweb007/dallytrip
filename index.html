@@ -176,7 +176,18 @@
   .dest .price span{display:block;font-size:11px;color:var(--ink-soft);font-weight:600}
 
   /* hotel results */
-  .hotel-list{display:grid;gap:14px}
+  /* 가로 2장 · 세로 10줄 = 한 페이지 20장. 좁은 화면에서는 한 줄에 하나. */
+  .hotel-list{display:grid;gap:14px;grid-template-columns:1fr 1fr}
+  @media (max-width:900px){ .hotel-list{grid-template-columns:1fr} }
+  .pager{grid-column:1/-1;display:flex;justify-content:center;align-items:center;
+    gap:6px;flex-wrap:wrap;margin-top:10px}
+  .pager button{min-width:38px;height:38px;padding:0 11px;border-radius:11px;
+    background:var(--card);border:1.5px solid var(--line);color:var(--ink-soft);
+    font-family:inherit;font-size:14px;font-weight:800;transition:.15s}
+  .pager button:hover:not([disabled]){border-color:#FFD9CC;color:var(--ink)}
+  .pager button[aria-current="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+  .pager button[disabled]{opacity:.4;cursor:default}
+  .pager .of{font-size:13px;font-weight:700;color:var(--ink-soft);margin:0 6px}
   .hotel{
     display:grid;grid-template-columns:104px 1fr auto;gap:16px;align-items:center;
     background:var(--card);border-radius:var(--r-md);padding:14px 18px 14px 14px;
@@ -639,6 +650,45 @@
       </div>
     </article>`;
   }
+  // ── 목록 페이지 넘김 ────────────────────────────────────────
+  // 한 페이지에 가로 2 × 세로 10 = 20장. 결과가 그보다 많으면 아래에 페이지 버튼이 붙는다.
+  const PER_PAGE=20;
+  const listState={items:[],draw:null,page:0,empty:''};
+
+  function pagerHTML(page,pages){
+    if(pages<2)return '';
+    // 페이지가 많아도 버튼이 줄바꿈으로 넘치지 않게 현재 쪽 주변만 보여준다
+    const from=Math.max(0,Math.min(page-2,pages-5)), to=Math.min(pages,Math.max(5,page+3));
+    let out='<nav class="pager" aria-label="호텔 목록 페이지">';
+    out+=`<button data-go="${page-1}" ${page===0?'disabled':''} aria-label="이전 페이지">‹</button>`;
+    for(let i=from;i<to;i++)
+      out+=`<button data-go="${i}" aria-current="${i===page}">${i+1}</button>`;
+    out+=`<button data-go="${page+1}" ${page>=pages-1?'disabled':''} aria-label="다음 페이지">›</button>`;
+    out+=`<span class="of">${pages}쪽 중 ${page+1}쪽</span></nav>`;
+    return out;
+  }
+
+  function paintList(){
+    const {items,draw,page,empty}=listState;
+    const box=document.getElementById('hotelList');
+    if(!items.length){box.innerHTML=empty;return}
+    const pages=Math.ceil(items.length/PER_PAGE);
+    box.innerHTML=items.slice(page*PER_PAGE,(page+1)*PER_PAGE).map(draw).join('')+pagerHTML(page,pages);
+  }
+
+  function showList(items,draw,empty){
+    listState.items=items; listState.draw=draw; listState.page=0; listState.empty=empty;
+    paintList();
+  }
+
+  document.getElementById('hotelList').addEventListener('click',e=>{
+    const b=e.target.closest('.pager button[data-go]');
+    if(!b||b.disabled)return;
+    listState.page=+b.dataset.go;
+    paintList();
+    document.getElementById('stay').scrollIntoView({behavior:'smooth'});
+  });
+
   async function searchFlights(){
     // 로컬 미리보기에는 /api 가 없으므로 실서버로 보낸다
     const API=/^https?:\/\/(localhost|127\.0\.0\.1)/.test(location.origin)?'https://dallytrip.com':'';
@@ -655,9 +705,8 @@
       const data=await r.json();
       if(data.error) throw new Error(data.error);
       const list=data.results||[];
-      document.getElementById('hotelList').innerHTML=list.length
-        ? list.map(flightCard).join('')
-        : '<p style="color:var(--ink-soft);font-weight:600;padding:8px 4px">해당 날짜의 항공편을 찾지 못했어요. 다른 날짜로 검색해보세요.</p>';
+      showList(list,flightCard,
+        '<p style="color:var(--ink-soft);font-weight:600;padding:8px 4px">해당 날짜의 항공편을 찾지 못했어요. 다른 날짜로 검색해보세요.</p>');
       document.getElementById('stayTitle').textContent=`${from} → ${to} 항공권`;
       document.getElementById('staySub').textContent=`${date} · 성인 ${adults} · 편도`;
       document.getElementById('stayMore').textContent=`${list.length}개 결과 →`;
@@ -684,9 +733,8 @@
       if(!r.ok||data.error) throw new Error(data.error||('HTTP '+r.status));
       const nights=nightsBetween(checkin,checkout);
       const hotels=data.hotels||[];
-      document.getElementById('hotelList').innerHTML=hotels.length
-        ? hotels.map(h=>hotelCard(h,nights)).join('')
-        : '<p style="color:var(--ink-soft);font-weight:600;padding:8px 4px">조건에 맞는 호텔을 찾지 못했어요. 다른 날짜나 목적지로 검색해보세요.</p>';
+      showList(hotels,h=>hotelCard(h,nights),
+        '<p style="color:var(--ink-soft);font-weight:600;padding:8px 4px">조건에 맞는 호텔을 찾지 못했어요. 다른 날짜나 목적지로 검색해보세요.</p>');
       document.getElementById('stayTitle').textContent=(destination.split(',')[0]||destination)+' 추천 호텔';
       document.getElementById('staySub').textContent=`${checkin} ~ ${checkout} · 성인 ${adults}`+(data.source==='mock'?' · 샘플 데이터':'');
       document.getElementById('stayMore').textContent=`${hotels.length}개 결과 →`;
